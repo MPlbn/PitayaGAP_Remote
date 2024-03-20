@@ -1,42 +1,60 @@
 #!/usr/bin/env python3
-
-import sys
+#Additional libraries to download
 import matplotlib.pyplot as pplot
+
+#REDPITAYA LIBRARAY FOR SCPI
 import redpitaya_scpi as scpi
+
+#CUSTOM MODULES
 import Generate
 import Acquire
 
-#constants generation
-IP = 'rp-f0ba38.local'
-WAVE_FORM = 'sine'
-FREQUENCY = 1000
-AMPLITUDE = 1
-GENERATOR = Generate.Generator(IP)
+#TODO change to class
+class ProgramRunner:
+    def __init__(self, uIP = 'rp-f0ba38.local'):
+        self.IP = uIP
+        self.PROGRAM_MODE = 0 #not running
+        self.Generator = Generate.Generator(self.IP)
+        self.Acquisitor = Acquire.Acquisitor(self.IP)
 
-#constants acquisition
-DECIMATION = 32
-TRIGGER_LVL = 0.5
-TRIGGER_DELAY = 0
-ACQUISITOR = Acquire.Acquisitor(IP)
+    def setGeneratorConstants(uChannelNumber = 1, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
+        pass
 
-#Reseting generation and acquisition
-GENERATOR.reset()
-ACQUISITOR.reset()
+    def setAcquisitionConstants(uChannelNumber = 1, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
+        pass
 
-#settings
-GENERATOR.setup(1, WAVE_FORM, AMPLITUDE, FREQUENCY)
-ACQUISITOR.setup(DECIMATION, TRIGGER_LVL, TRIGGER_DELAY)
+    def run(self):
+        match self.PROGRAM_MODE:
+            case 0:
+                pass
+            case 1: #full run
+                self.Generator.reset()
+                self.Acquisitor.reset()
 
-#Starting generation
-GENERATOR.startGenerating()
+                #settings
+                self.setGeneratorConstants() #Default vals
+                self.setAcquisitionConstants() #Default vals
 
-#Starting acquisition
-buffer = ACQUISITOR.runAcquisition()
+                #Starting generation
+                self.Generator.startGenerating()
 
-#plotting
-pplot.plot(buffer)
-pplot.ylabel('testWykres')
-pplot.show()
+                #Starting acquisition
+                self.dataBuffer = self.Acquisitor.runAcquisition()
 
-#closing scpi connection
-scpi.scpi(IP).close()
+            case 2:
+                pass
+            case 3:
+                pass
+            case 4:
+                pass
+
+    def changeMode():
+        pass
+
+    def exit():
+        scpi.scpi(self.IP).close()
+
+    def plotFromBuffer(self):
+        pplot.plot(self.dataBuffer)
+        pplot.ylabe('testWykres')
+        pplot.show()

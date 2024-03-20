@@ -1,5 +1,6 @@
 import redpitaya_scpi as scpi
 
+#Acquisition commands wrapper
 class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)

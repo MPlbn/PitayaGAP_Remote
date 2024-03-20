@@ -1,5 +1,6 @@
 import redpitaya_scpi as scpi
 
+#Generating commands wrapper 
 class Generator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
