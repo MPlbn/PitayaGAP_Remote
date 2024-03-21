@@ -51,10 +51,10 @@ class ProgramRunner:
     def changeMode():
         pass
 
-    def exit():
+    def exit(self):
         scpi.scpi(self.IP).close()
 
     def plotFromBuffer(self):
         pplot.plot(self.dataBuffer)
-        pplot.ylabe('testWykres')
+        pplot.ylabel('testWykres')
         pplot.show()

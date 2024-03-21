@@ -2,4 +2,9 @@
 
 from appJar import gui
 
-import Program
+import ProgramRunner
+
+
+class GUI:
+    def __init__(self):
+        
