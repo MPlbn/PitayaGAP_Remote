@@ -15,11 +15,11 @@ class ProgramRunner:
         self.IP = uIP
         self.PROGRAM_MODE = 0 #not running
         self.Generator = Generate.Generator(self.IP)
+        self.ContGenerator = Generate.ContGenerator(self.IP)
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.isRunningContinous = False
         self.continousData = []
-        self.currentGeneratedValue = 0
-        self.currentGeneratedValueStep = 0.00001
+        self.dataBuffer = []
 
     def setGeneratorConstants(self, uChannelNumber = 1, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
         self.Generator.setup(uChannelNumber, uWaveform, uAmplitude, uFrequency)
@@ -38,7 +38,6 @@ class ProgramRunner:
             case 1: #full run
                 self.Generator.reset()
                 self.Acquisitor.reset()
-
                 #settings
                 self.setGeneratorConstants(uWaveform="arbitrary") #Default vals
                 self.setGeneratorArbitraryValue(0.3)
@@ -48,27 +47,29 @@ class ProgramRunner:
                 self.Generator.startGenerating()
 
                 #Starting acquisition
+                self.Acquisitor.startAcquisition()
                 self.dataBuffer = self.Acquisitor.runAcquisition()
 
-            case 2: #Continous run
-                    self.Generator.reset()
+            case 2: #Continous run start
                     self.Acquisitor.reset()
-                    self.generateContinousValue()
-                    self.setAcquisitionConstants(1, 16384, 0, 0)
-                    self.setGeneratorConstants(1, 'dc', self.currentGeneratedValue, 1000000)
-                    self.Generator.startGenerating() 
-                    self.dataBuffer = self.Acquisitor.runAcquisition() 
-                    self.continousData.append(self.dataBuffer)    
-                    self.plotContinous()             
-                        
+                    self.setAcquisitionConstants(1, 1024, 0, 0)
+                    self.ContGenerator.startGen()
+                    self.Acquisitor.startAcquisition()
+                    self.changeMode(4)           
 
-            case 3:
-                pass
+            case 3: #Stop continous
+                #run to 0 and stop
+                self.Acquisitor.stopAcquisition()
+                self.ContGenerator.stopGen()
+
             case 4:
-                pass
+                self.ContGenerator.workRoutine()
+                voltage = self.Acquisitor.runContAcquisition()
+                print(voltage)
+                self.continousData.append(voltage)
 
     def changeMode(self, newMode):
-        if newMode >= 0 and newMode < 3:
+        if newMode >= 0 and newMode <= 4:
             self.PROGRAM_MODE = newMode
         else:
             print("Error: Invalid mode number")
@@ -76,12 +77,6 @@ class ProgramRunner:
     def exit(self):
         scpi.scpi(self.IP).close()
     
-    def generateContinousValue(self):
-        if self.currentGeneratedValue >= 1 or self.currentGeneratedValue <= -1:
-            self.currentGeneratedValueStep *= -1
-        self.currentGeneratedValue += self.currentGeneratedValueStep
-
-
     def plotFromBuffer(self):
         pplot.plot(self.dataBuffer)
         pplot.ylabel('testWykres')

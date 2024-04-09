@@ -1,4 +1,5 @@
 import redpitaya_scpi as scpi
+import time
 
 #Acquisition commands wrapper
 class Acquisitor:
@@ -12,14 +13,24 @@ class Acquisitor:
     def setup(self, uDecimation = 32, uTriggerLevel = 0, uTriggerDelay = 0):
         self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)
 
-    def runAcquisition(self):
+    def startAcquisition(self):
         self.RP_S.tx_txt('ACQ:START')
-        self.RP_S.tx_txt(f'ACQ:TRIG CH{self.channelNumber}_PE')
+
+    def runAcquisition(self):
+        self.RP_S.tx_txt(f'ACQ:TRIG CH{self.channelNumber}')
         while True:
             self.RP_S.tx_txt('ACQ:TRIG:FILL?')
             if self.RP_S.rx_txt() == '1':
                 break
         return self.RP_S.acq_data(self.channelNumber, convert=True)
-    
+
+    def runContAcquisition(self):
+        self.RP_S.tx_txt("ACQ:TRIG")
+        time.sleep(0.1)
+        self.RP_S.tx_txt('ACQ:SOUR1:VAL?')
+        voltage = self.RP_S.rx_txt()
+        print("4")
+        return voltage
+
     def stopAcquisition(self):
         self.RP_S.tx_txt('ACQ:STOP')
