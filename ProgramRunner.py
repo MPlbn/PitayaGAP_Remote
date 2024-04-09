@@ -39,22 +39,20 @@ class ProgramRunner:
                 self.Generator.reset()
                 self.Acquisitor.reset()
                 #settings
-                self.setGeneratorConstants(uWaveform="arbitrary") #Default vals
-                self.setGeneratorArbitraryValue(0.3)
+                self.setGeneratorConstants(uWaveform="sine") #Default vals
                 self.setAcquisitionConstants() #Default vals
 
                 #Starting generation
                 self.Generator.startGenerating()
 
                 #Starting acquisition
-                self.Acquisitor.startAcquisition()
-                self.dataBuffer = self.Acquisitor.runAcquisition()
+                self.dataBuffer = self.Acquisitor.runAcquisition() #sth is broken
 
             case 2: #Continous run start
                     self.Acquisitor.reset()
                     self.setAcquisitionConstants(1, 1024, 0, 0)
                     self.ContGenerator.startGen()
-                    self.Acquisitor.startAcquisition()
+                    #self.Acquisitor.startAcquisition()
                     self.changeMode(4)           
 
             case 3: #Stop continous
@@ -65,7 +63,6 @@ class ProgramRunner:
             case 4:
                 self.ContGenerator.workRoutine()
                 voltage = self.Acquisitor.runContAcquisition()
-                print(voltage)
                 self.continousData.append(voltage)
 
     def changeMode(self, newMode):

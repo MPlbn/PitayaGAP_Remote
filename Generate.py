@@ -65,6 +65,7 @@ class ContGenerator:
 
     def startGen(self):
         self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE ON")
+        self.RP_S.tx_txt(f"SOUR{self.output}:TRIG:INT")
 
     def workRoutine(self):
         if(not self.isPaused):
@@ -81,16 +82,16 @@ class ContGenerator:
         self.voltageValue += self.step
    
     def stopGen(self):
-        if(self.voltageValue > 0):
-            if(self.step > 0):
-                self.step *= -1.0
-        if(self.voltageValue < 0):
-            if(self.step < 0):
-                self.step *= -1.0
+        # if(self.voltageValue > 0):
+        #     if(self.step > 0):
+        #         self.step *= -1.0
+        # if(self.voltageValue < 0):
+        #     if(self.step < 0):
+        #         self.step *= -1.0
         
 
-        while(self.voltageValue > 0.1 or self.voltageValue < -0.1):
-            self.voltageValue += self.step
+        # while(self.voltageValue > 0.1 or self.voltageValue < -0.1):
+        #     self.voltageValue += self.step
         
         self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE OFF")
         self.voltageValue = 0.0
