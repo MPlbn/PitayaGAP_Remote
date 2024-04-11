@@ -1,5 +1,8 @@
-from appJar import gui
+#from appJar import gui
+import appJar
 import mock
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
 def press(button):
     print(appGui.getEntry("Amplituda"))
@@ -16,18 +19,32 @@ def setRangesPress(button):
 
 
 def startGeneratingPress(button):
+    PLOTTER.start()
     GENERATOR.setGenerating(True)
-    GENERATOR.generate(appGui)  # Start generating values with the GUI instance
+
 
 def stopGeneratingPress(button):
+    PLOTTER.stop()
     GENERATOR.setGenerating(False)
+    
+def pauseGeneratingPress(button):
+    GENERATOR.setGenerating(False)
+
+def updateGeneration():
+    GENERATOR.generate()
+    appGui.setLabel("generatedValue", str(round(GENERATOR.currentValue, GENERATOR.calculateRoundingNumber())))
+    appGui.setMeter("generateMeter", GENERATOR.convertToPercent(), str(round(GENERATOR.currentValue, GENERATOR.calculateRoundingNumber())))
+    PLOTTER.processData(GENERATOR.currentValue)
+    PLOTTER.updatePlot(ax, canvas)
 
 
 #globals
 GENERATOR: mock.MockGenerator = mock.MockGenerator()
 
+PLOTTER: mock.mockPlotter = mock.mockPlotter()
+
 #settings
-appGui: gui = gui("TEST", "1000x1000")
+appGui: appJar.gui = appJar.gui("TEST", "1000x1000")
 
 appGui.addLabel("lRange", "Input lower range", 0, 0)
 appGui.addNumericEntry("LowRange", 0, 1)
@@ -44,6 +61,7 @@ appGui.addNumericEntry("interval", 0, 7)
 appGui.addButton("Set Ranges", setRangesPress, 2, 1)
 appGui.addButton("Start Generating", startGeneratingPress, 3, 1)
 appGui.addButton("Stop Generating", stopGeneratingPress, 3, 2)
+appGui.addButton("Lock", pauseGeneratingPress, 3, 3)
 
 appGui.addSplitMeter("generateMeter", 4, 2)
 appGui.setMeterFill("generateMeter", ["green", "blue"])
@@ -51,5 +69,12 @@ appGui.addLabel("generatedValue", "", 4, 1)
 
 appGui.bindKey("<Escape>", appGui.stop) #close gui
 appGui.bindKey("<Return>", press) #dodaje do startu
+
+fig, ax = plt.subplots()
+canvas = FigureCanvasTkAgg(fig, appGui.topLevel)
+canvas.get_tk_widget().pack(side = "top", fill = "both", expand=True)
+
+appGui.registerEvent(updateGeneration)
+appGui.setPollTime(GENERATOR.generatingInterval)
 
 appGui.go()

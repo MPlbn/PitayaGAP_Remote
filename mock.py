@@ -1,5 +1,8 @@
 import time
 from appJar import gui
+from matplotlib import pyplot
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import numpy as np
 
 class MockGenerator:
     def __init__(self):
@@ -38,7 +41,7 @@ class MockGenerator:
         currentPlace: float = self.currentValue - self.lRange
         return (currentPlace / fullRange) * 100
 
-    def generate(self, appGui):
+    def generate(self):
         if self.isGenerating:    
             if self.currentValue > self.hRange:
                 if(self.step > 0):
@@ -48,6 +51,31 @@ class MockGenerator:
                     self.step *= -1
 
             self.currentValue += self.step
-            appGui.setLabel("generatedValue", str(round(self.currentValue, self.calculateRoundingNumber())))
-            appGui.setMeter("generateMeter", self.convertToPercent(), str(round(self.currentValue, self.calculateRoundingNumber())))
-            appGui.after(self.generatingInterval, self.generate, appGui)
+            
+
+class mockPlotter:
+    def __init__(self):
+        self.data = [] #max size: 1000
+        self.maxDataSize = 1000
+        self.isRunning = False
+
+    def processData(self, uNewData):
+        if(self.isRunning):
+            if(len(self.data) >= self.maxDataSize):
+                self.data.pop()
+            self.data.append(uNewData)
+        
+    def start(self):
+        self.isRunning = True
+    
+    def stop(self):
+        self.isRunning = False
+
+    def updatePlot(self, ax, canvas):
+        if(self.isRunning):
+            x = np.linspace(0, 999, len(self.data))
+            y = self.data
+            ax.clear()
+            ax.plot(x,y)
+            canvas.draw()
+    
