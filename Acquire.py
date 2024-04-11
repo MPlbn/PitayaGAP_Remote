@@ -26,10 +26,10 @@ class Acquisitor:
         return self.RP_S.acq_data(self.channelNumber, convert=True)
 
     def runContAcquisition(self):
-        self.RP_S.tx_txt("ACQ:TRIG NOW")
+        self.RP_S.tx_txt(f'ACQ:TRIG CH{self.channelNumber}NOW')
         time.sleep(0.1)
         self.RP_S.tx_txt('ACQ:SOUR1:VAL?')
-        voltage = self.RP_S.rx_txt()
+        voltage = self.RP_S.rx_txt() #przez to nie przechodzi
         print("4")
         return voltage
 

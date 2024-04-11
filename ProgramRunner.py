@@ -39,7 +39,7 @@ class ProgramRunner:
                 self.Generator.reset()
                 self.Acquisitor.reset()
                 #settings
-                self.setGeneratorConstants(uWaveform="sine") #Default vals
+                self.setGeneratorConstants(uWaveform="sine") #Default vals check dc waveform
                 self.setAcquisitionConstants() #Default vals
 
                 #Starting generation

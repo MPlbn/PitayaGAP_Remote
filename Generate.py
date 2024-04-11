@@ -32,6 +32,7 @@ class Generator:
 
 
 class ContGenerator:
+    ## TODO Possibly doable with dc waveform and changing the amplitude without resetting generator
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
         self.output: int = 1
@@ -63,14 +64,17 @@ class ContGenerator:
     def unpause(self):
         self.isPaused = False
 
+    def reset(self):
+        self.RP_S.tx_txt('GEN:RST')
+
     def startGen(self):
-        self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE ON")
-        self.RP_S.tx_txt(f"SOUR{self.output}:TRIG:INT")
+        self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
+        self.RP_S.tx_txt(f'SOUR{self.output}:TRIG:INT')
 
     def workRoutine(self):
         if(not self.isPaused):
             self.generate()
-            self.RP_S.tx_txt(f"OUTPUT{self.output}:VOLT {self.voltageValue}")
+            self.RP_S.tx_txt(f'OUTPUT{self.output}:VOLT {self.voltageValue}')
 
     def generate(self):
         if(self.voltageValue > self.highRange):

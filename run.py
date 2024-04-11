@@ -1,7 +1,7 @@
 import ProgramRunner as PR
 import GUI
 
-counter = 0
+#counter = 0
 
 ProgramRunner = PR.ProgramRunner()
 # ProgramRunner.changeMode(1)
