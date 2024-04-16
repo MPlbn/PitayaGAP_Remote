@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 #Additional libraries to download
 import matplotlib.pyplot as pplot
+import numpy as np
 
 #REDPITAYA LIBRARAY FOR SCPI
 import redpitaya_scpi as scpi
@@ -8,6 +9,7 @@ import redpitaya_scpi as scpi
 #CUSTOM MODULES
 import Generate
 import Acquire
+import time
 
 #TODO change to class
 class ProgramRunner:
@@ -22,7 +24,7 @@ class ProgramRunner:
         self.dataBuffer = []
 
     def setGeneratorConstants(self, uChannelNumber = 1, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
-        self.Generator.setup(uChannelNumber, uWaveform, uAmplitude, uFrequency)
+        self.Generator.setup(uChannelNumber, uWaveform, uFrequency, uAmplitude)
 
     def setAcquisitionConstants(self, uChannelNumber = 1, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
         self.Acquisitor.setup(uDecimation, uTriggerLevel, uTriggerDelay)
@@ -39,20 +41,22 @@ class ProgramRunner:
                 self.Generator.reset()
                 self.Acquisitor.reset()
                 #settings
-                self.setGeneratorConstants(uWaveform="sine") #Default vals check dc waveform
+                self.setGeneratorConstants(uWaveform="dc") #Default vals check dc waveform
                 self.setAcquisitionConstants() #Default vals
 
                 #Starting generation
                 self.Generator.startGenerating()
-
+                time.sleep(5)
                 #Starting acquisition
                 self.dataBuffer = self.Acquisitor.runAcquisition() #sth is broken
 
             case 2: #Continous run start
                     self.Acquisitor.reset()
+                    self.ContGenerator.reset()
                     self.setAcquisitionConstants(1, 1024, 0, 0)
+                    self.ContGenerator.setup()
                     self.ContGenerator.startGen()
-                    #self.Acquisitor.startAcquisition()
+                    self.Acquisitor.startAcquisition()
                     self.changeMode(4)           
 
             case 3: #Stop continous
@@ -63,6 +67,7 @@ class ProgramRunner:
             case 4:
                 self.ContGenerator.workRoutine()
                 voltage = self.Acquisitor.runContAcquisition()
+                print(len(voltage))
                 self.continousData.append(voltage)
 
     def changeMode(self, newMode):
@@ -80,6 +85,7 @@ class ProgramRunner:
         pplot.show()
 
     def plotContinous(self):
-        pplot.plot(self.continousData)
+        x = np.linspace(0, 1, 2)
+        pplot.scatter(x, self.continousData)
         pplot.ylabel('testWykresCiag')
         pplot.show()

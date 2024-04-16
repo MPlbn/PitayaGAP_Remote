@@ -44,7 +44,7 @@ GENERATOR: mock.MockGenerator = mock.MockGenerator()
 PLOTTER: mock.mockPlotter = mock.mockPlotter()
 
 #settings
-appGui: appJar.gui = appJar.gui("TEST", "1000x1000")
+appGui: appJar.gui = appJar.gui("TEST", "fullscreen")
 
 appGui.addLabel("lRange", "Input lower range", 0, 0)
 appGui.addNumericEntry("LowRange", 0, 1)

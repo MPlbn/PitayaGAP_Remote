@@ -12,7 +12,7 @@ class Generator:
         self.channelNumber = uChannelNumber
         self.frequency = uFrequency
         self.amplitude = uAmplitude
-        self.RP_S.sour_set(uChannelNumber, uWaveform, uFrequency, uAmplitude)
+        self.RP_S.sour_set(uChannelNumber, uWaveform, uAmplitude, uFrequency)
 
     def startGenerating(self):
         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
@@ -23,7 +23,7 @@ class Generator:
         #TODO current value how to get it
         self.reset()
         currentAmplitude = self.amplitude #TODO How to set starting value
-        self.setup(self.channelNumber, 'constant', self.frequency, currentAmplitude)
+        self.setup(self.channelNumber, 'dc', self.frequency, currentAmplitude)
         self.startGenerating()
    
     #TODO
@@ -36,13 +36,18 @@ class ContGenerator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
         self.output: int = 1
-        self.voltageValue: float = 0.0
-        self.step: float = 0.01
+        self.voltageValue: float = 0.5
+        self.step: float = 0.1
         self.interval: int = 50
         self.lowRange: float = -1.0
         self.highRange: float = 1.0
         self.isPaused: bool = False
 
+    def setup(self, uChannelNumber = 1, uFrequency = 1000, uAmplitude = 0):
+        self.channelNumber = uChannelNumber
+        self.frequency = uFrequency
+        self.amplitude = uAmplitude
+        self.RP_S.sour_set(uChannelNumber, "dc", uAmplitude, uFrequency)
 
     def setRanges(self, uHRange, uLRange):
         self.lowRange = uLRange
@@ -57,6 +62,9 @@ class ContGenerator:
 
     def setOutput(self, uOutput):
         self.output = uOutput
+
+    def changeVolt(self, uNewVoltage):
+        self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {uNewVoltage}')
 
     def pause(self):
         self.isPaused = True
@@ -74,7 +82,8 @@ class ContGenerator:
     def workRoutine(self):
         if(not self.isPaused):
             self.generate()
-            self.RP_S.tx_txt(f'OUTPUT{self.output}:VOLT {self.voltageValue}')
+            self.changeVolt(self.voltageValue)
+            
 
     def generate(self):
         if(self.voltageValue > self.highRange):
