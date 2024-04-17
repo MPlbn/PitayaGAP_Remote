@@ -1,6 +1,6 @@
 import redpitaya_scpi as scpi
 
-#Generating commands wrapper 
+#Generating commands wrapper - obsolete
 class Generator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
@@ -18,18 +18,10 @@ class Generator:
         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
         self.RP_S.tx_txt(f'SOUR{self.channelNumber}:TRIG:INT')
 
-    #TODO
-    def lockOnCurrentVoltage(self):
-        #TODO current value how to get it
-        self.reset()
-        currentAmplitude = self.amplitude #TODO How to set starting value
-        self.setup(self.channelNumber, 'dc', self.frequency, currentAmplitude)
-        self.startGenerating()
-   
-    #TODO
-    def unlock(self):
-        pass
+    def stopGenerating(self):
+        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
 
+#   WIP TODO
 
 class ContGenerator:
     ## TODO Possibly doable with dc waveform and changing the amplitude without resetting generator

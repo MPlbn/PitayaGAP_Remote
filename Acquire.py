@@ -1,7 +1,7 @@
 import redpitaya_scpi as scpi
 import time
 
-#Acquisition commands wrapper
+#Acquisition commands wrapper - WIP TODO
 class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
