@@ -39,7 +39,7 @@ class ContGenerator:
         self.channelNumber = uChannelNumber
         self.frequency = uFrequency
         self.amplitude = uAmplitude
-        self.RP_S.sour_set(uChannelNumber, "dc", uAmplitude, uFrequency)
+        self.RP_S.sour_set(uChannelNumber, "dc", uAmplitude, uFrequency) #sth wrong here too, it doesn't do what i need it to, always outputs 0.73...
 
     def setRanges(self, uHRange, uLRange):
         self.lowRange = uLRange

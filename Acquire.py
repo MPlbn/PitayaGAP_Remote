@@ -10,7 +10,7 @@ class Acquisitor:
     def reset(self):
         self.RP_S.tx_txt('ACQ:RST')
     
-    def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 0):
+    def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 16000):
         self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)
 
     def startAcquisition(self):
@@ -29,7 +29,6 @@ class Acquisitor:
         return x
     
     def runContAcquisition(self):
-        time.sleep(1)
         self.RP_S.tx_txt(f'ACQ:TRIG NOW')
         while True:
             self.RP_S.tx_txt('ACQ:TRIG:FILL?')
