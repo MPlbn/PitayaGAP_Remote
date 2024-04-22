@@ -11,9 +11,9 @@ import ProgramRunner
 class GUI:
     def __init__(self):
         self.PR: ProgramRunner.ProgramRunner = ProgramRunner.ProgramRunner()
-        self.appGui: gui = gui("DO ZMIANY", "fullscreen")
+        self.appGui: gui = gui("DO ZMIANY", "500x500")
+        self.interval = 20
         self.startGUI()
-        self.interval = 50
 
     #buttons
     def startGeneratingPress(self, button):
@@ -84,8 +84,8 @@ class GUI:
 
         #preparing keyboard binds
         self.appGui.bindKey("<Escape>", self.stopGUI) #close gui
-        self.appGui.bindKey("<+>", self.stepUpKey)
-        self.appGui.bindKey("<->", self.stepDownKey)
+        #self.appGui.bindKey("<+>", self.stepUpKey) #These are wrong
+        #self.appGui.bindKey("<->", self.stepDownKey)
 
         #preparing the plotting inside gui
         self.fig, self.ax = plt.subplots()

@@ -97,7 +97,7 @@ class ProgramRunner:
             case 2: #Continous run start
                     self.Acquisitor.reset()
                     self.ContGenerator.reset()
-                    self.setAcquisitionConstants(1, 1024, 0, 0)
+                    self.setAcquisitionConstants(1, 0, 0, 0) #Maybe change the buffor size
                     self.ContGenerator.setup()
                     self.ContGenerator.startGen()
                     self.Acquisitor.startAcquisition()
@@ -112,6 +112,7 @@ class ProgramRunner:
             case 4:
                 self.ContGenerator.workRoutine()
                 voltage = self.Acquisitor.runContAcquisition()[self.LAST_BUFFER_VALUE] #test the last value and check performance, maybe switching to C needed
+                print(voltage)
                 self.continousData.append(voltage)
                 self.Plotter.plot(self.continousData, uAx, uCanvas)
 

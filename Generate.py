@@ -31,11 +31,11 @@ class ContGenerator:
         self.voltageValue: float = 0.5
         self.step: float = 0.1
         self.interval: int = 50
-        self.lowRange: float = -1.0
-        self.highRange: float = 1.0
+        self.lowRange: float = -0.9
+        self.highRange: float = 0.9
         self.isPaused: bool = False
 
-    def setup(self, uChannelNumber = 1, uFrequency = 1000, uAmplitude = 0):
+    def setup(self, uChannelNumber = 1, uFrequency = 10000, uAmplitude = 0.2):
         self.channelNumber = uChannelNumber
         self.frequency = uFrequency
         self.amplitude = uAmplitude
@@ -56,7 +56,14 @@ class ContGenerator:
         self.output = uOutput
 
     def changeVolt(self, uNewVoltage):
-        self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {uNewVoltage}')
+        #This doesn't change anything
+        self.reset()
+        self.setup(uAmplitude=uNewVoltage)
+        self.startGen()
+
+
+        #self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {uNewVoltage}')
+
 
     def pause(self):
         self.isPaused = True
