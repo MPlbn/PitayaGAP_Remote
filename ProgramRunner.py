@@ -73,7 +73,7 @@ class ProgramRunner:
                 self.Acquisitor.reset()
 
                 #settings
-                self.setGeneratorConstants() #Default vals
+                self.setGeneratorConstants(uWaveform="sine") #Default vals
                 self.setAcquisitionConstants() #Default vals
 
                 #Starting generation
@@ -98,7 +98,7 @@ class ProgramRunner:
                     self.Acquisitor.reset()
                     self.ContGenerator.reset()
                     self.setAcquisitionConstants(1, 0, 0, 0) #Maybe change the buffor size
-                    self.ContGenerator.setup()
+                    self.ContGenerator.setup(uAmplitude=0)
                     self.ContGenerator.startGen()
                     self.Acquisitor.startAcquisition()
                     self.changeMode(4)           
@@ -111,7 +111,8 @@ class ProgramRunner:
 
             case 4:
                 self.ContGenerator.workRoutine()
-                voltage = self.Acquisitor.runContAcquisition()[self.LAST_BUFFER_VALUE] #test the last value and check performance, maybe switching to C needed
+                time.sleep(1)
+                voltage = self.Acquisitor.runContAcquisition()[self.LAST_BUFFER_VALUE-500] #test the last value and check performance, maybe switching to C needed
                 print(voltage)
                 self.continousData.append(voltage)
                 self.Plotter.plot(self.continousData, uAx, uCanvas)

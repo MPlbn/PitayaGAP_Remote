@@ -35,11 +35,11 @@ class ContGenerator:
         self.highRange: float = 0.9
         self.isPaused: bool = False
 
-    def setup(self, uChannelNumber = 1, uFrequency = 10000, uAmplitude = 0.2):
+    def setup(self, uChannelNumber = 1, uFrequency = 0, uAmplitude = 0.2):
         self.channelNumber = uChannelNumber
         self.frequency = uFrequency
         self.amplitude = uAmplitude
-        self.RP_S.sour_set(uChannelNumber, "dc", uAmplitude, uFrequency) #sth wrong here too, it doesn't do what i need it to, always outputs 0.73...
+        self.RP_S.sour_set(uChannelNumber, "triangle", uAmplitude, uFrequency) #sth wrong here too, it doesn't do what i need it to, always outputs 0.73...
 
     def setRanges(self, uHRange, uLRange):
         self.lowRange = uLRange
@@ -57,13 +57,13 @@ class ContGenerator:
 
     def changeVolt(self, uNewVoltage):
         #This doesn't change anything
-        self.reset()
-        self.setup(uAmplitude=uNewVoltage)
-        self.startGen()
-
-
-        #self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {uNewVoltage}')
-
+        # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE OFF')
+        # self.reset()
+        # self.setup(uAmplitude=uNewVoltage)
+        # self.startGen()
+        self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {uNewVoltage}')
+        # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
+        
 
     def pause(self):
         self.isPaused = True
