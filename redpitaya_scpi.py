@@ -684,7 +684,6 @@ class scpi (object):
         units = self.txrx_txt('ACQ:DATA:UNITS?')
         # format = self.txrx_txt("ACQ:DATA:FORMAT?")
 
-
         # Determine the output data
         if(start is not None) and (end is not None):
             self.tx_txt(f"ACQ:SOUR{chan}:DATA:STA:END? {start},{end}")
@@ -701,6 +700,7 @@ class scpi (object):
         else:
             self.tx_txt(f"ACQ:SOUR{chan}:DATA?")
 
+
         # Convert data
         if binary:
             buff_byte = self.rx_arb()
@@ -714,7 +714,7 @@ class scpi (object):
                 buff = buff_byte
         else:
             buff_string = self.rx_txt()
-
+            
             if convert:
                 buff_string = buff_string.strip('{}\n\r').replace("  ", "").split(',')
                 buff = list(map(float, buff_string))

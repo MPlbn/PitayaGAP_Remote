@@ -12,7 +12,7 @@ class GUI:
     def __init__(self):
         self.PR: ProgramRunner.ProgramRunner = ProgramRunner.ProgramRunner()
         self.appGui: gui = gui("DO ZMIANY", "500x500")
-        self.interval = 20
+        self.interval = 50
         self.startGUI()
 
     #buttons

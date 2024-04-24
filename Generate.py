@@ -29,17 +29,20 @@ class ContGenerator:
         self.RP_S = scpi.scpi(uIP)
         self.output: int = 1
         self.voltageValue: float = 0.5
-        self.step: float = 0.1
+        self.step: float = 0.005
         self.interval: int = 50
         self.lowRange: float = -0.9
         self.highRange: float = 0.9
         self.isPaused: bool = False
+        self.changed: bool = False
 
-    def setup(self, uChannelNumber = 1, uFrequency = 0, uAmplitude = 0.2):
+        self.TESTBOOL: bool = False
+
+    def setup(self, uChannelNumber = 1, uFrequency = 1000, uAmplitude = 0.2):
         self.channelNumber = uChannelNumber
         self.frequency = uFrequency
         self.amplitude = uAmplitude
-        self.RP_S.sour_set(uChannelNumber, "triangle", uAmplitude, uFrequency) #sth wrong here too, it doesn't do what i need it to, always outputs 0.73...
+        self.RP_S.sour_set(uChannelNumber, "dc", uAmplitude, uFrequency) #sth wrong here too, it doesn't do what i need it to, always outputs 0.73...
 
     def setRanges(self, uHRange, uLRange):
         self.lowRange = uLRange
@@ -61,7 +64,7 @@ class ContGenerator:
         # self.reset()
         # self.setup(uAmplitude=uNewVoltage)
         # self.startGen()
-        self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {uNewVoltage}')
+        self.RP_S.tx_txt(f'SOUR{self.channelNumber}:VOLT {abs(uNewVoltage)}')
         # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
         
 
@@ -76,7 +79,7 @@ class ContGenerator:
 
     def startGen(self):
         self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
-        self.RP_S.tx_txt(f'SOUR{self.output}:TRIG:INT')
+        self.RP_S.tx_txt(f'SOUR{self.output}:TRig:INT')
 
     def workRoutine(self):
         if(not self.isPaused):
@@ -85,13 +88,23 @@ class ContGenerator:
             
 
     def generate(self):
+
+        #Need to think about changing the dc to dcneg
         if(self.voltageValue > self.highRange):
             if(self.step > 0):
                 self.step *= -1.0
         if(self.voltageValue < self.lowRange):
             if(self.step < 0):
                 self.step *= -1.0
+        temp = self.voltageValue
         self.voltageValue += self.step
+
+        if(temp*self.voltageValue < 0):
+            if(self.voltageValue < 0):
+                self.RP_S.tx_txt(f'SOUR{self.channelNumber}:FUNC DC_NEG')
+            else:
+                self.RP_S.tx_txt(f'SOUR{self.channelNumber}:FUNC DC')
+            
    
     def stopGen(self):
         # if(self.voltageValue > 0):
