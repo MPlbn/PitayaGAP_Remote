@@ -6,40 +6,61 @@ class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
         self.channelNumber = 1
+        self.decimation = 4
 
     def reset(self):
         self.RP_S.tx_txt('ACQ:RST')
-    
-    def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 0):
-        self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)
 
-    def startAcquisition(self):
+    def setup(self):
+        self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
+
+    def start(self):
         self.RP_S.tx_txt('ACQ:START')
 
-    def runAcquisition(self):
-        self.RP_S.tx_txt('ACQ:START')
-        self.RP_S.tx_txt(f'ACQ:TRIG NOW')
-        while True:
-            self.RP_S.tx_txt('ACQ:TRIG:FILL?')
-            if self.RP_S.rx_txt() == '1':
-                break
-        x = self.RP_S.acq_data(self.channelNumber, convert=True)
-        return x
-    
-    def triggerContAcquisition(self):
-        self.RP_S.tx_txt('ACQ:TRIG NOW')
+    def stop(self):
+        self.RP_S.tx_txt('ACQ:STOP')
 
-    def runContAcquisition(self):
+    def run(self):
+        self.RP_S.tx_txt('ACQ:TRig NOW')
+
         while True:
-            self.RP_S.tx_txt('ACQ:TRIG:FILL?')
-            if self.RP_S.rx_txt() == '1':
+            self.RP_S.tx_txt('ACQ:TRig:FILL?')
+            if(self.RP_S.rx_txt() == '1'):
                 break
-        return self.RP_S.acq_data(self.channelNumber, convert=True, lat=True, num_samples=1)
+
+    def getBuff(self):
+        return self.RP_S.acq_data(1, convert=True)[1600:1610]
+
+    # def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 0):
+    #     self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)
+
+    # def startAcquisition(self):
+    #     self.RP_S.tx_txt('ACQ:START')
+
+    # def runAcquisition(self):
+    #     self.RP_S.tx_txt('ACQ:START')
+    #     self.RP_S.tx_txt(f'ACQ:TRIG NOW')
+    #     while True:
+    #         self.RP_S.tx_txt('ACQ:TRIG:FILL?')
+    #         if self.RP_S.rx_txt() == '1':
+    #             break
+    #     x = self.RP_S.acq_data(self.channelNumber, convert=True)
+    #     return x
+    
+    # def triggerContAcquisition(self):
+    #     self.RP_S.tx_txt('ACQ:TRIG NOW')
+
+    # def runContAcquisition(self):
+    #     while True:
+    #         self.RP_S.tx_txt('ACQ:TRIG:FILL?')
+    #         if self.RP_S.rx_txt() == '1':
+    #             break
+    #     return self.RP_S.acq_data(self.channelNumber, convert=True, lat=True, num_samples=1)
     
     # def getContVoltage(self):
     #     #here something else
     #     print("Tutaj?")
     #     return
 
-    def stopAcquisition(self):
-        self.RP_S.tx_txt('ACQ:STOP')
+    # def stopAcquisition(self):
+    #     self.RP_S.tx_txt('ACQ:STOP')

@@ -24,7 +24,7 @@ class ProgramRunner:
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.Plotter = Plotter.Plotter()
         self.isRunningContinous = False
-        self.continousData = []
+        self.continousData: np.array = np.array([])
         self.dataBuffer = []
         self.LAST_BUFFER_VALUE = 16000 #To verify number
 
@@ -69,30 +69,31 @@ class ProgramRunner:
             case 0: #idle state
                 pass
             case 1: #full run
-                self.Generator.reset()
-                self.Acquisitor.reset()
+                pass
+                # self.Generator.reset()
+                # self.Acquisitor.reset()
 
-                #settings
-                self.setGeneratorConstants(uWaveform="sine") #Default vals
-                self.setAcquisitionConstants() #Default vals
+                # #settings
+                # self.setGeneratorConstants(uWaveform="sine") #Default vals
+                # self.setAcquisitionConstants() #Default vals
 
-                #Starting generation
-                self.Generator.startGenerating()
+                # #Starting generation
+                # self.Generator.startGenerating()
 
-                #wait to limit initial junk data
-                time.sleep(1)
+                # #wait to limit initial junk data
+                # time.sleep(1)
 
-                #Starting acquisition
-                self.dataBuffer = self.Acquisitor.runAcquisition() #sth is broken
+                # #Starting acquisition
+                # self.dataBuffer = self.Acquisitor.runAcquisition() #sth is broken
                 
-                #stopping acquisition and generation
-                self.Acquisitor.stopAcquisition()
-                self.Generator.stopGenerating()
-                self.Plotter.plot(self.dataBuffer, uAx, uCanvas)
-                #back to idle
+                # #stopping acquisition and generation
+                # self.Acquisitor.stopAcquisition()
+                # self.Generator.stopGenerating()
+                # self.Plotter.plot(self.dataBuffer, uAx, uCanvas)
+                # #back to idle
 
                 #Maybe clear dataBuffer?? TODO
-                self.changeMode(0)
+                #self.changeMode(0)
 
             case 2: #Continous run start
                    # self.Acquisitor.reset()
@@ -105,26 +106,32 @@ class ProgramRunner:
 
             case 3: #Stop continous
                 #run to 0 and stop
-                self.Acquisitor.stopAcquisition()
                 self.ContGenerator.stopGen()
                 self.changeMode(0)
 
             case 4:
                 self.ContGenerator.workRoutine()
+                self.Acquisitor.reset()
+                self.Acquisitor.setup()
+                self.Acquisitor.start()
+                buffer = np.array(self.Acquisitor.getBuff())
+                self.processAcqBuffer(buffer)
+                self.Acquisitor.stop()
                 #time.sleep(1)
                 #voltage = self.Acquisitor.runContAcquisition()[self.LAST_BUFFER_VALUE-500] #test the last value and check performance, maybe switching to C needed
                 #print(voltage)
                 #self.continousData.append(voltage)
-                #self.Plotter.plot(self.continousData, uAx, uCanvas)
+                self.Plotter.plot(self.continousData, uAx, uCanvas)
 
             # TEST MODES
             case 5:
-                self.Acquisitor.reset()
-                self.ContGenerator.reset()
+                pass
+                # self.Acquisitor.reset()
+                # self.ContGenerator.reset()
                 
-                self.setGeneratorConstants(uFrequency=7)
-                #self.setAcquisitionConstants()
-                self.Generator.startGenerating()
+                # self.setGeneratorConstants(uFrequency=7)
+                # self.setAcquisitionConstants()
+                # self.Generator.startGenerating()
 
                 # self.Acquisitor.setup()
                 # print("odpalanie akwizycji")
@@ -137,10 +144,11 @@ class ProgramRunner:
                 #print("zmiana trybu")
             
             case 6:
-                self.Acquisitor.startAcquisition()
-                self.dataBuffer = self.Acquisitor.runAcquisition()
-                self.Acquisitor.stopAcquisition()
-                self.Plotter.plot(self.dataBuffer, uAx, uCanvas)
+                pass
+                # self.Acquisitor.startAcquisition()
+                # self.dataBuffer = self.Acquisitor.runAcquisition()
+                # self.Acquisitor.stopAcquisition()
+                # self.Plotter.plot(self.dataBuffer, uAx, uCanvas)
 
                 # print("Wykonywanie rutyny")
                 # self.ContGenerator.workRoutineTEST()
@@ -161,7 +169,15 @@ class ProgramRunner:
         else:
             print("Error: Invalid mode number")
     
+    #   Manipulating data 
+    #   uBuffer: array of floats - buffer returned from aqcuisition
 
+    def processAcqBuffer(self, uBuffer):
+        if(len(self.continousData) >= 200):
+            self.continousData = self.continousData[10:]
+        self.continousData = np.append(self.continousData, uBuffer)
+        #print(len(self.continousData))
+    
     #   closing the scpi connection
 
     def exit(self):
