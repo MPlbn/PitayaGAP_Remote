@@ -29,7 +29,7 @@ class ContGenerator:
         self.RP_S = scpi.scpi(uIP)
         self.output: int = 1
         self.voltageValue: float = 0.5
-        self.step: float = 0.05
+        self.step: float = 0.1
         self.interval: int = 50
         self.lowRange: float = -0.9
         self.highRange: float = 0.9
