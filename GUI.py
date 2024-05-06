@@ -3,8 +3,6 @@
 from appJar import gui
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import matplotlib.animation as anim
-
 import ProgramRunner
 
 #   Making it prettier and full functional TODO

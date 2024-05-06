@@ -2,6 +2,8 @@
 #Required libraries to download
 import matplotlib.pyplot as pplot
 import numpy as np
+
+#Standard libraries
 import time
 
 #Redpitaya module for scpi connection and communication
@@ -22,10 +24,10 @@ class ProgramRunner:
         self.Generator = Generate.Generator(self.IP)
         self.ContGenerator = Generate.ContGenerator(self.IP)
         self.Acquisitor = Acquire.Acquisitor(self.IP)
-        self.Plotter = Plotter.Plotter()
         self.isRunningContinous = False
         self.continousData: np.array = np.array([])
         self.dataBuffer = []
+        self.Plotter = Plotter.Plotter(self.continousData)
         self.LAST_BUFFER_VALUE = 16000 #To verify number
 
 

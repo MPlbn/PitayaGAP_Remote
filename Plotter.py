@@ -2,10 +2,8 @@ import numpy as np
 import matplotlib.animation as anim
 import matplotlib.pyplot as plt
 
-#TODO Change to animation cause it's super slow
-
 class Plotter:
-    def __init__(self):
+    def __init__(self, uData):
         self.isInContMode = False
         self.INDEX = 0
 
@@ -20,10 +18,3 @@ class Plotter:
         ax.clear()
         ax.plot(x, uData)
         canvas.draw()
-
-    #TODO
-
-    def updateAnim(self, frame, ax, uData):
-        ax.set_ydata(uData)
-        pass
-            
