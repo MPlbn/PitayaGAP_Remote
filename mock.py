@@ -2,6 +2,7 @@ import time
 from appJar import gui
 from matplotlib import pyplot
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.animation import FuncAnimation as FAnim
 import numpy as np
 
 class MockGenerator:
@@ -34,7 +35,7 @@ class MockGenerator:
         return self.isGenerating
     
     def getGeneratedValue(self):
-        return self.currentValue
+        return np.full(50, self.currentValue)
     
     def convertToPercent(self):
         fullRange: float = self.hRange - self.lRange
@@ -54,16 +55,22 @@ class MockGenerator:
             
 
 class mockPlotter:
-    def __init__(self):
-        self.data = [] #max size: 1000
-        self.maxDataSize = 1000
+    def __init__(self, app):
+        self.data = np.array([]) #max size: 1000
+        self.maxDataSize = 10000
         self.isRunning = False
+        self.fig, self.ax = pyplot.subplots()
+        self.canvas = FigureCanvasTkAgg(self.fig, master=app.getFrame())
+        self.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
+        self.line, = self.ax.plot([], [], lw=2)
+
 
     def processData(self, uNewData):
         if(self.isRunning):
             if(len(self.data) >= self.maxDataSize):
-                self.data.pop()
-            self.data.append(uNewData)
+                self.data = self.data[50:]
+            self.data = np.append(self.data, uNewData)
+            
         
     def start(self):
         self.isRunning = True
@@ -71,11 +78,17 @@ class mockPlotter:
     def stop(self):
         self.isRunning = False
 
-    def updatePlot(self, ax, canvas):
+    def updatePlot(self):
         if(self.isRunning):
-            x = np.linspace(0, 999, len(self.data))
-            y = self.data
-            ax.clear()
-            ax.plot(x,y)
-            canvas.draw()
+            x = np.linspace(0, self.maxDataSize - 1, len(self.data))
+            self.line.set_data(x, self.data)
+            self.ax.relim()
+            self.ax.autoscale_view()
+
     
+    def getAX(self):
+        return self.ax
+    
+    def animate(self):
+        animation = FAnim(self.fig, self.updatePlot, frames=100, blit=True)
+        pyplot.show()

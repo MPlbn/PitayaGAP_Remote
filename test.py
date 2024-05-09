@@ -34,17 +34,19 @@ def updateGeneration():
     GENERATOR.generate()
     appGui.setLabel("generatedValue", str(round(GENERATOR.currentValue, GENERATOR.calculateRoundingNumber())))
     appGui.setMeter("generateMeter", GENERATOR.convertToPercent(), str(round(GENERATOR.currentValue, GENERATOR.calculateRoundingNumber())))
-    PLOTTER.processData(GENERATOR.currentValue)
-    PLOTTER.updatePlot(ax, canvas)
+    PLOTTER.processData(GENERATOR.getGeneratedValue())
+    PLOTTER.updatePlot()
+    PLOTTER.canvas.draw()
 
 
 #globals
+appGui: appJar.gui = appJar.gui("TEST", "fullscreen")
+
 GENERATOR: mock.MockGenerator = mock.MockGenerator()
 
-PLOTTER: mock.mockPlotter = mock.mockPlotter()
+PLOTTER: mock.mockPlotter = mock.mockPlotter(appGui)
 
 #settings
-appGui: appJar.gui = appJar.gui("TEST", "fullscreen")
 
 appGui.addLabel("lRange", "Input lower range", 0, 0)
 appGui.addNumericEntry("LowRange", 0, 1)
@@ -70,9 +72,9 @@ appGui.addLabel("generatedValue", "", 4, 1)
 appGui.bindKey("<Escape>", appGui.stop) #close gui
 appGui.bindKey("<Return>", press) #dodaje do startu
 
-fig, ax = plt.subplots()
-canvas = FigureCanvasTkAgg(fig, appGui.topLevel)
-canvas.get_tk_widget().pack(side = "top", fill = "both", expand=True)
+# fig, ax = plt.subplots() #TODO get from plotter
+# canvas = FigureCanvasTkAgg(fig, appGui.topLevel)
+# canvas.get_tk_widget().pack(side = "top", fill = "both", expand=True)
 
 appGui.registerEvent(updateGeneration)
 appGui.setPollTime(GENERATOR.generatingInterval)
