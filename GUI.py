@@ -1,33 +1,38 @@
 #!/usr/bin/env python3
 
-from appJar import gui
+#outside imports
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import ProgramRunner
+import ttkbootstrap as ttk
+from ttkbootstrap.constants import *
+import sys
 
-#   Making it prettier and full functional TODO
+#inside imports
+import ProgramRunner
+from ProgramRunner.constants import *
 
 class GUI:
     def __init__(self):
-        self.PR: ProgramRunner.ProgramRunner = ProgramRunner.ProgramRunner()
-        self.appGui: gui = gui("DO ZMIANY", "500x500")
-        self.interval = 50
+        self.PR = ProgramRunner.ProgramRunner()
+        self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
+        self.interval: int = GUI_DEFAULT_INTERVAL
+        self.initGUI()
         self.startGUI()
 
     #buttons
-    def startGeneratingPress(self, button):
+    def startGeneratingPress(self):
         #starting continous generation in Program Runner work routine
-        self.PR.changeMode(2)
+        self.PR.changeMode(ProgramMode.CONT_START)
 
-    def stopGeneratingPress(self, button):
+    def stopGeneratingPress(self):
         #stopping continous generation in Program Runner work routine
-        self.PR.changeMode(3)
+        self.PR.changeMode(ProgramMode.CONT_STOP)
 
-    def lockGeneratingPress(self, button):
+    def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
         self.PR.pauseContGenerator()
     
-    def unlockGeneratingPress(self, button):
+    def unlockGeneratingPress(self):
         #unlocking current voltage value on Continous Generator and resuming autogeneration
         self.PR.unpauseContGenerator()
 
@@ -39,61 +44,225 @@ class GUI:
         #Decrement step manually
         pass
 
-    def setRangesPress(self, button):
-        #Set voltage ranges, step value and speed
-        pass
+    def setRangesPress(self):
 
-    def setIntervalPress(self, button):
-        #Change main loop interval
-        pass
+        #collecting data from entries
+        tempHRange: float = float(self.hRangeEntry.get()) if self.hRangeEntry.get() != "" else GEN_DEFAULT_HRANGE
+        tempLRange: float = float(self.lRangeEntry.get()) if self.lRangeEntry.get() != "" else GEN_DEFAULT_LRANGE
+        tempStep: float = float(self.stepEntry.get()) if self.stepEntry.get() != "" else GEN_DEFAULT_STEP
+        tempTime: int = int(self.intervalEntry.get()) if self.intervalEntry.get() != "" else GUI_DEFAULT_INTERVAL
+
+        tempMessage: str = ""
+
+        #validations
+        if(tempHRange < tempLRange):
+            temp = tempLRange
+            tempHRange = tempLRange
+            tempLRange = temp
+            self.hRangeEntry.delete(0, ttk.END)
+            self.lRangeEntry.delete(0, ttk.END)
+            self.hRangeEntry.insert(0, f'{tempHRange}')
+            self.lRangeEntry.insert(0, f'{tempLRange}')
+
+        if(tempHRange > GEN_MAX_RANGE):
+            tempHRange = GEN_MAX_RANGE
+            self.hRangeEntry.delete(0, ttk.END)
+            self.hRangeEntry.insert(0, str(GEN_MAX_RANGE))
+            tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
+
+        if(tempHRange < GEN_MIN_RANGE):
+            tempHRange = GEN_MIN_RANGE
+            self.hRangeEntry.delete(0, ttk.END)
+            self.hRangeEntry.insert(0, str(GEN_MIN_RANGE))
+            tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"
+
+        if(tempLRange > GEN_MAX_RANGE):
+            tempLRange = GEN_MAX_RANGE
+            self.lRangeEntry.delete(0, ttk.END)
+            self.lRangeEntry.insert(0, str(GEN_MAX_RANGE))
+            tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
+
+        if(tempLRange < GEN_MIN_RANGE):
+            tempLRange = GEN_MIN_RANGE
+            self.lRangeEntry.delete(0, ttk.END)
+            self.lRangeEntry.insert(0, str(GEN_MIN_RANGE))
+            tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"    
+
+        if(tempHRange == tempLRange):
+            tempHRange = GEN_DEFAULT_HRANGE
+            tempLRange = GEN_DEFAULT_LRANGE
+            self.hRangeEntry.delete(0, ttk.END)
+            self.lRangeEntry.delete(0, ttk.END)
+            self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
+            self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
+            tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
+
+        if(tempStep > GEN_MAX_STEP):
+            tempStep = GEN_MAX_STEP
+            self.stepEntry.delete(0, ttk.END)
+            self.stepEntry.insert(0, str(GEN_MAX_STEP))
+            tempMessage += f"Error: Step value cannot be higher than {GEN_MAX_STEP}\n"
+
+        if(tempStep <= 0):
+            tempStep = GEN_DEFAULT_STEP
+            self.stepEntry.delete(0, ttk.END)
+            self.stepEntry.insert(0, str(GEN_DEFAULT_STEP))
+            tempMessage += "Error: Step value cannot be 0 or lower\n"
+        
+        if(tempTime > GUI_MAX_INTERVAL):
+            tempTime = GUI_MAX_INTERVAL
+            self.intervalEntry.delete(0, ttk.END)
+            self.intervalEntry.insert(0, str(GUI_MAX_INTERVAL))
+            tempMessage += f"Error: Interval cannot be higher than {GUI_MAX_INTERVAL}ms\n"
+
+        if(tempTime < GUI_MIN_INTERVAL):
+            tempTime = GUI_MIN_INTERVAL
+            self.intervalEntry.delete(0, ttk.END)
+            self.intervalEntry.insert(0, str(GUI_MIN_INTERVAL))
+            tempMessage += f"Error: Interval cannot be lower than {GUI_MIN_INTERVAL}ms\n"
+
+        #showing error message
+        self.errorLabel.configure(text = tempMessage)
+
+        #setting values
+        self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
+        self.interval = tempTime
 
     def mainLoopEvent(self):
         #Running the program runner routine
-        self.PR.run(self.ax, self.canvas)
+        self.PR.run(self.progressBar, self.progressLabel)
+        self.root.after(self.interval, self.mainLoopEvent) #get interval
 
     def stopGUI(self):
         #Close ProgramRunner and gui
         self.PR.exit()
-        self.appGui.stop()
+        sys.exit()
+
+    # VALIDATION FUNCTIONS
+
+    def validateInt(uEntryValue) -> bool:
+        if(uEntryValue == ""):
+            return True
+        try:
+            int(uEntryValue)
+            return True
+        except ValueError:
+            return False
+
+    def validateFloat(uEntryValue) -> bool:
+        if(uEntryValue == ''):
+            return True
+    
+        if(uEntryValue == '-'):
+            return True
+        try:
+            float(uEntryValue)
+            return True
+        except ValueError:
+            return False 
+
+    def validatePositiveFloat(uEntryValue) -> bool:
+        if(uEntryValue == ''):
+            return True
+        if(uEntryValue == '-' or uEntryValue[0] == '-'):
+            return False
+        try:
+            float(uEntryValue)
+            return True
+        except ValueError:
+            return False
+
+
+    def initGUI(self):
+        ####style configuration
+        self.style = ttk.Style()
+        self.style.configure('TButton', font=("Segoe UI", 20))
+        self.style.configure('info.Outline.TButton', font=("Segoe UI", 12))
+
+        ####registering validation functions
+        self.valInt = self.root.register(self.validateInt)
+        self.valFloat = self.root.register(self.validateFloat)
+        self.valPosFloat = self.root.register(self.validatePositiveFloat)
+
+        ####creating widgets
+        #main frame containing top row of widgets
+        self.settingsAndButtonsFrame = ttk.Frame(self.root)
+
+        #settings
+        self.settingsFrame = ttk.Labelframe(self.settingsAndButtonsFrame, bootstyle=INFO, text='settings')
+        self.hRangeLabel = ttk.Label(self.settingsFrame, bootstyle=INFO , text='High Range')
+        self.lRangeLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Low Range')
+        self.stepLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Step value')
+        self.intervalLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Speed value')
+        self.hRangeEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.lRangeEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.stepEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
+        self.intervalEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+        self.setBtn = ttk.Button(self.settingsFrame, text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
+    
+        #Setting default values to entries
+        self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
+        self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
+        self.stepEntry.insert(0, str(GEN_DEFAULT_STEP))
+        self.intervalEntry.insert(0, str(GUI_DEFAULT_INTERVAL))
+
+        #errors
+        self.errorFrame = ttk.Frame(self.settingsAndButtonsFrame, width=450)
+        self.errorLabel = ttk.Label(self.errorFrame, text="", bootstyle=(DANGER), width=450, font=("Segoe UI", 8))
+
+        #buttons
+        self.buttonsFrame = ttk.Frame(self.settingsAndButtonsFrame)
+        self.startBtn = ttk.Button(self.buttonsFrame, text='Start', bootstyle=(SUCCESS,OUTLINE), command=self.startGeneratingPress)
+        self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
+        self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
+        self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
+
+        #progress
+        self.progressFrame = ttk.Frame(self.root)
+        self.progressBar = ttk.Progressbar(self.progressFrame, length=300, bootstyle=(PRIMARY))
+        self.progressInfoLabel = ttk.Label(self.progressFrame, bootstyle=INFO, text='Current generated value', font=("Segoe UI", 15, "bold"))
+        self.progressLabel = ttk.Label(self.progressFrame, bootstyle=PRIMARY, text='0.00', font=("Segoe UI", 20, "bold"))
+
+        #plot
+        self.plotFrame = ttk.Frame(self.root)
+        self.PR.setPlotterFrame(self.plotFrame)
+
 
     def startGUI(self):
-        #adding gui elements
-        self.appGui.addLabel("lRange", "Input lower range", 0, 0)
-        self.appGui.addNumericEntry("LowRange", 0, 1)
+        #placing widgets
+        self.settingsAndButtonsFrame.pack(padx=20, pady=20)
 
-        self.appGui.addLabel("hRange", "Input higher range", 0, 2)
-        self.appGui.addNumericEntry("HighRange", 0, 3)
+        self.settingsFrame.grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
+        self.hRangeLabel.grid(row=0, column=0, padx=5)
+        self.lRangeLabel.grid(row=1, column=0, padx=5)
+        self.stepLabel.grid(row=2, column=0, padx=5)
+        self.intervalLabel.grid(row=3, column=0, padx=5)
+        self.hRangeEntry.grid(row=0, column=1, pady=5)
+        self.lRangeEntry.grid(row=1, column=1, pady=5)
+        self.stepEntry.grid(row=2, column=1, pady=5)
+        self.intervalEntry.grid(row=3, column=1, pady=5)
+        self.setBtn.grid(row=4,column=1, pady=10)
 
-        self.appGui.addLabel("stepLabel", "Input step value", 0, 4)
-        self.appGui.addNumericEntry("step", 0, 5)
+        self.errorFrame.grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
+        self.errorLabel.grid(row=0,column=0)
+        self.errorFrame.grid_propagate(False)
 
-        self.appGui.addLabel("timeInterval", "Set V/s", 0, 6)
-        self.appGui.addNumericEntry("interval", 0, 7)
+        self.buttonsFrame.grid(row=0, column=4, rowspan=3)
+        self.lockBtn.grid(row=0, column=0, pady=5)
+        self.stopBtn.grid(row=1,column=0, pady=5)
+        self.startBtn.grid(row=2,column=0, pady=5)
 
-        self.appGui.addButton("Set Ranges", self.setRangesPress, 2, 1)
-        self.appGui.addButton("Set Interval", self.setIntervalPress, 2, 2) 
-        self.appGui.addButton("Start Generating", self.startGeneratingPress, 3, 1)
-        self.appGui.addButton("Stop Generating", self.stopGeneratingPress, 3, 2)
-        self.appGui.addButton("Lock", self.lockGeneratingPress, 3, 3)
-        self.appGui.addButton("Unlock", self.unlockGeneratingPress, 3, 4)
 
-        self.appGui.addSplitMeter("generateMeter", 4, 2)
-        self.appGui.setMeterFill("generateMeter", ["green", "blue"])
-        self.appGui.addLabel("generatedValue", "", 4, 1)
+        self.progressFrame.pack(padx=20,pady=20)
+        self.progressInfoLabel.pack(padx=20)
+        self.progressLabel.pack(padx=20, pady=10)
+        self.progressBar.pack(padx=20)
 
-        #preparing keyboard binds
-        self.appGui.bindKey("<Escape>", self.stopGUI) #close gui
-        #self.appGui.bindKey("<+>", self.stepUpKey) #These are wrong
-        #self.appGui.bindKey("<->", self.stepDownKey)
+        self.plotFrame.pack(padx=20, pady=10, fill=BOTH)
 
-        #preparing the plotting inside gui
-        self.fig, self.ax = plt.subplots()
-        self.canvas = FigureCanvasTkAgg(self.fig, self.appGui.topLevel)
-        self.canvas.get_tk_widget().pack(side = "top", fill = "both", expand=True)
+        #plotting done in Plotter class     
 
-        #main loop event register
-        self.appGui.registerEvent(self.mainLoopEvent)
-        self.appGui.setPollTime(self.interval)
-
+        #need to run update function once 
+        self.mainLoopEvent()
         #run gui
-        self.appGui.go()
+        self.root.mainloop()

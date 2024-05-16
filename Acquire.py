@@ -1,6 +1,8 @@
 import redpitaya_scpi as scpi
 import time
 
+
+from ProgramRunner.constants import *
 #Acquisition commands wrapper - WIP TODO
 class Acquisitor:
     def __init__(self, uIP):
@@ -28,8 +30,8 @@ class Acquisitor:
             if(self.RP_S.rx_txt() == '1'):
                 break
 
-    def getBuff(self):
-        return self.RP_S.acq_data(1, convert=True)[1600:1610]
+    def getBuff(self) -> list:
+        return self.RP_S.acq_data(self.channelNumber, convert=True)[BUFFER_SIZE-SAMPLE_SIZE:BUFFER_SIZE]
 
     # def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 0):
     #     self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)

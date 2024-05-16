@@ -1,20 +1,49 @@
 import numpy as np
-import matplotlib.animation as anim
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.animation import FuncAnimation as FAnim
+
+from ProgramRunner.constants import *
 
 class Plotter:
-    def __init__(self, uData):
-        self.isInContMode = False
-        self.INDEX = 0
+    def __init__(self):
+        self.data = np.array([])
+        self.isRunning: bool = False
+        self.fig, self.ax = plt.subplots()
+    
+    def setFrame(self, uFrame):
+        self.frame = uFrame
+
+    def initVisuals(self):
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas.get_tk_widget().pack(side = "top", fill = "both", expand = True)
+        self.line, = self.ax.plot([],[],lw=2)
 
     def start(self):
-        self.isInContMode = True
+        self.isRunning = True
 
     def stop(self):
-        self.isInContMode = False
+        self.isRunning = False
 
-    def plot(self, uData, ax, canvas):
-        x = np.linspace(1, len(uData), len(uData))
-        ax.clear()
-        ax.plot(x, uData)
-        canvas.draw()
+    # def plot(self, uData, ax, canvas):
+    #     x = np.linspace(1, len(uData), len(uData))
+    #     ax.clear()
+    #     ax.plot(x, uData)
+    #     canvas.draw()
+
+    def processData(self, uNewData):
+        if(self.isRunning):
+            if(len(self.data) >= MAX_DATA_SIZE):
+                self.data = self.data[SAMPLE_SIZE:]
+            self.data = np.append(self.data, uNewData)
+
+    def updatePlot(self):
+        if(self.isRunning):
+            x = np.linspace(0, MAX_DATA_SIZE - 1, len(self.data))
+            self.line.set_data(x, self.data)
+            self.ax.relim()
+            self.ax.autoscale_view()
+
+    def animate(self):
+        animation = FAnim(self.fig, self.updatePlot, frames=100, blit=True)
+        plt.show()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 #Required libraries to download
-import matplotlib.pyplot as pplot
 import numpy as np
+import ttkbootstrap
 
 #Standard libraries
 import time
@@ -13,6 +13,7 @@ import redpitaya_scpi as scpi
 import Generate
 import Acquire
 import Plotter
+from ProgramRunner.constants import *
 
 
 #   class responsible for work routine of a program
@@ -20,26 +21,39 @@ import Plotter
 class ProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.IP = uIP
-        self.PROGRAM_MODE = 0 #not running
+        self.PROGRAM_MODE = ProgramMode.IDLE
         self.Generator = Generate.Generator(self.IP)
         self.ContGenerator = Generate.ContGenerator(self.IP)
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.isRunningContinous = False
-        self.continousData: np.array = np.array([])
-        self.dataBuffer = []
-        self.Plotter = Plotter.Plotter(self.continousData)
-        self.LAST_BUFFER_VALUE = 16000 #To verify number
+        self.dataBuffer = [] #not used for now
+        self.Plotter = Plotter.Plotter()
 
+    #   passing frame to plotter class to place the drawn plot
+    #   uPlotterFrame: ttk.Frame - gui frame from GUI class
+
+    def setPlotterFrame(self, uPlotterFrame):
+        self.Plotter.setFrame(uPlotterFrame)
+        self.Plotter.initVisuals()
 
     #   handler of generation values
     #   uChannelNumber: int - channel that generation will be performed on - [1,2]
     #   uWaveForm: string - type of signal to be generated - [sine, dc, saw, square, triangle, arbitrary]
     #   uAmplitude: float - amplitude of signal, in case of dc: value of constant
     #   uFrequency: int - frequency of signal, in Hz
+    #   NOT USED NOT USED NOT USED NOT USED NOT USED
 
-    def setGeneratorConstants(self, uChannelNumber = 1, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
+    def setGeneratorConstants(self, uChannelNumber = DEFAULT_CHANNEL, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
         self.Generator.setup(uChannelNumber, uWaveform, uFrequency, uAmplitude)
 
+    #   setting generator parameters passed from GUI
+    #   uHighRange: float - ceiling voltage value which won't be passed while generating
+    #   uLowRange: float - floor voltage value which won't be passed while generating
+    #   uStep: float - value by which voltage output will change each step
+
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep):
+        self.ContGenerator.setRanges(uHighRange, uLowRange)
+        self.ContGenerator.setStep(uStep)
 
     #   handler of acquisition values
     #   uChannelNumber: int - channel that acquisition will be performed on - [1,2]
@@ -47,7 +61,7 @@ class ProgramRunner:
     #   uTriggerLevel: float - level that at which trigger will start acquisition
     #   uTriggerDelay: float - time needed after trigger to start acquisition 
 
-    def setAcquisitionConstants(self, uChannelNumber = 1, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
+    def setAcquisitionConstants(self, uChannelNumber = DEFAULT_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
         self.Acquisitor.setup(uDecimation, uTriggerLevel, uTriggerDelay)
         self.Acquisitor.channelNumber = uChannelNumber
 
@@ -63,14 +77,22 @@ class ProgramRunner:
     def unpauseContGenerator(self):
         self.ContGenerator.unpause()
 
+    ##HELPER
+
+    def updateGUIElements(self, uProgressBar, uProgressLabel):
+        uProgressBar.configure(value = self.ContGenerator.voltageToPercent())
+        uProgressLabel.configure(text=str(round(self.ContGenerator.voltageValue, self.ContGenerator.getRoundingNumber())))
+
 
     #   main work routine of program runner
+    #   uProgressBar - progress bar passed from GUI to be updated
+    #   uProgressLabel - label showing current voltage value, passed from GUI to be updated 
 
-    def run(self, uAx, uCanvas):
+    def run(self, uProgressBar, uProgressLabel):
         match self.PROGRAM_MODE:
-            case 0: #idle state
+            case ProgramMode.IDLE: #idle state
                 pass
-            case 1: #full run
+            case ProgramMode.FULL_RUN: #full run
                 pass
                 # self.Generator.reset()
                 # self.Acquisitor.reset()
@@ -97,36 +119,30 @@ class ProgramRunner:
                 #Maybe clear dataBuffer?? TODO
                 #self.changeMode(0)
 
-            case 2: #Continous run start
-                   # self.Acquisitor.reset()
-                    self.ContGenerator.reset()
-                    #self.setAcquisitionConstants(1, 0, 0, 0) 
-                    self.ContGenerator.setup(uAmplitude=0)
-                    self.ContGenerator.startGen()
-                    #self.Acquisitor.startAcquisition()
-                    self.changeMode(4)           
+            case ProgramMode.CONT_START: #Continous run start
+                self.ContGenerator.reset()
+                self.ContGenerator.setup()
+                self.ContGenerator.startGen()
+                self.changeMode(ProgramMode.CONT_WORK_ROUTINE)           
 
-            case 3: #Stop continous
+            case ProgramMode.CONT_STOP: #Stop continous
                 #run to 0 and stop
                 self.ContGenerator.stopGen()
-                self.changeMode(0)
+                self.changeMode(ProgramMode.IDLE)
 
-            case 4:
+            case ProgramMode.CONT_WORK_ROUTINE:
                 self.ContGenerator.workRoutine()
+                self.updateGUIElements(uProgressBar, uProgressLabel)
                 self.Acquisitor.reset()
                 self.Acquisitor.setup()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff())
                 self.processAcqBuffer(buffer)
                 self.Acquisitor.stop()
-                #time.sleep(1)
-                #voltage = self.Acquisitor.runContAcquisition()[self.LAST_BUFFER_VALUE-500] #test the last value and check performance, maybe switching to C needed
-                #print(voltage)
-                #self.continousData.append(voltage)
-                self.Plotter.plot(self.continousData, uAx, uCanvas)
+                
 
             # TEST MODES
-            case 5:
+            case ProgramMode.TEST_1:
                 pass
                 # self.Acquisitor.reset()
                 # self.ContGenerator.reset()
@@ -145,7 +161,7 @@ class ProgramRunner:
                 #self.changeMode(0)
                 #print("zmiana trybu")
             
-            case 6:
+            case ProgramMode.TEST_2:
                 pass
                 # self.Acquisitor.startAcquisition()
                 # self.dataBuffer = self.Acquisitor.runAcquisition()
@@ -165,23 +181,21 @@ class ProgramRunner:
     #   Changing the work routine
     #   newMode: int - new mode to be set
 
-    def changeMode(self, newMode):
-        if newMode >= 0 and newMode <= 6:
+    def changeMode(self, newMode: ProgramMode):
+        if newMode.value >= FIRST_MODE and newMode.value <= LAST_MODE:
             self.PROGRAM_MODE = newMode
         else:
             print("Error: Invalid mode number")
     
-    #   Manipulating data 
+    #   Passing data to plotter processing function
     #   uBuffer: array of floats - buffer returned from aqcuisition
 
     def processAcqBuffer(self, uBuffer):
-        if(len(self.continousData) >= 200):
-            self.continousData = self.continousData[10:]
-        self.continousData = np.append(self.continousData, uBuffer)
-        #print(len(self.continousData))
+        self.Plotter.processData(uBuffer)
     
     #   closing the scpi connection
 
     def exit(self):
+        self.changeMode(ProgramMode.CONT_STOP)
         scpi.scpi(self.IP).close()
     

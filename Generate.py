@@ -1,4 +1,5 @@
 import redpitaya_scpi as scpi
+from ProgramRunner.constants import *
 
 #Generating commands wrapper - obsolete
 class Generator:
@@ -24,48 +25,37 @@ class Generator:
 #   WIP TODO
 
 class ContGenerator:
-    ## TODO Possibly doable with dc waveform and changing the amplitude without resetting generator
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
-        self.output: int = 1
-        self.voltageValue: float = 0.5
-        self.step: float = 0.1
-        self.interval: int = 50
-        self.lowRange: float = -0.9
-        self.highRange: float = 0.9
+        self.output: int = DEFAULT_CHANNEL
+        self.frequency: int = 1000 #prob not needed
+        self.voltageValue: float = 0.0
+        self.highRange: float = GEN_DEFAULT_HRANGE
+        self.lowRange: float = GEN_DEFAULT_LRANGE
+        self.step: float = GEN_DEFAULT_STEP
+        self.roundingNumber = 1
         self.isPaused: bool = False
-        self.changed: bool = False
 
-        self.TESTBOOL: bool = False
-
-    def setup(self, uChannelNumber = 1, uFrequency = 1000, uAmplitude = 0.2):
-        self.channelNumber = uChannelNumber
+    def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
+        self.output = uChannelNumber
         self.frequency = uFrequency
-        self.amplitude = uAmplitude
-        self.RP_S.sour_set(uChannelNumber, "dc", uAmplitude, uFrequency) #sth wrong here too, it doesn't do what i need it to, always outputs 0.73...
+        self.voltageValue = uAmplitude
+
+        self.RP_S.sour_set(self.output, "dc", self.voltageValue, self.frequency)
 
     def setRanges(self, uHRange, uLRange):
         self.lowRange = uLRange
         self.highRange = uHRange
 
-    def setInteval(self, uInterval):
-        #TODO Pewnie jakies zmiany
-        self.interval = uInterval
-
     def setStep(self, uStep):
         self.step = uStep
+        self.calculateRoundingNumber()
 
     def setOutput(self, uOutput):
         self.output = uOutput
 
     def changeVolt(self, uNewVoltage):
-        #This doesn't change anything
-        # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE OFF')
-        # self.reset()
-        # self.setup(uAmplitude=uNewVoltage)
-        # self.startGen()
-        self.RP_S.tx_txt(f'SOUR{self.channelNumber}:VOLT {abs(uNewVoltage)}')
-        # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
+        self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {abs(uNewVoltage)}')
         
 
     def pause(self):
@@ -89,8 +79,6 @@ class ContGenerator:
             
 
     def generate(self):
-
-        #Need to think about changing the dc to dcneg
         if(self.voltageValue > self.highRange):
             if(self.step > 0):
                 self.step *= -1.0
@@ -102,11 +90,26 @@ class ContGenerator:
 
         if(temp*self.voltageValue < 0):
             if(self.voltageValue < 0):
-                self.RP_S.tx_txt(f'SOUR{self.channelNumber}:FUNC DC_NEG')
+                self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
             else:
-                self.RP_S.tx_txt(f'SOUR{self.channelNumber}:FUNC DC')
+                self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
             
    
+    def voltageToPercent(self) -> int:
+        fullRange: float = self.highRange - self.lowRange
+        currentPlace: float = self.voltageValue - self.lowRange
+        return (currentPlace / fullRange) * 100
+    
+    def calculateRoundingNumber(self) -> int:
+        try:
+            decimalPart = str(self.step).split('.')[1]
+        except:
+            decimalPart = ""
+        self.roundingNumber = len(decimalPart)
+    
+    def getRoundingNumber(self) -> int:
+        return self.roundingNumber
+
     def stopGen(self):
         # if(self.voltageValue > 0):
         #     if(self.step > 0):
