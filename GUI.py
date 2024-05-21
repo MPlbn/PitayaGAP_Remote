@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 #outside imports
+import threading as thread
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import ttkbootstrap as ttk
