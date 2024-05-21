@@ -82,13 +82,16 @@ class ProgramRunner:
     def updateGUIElements(self, uProgressBar, uProgressLabel):
         uProgressBar.configure(value = self.ContGenerator.voltageToPercent())
         uProgressLabel.configure(text=str(round(self.ContGenerator.voltageValue, self.ContGenerator.getRoundingNumber())))
+        self.Plotter.updatePlot()
+        self.Plotter.canvas.draw()
 
 
     #   main work routine of program runner
     #   uProgressBar - progress bar passed from GUI to be updated
     #   uProgressLabel - label showing current voltage value, passed from GUI to be updated 
 
-    def run(self, uProgressBar, uProgressLabel):
+    def run(self):
+        print(self.PROGRAM_MODE)
         match self.PROGRAM_MODE:
             case ProgramMode.IDLE: #idle state
                 pass
@@ -124,8 +127,8 @@ class ProgramRunner:
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
                 self.Plotter.start()
-                self.changeMode(ProgramMode.CONT_WORK_ROUTINE)           
-
+                self.changeMode(ProgramMode.CONT_WORK_ROUTINE) 
+    
             case ProgramMode.CONT_STOP: #Stop continous
                 #run to 0 and stop
                 self.ContGenerator.stopGen()
@@ -134,15 +137,12 @@ class ProgramRunner:
 
             case ProgramMode.CONT_WORK_ROUTINE:
                 self.ContGenerator.workRoutine()
-                self.updateGUIElements(uProgressBar, uProgressLabel)
                 self.Acquisitor.reset()
                 self.Acquisitor.setup()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff())
                 self.processAcqBuffer(buffer)
                 self.Acquisitor.stop()
-                self.Plotter.updatePlot()
-                self.Plotter.canvas.draw()
                 
 
             # TEST MODES

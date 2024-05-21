@@ -8,4 +8,3 @@ gui = GUI.GUI()
 gui.initGUI()
 gui.startGUI()
 
-#TODO GENERAL REFACTOR AND CODE CLEANUP
