@@ -11,7 +11,7 @@ class ProgramMode(Enum):
     TEST_2 = auto()
 
 FIRST_MODE: int = 0
-LAST_MODE: int = 0
+LAST_MODE: int = 6
 
 DEFAULT_CHANNEL = 1
 

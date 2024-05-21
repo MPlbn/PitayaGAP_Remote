@@ -13,7 +13,7 @@ import redpitaya_scpi as scpi
 import Generate
 import Acquire
 import Plotter
-from ProgramRunner.constants import *
+from constants import *
 
 
 #   class responsible for work routine of a program
@@ -123,11 +123,13 @@ class ProgramRunner:
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
+                self.Plotter.start()
                 self.changeMode(ProgramMode.CONT_WORK_ROUTINE)           
 
             case ProgramMode.CONT_STOP: #Stop continous
                 #run to 0 and stop
                 self.ContGenerator.stopGen()
+                self.Plotter.stop()
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.CONT_WORK_ROUTINE:
@@ -139,6 +141,8 @@ class ProgramRunner:
                 buffer = np.array(self.Acquisitor.getBuff())
                 self.processAcqBuffer(buffer)
                 self.Acquisitor.stop()
+                self.Plotter.updatePlot()
+                self.Plotter.canvas.draw()
                 
 
             # TEST MODES

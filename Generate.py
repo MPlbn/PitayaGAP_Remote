@@ -1,5 +1,5 @@
 import redpitaya_scpi as scpi
-from ProgramRunner.constants import *
+from constants import *
 
 #Generating commands wrapper - obsolete
 class Generator:
@@ -75,14 +75,13 @@ class ContGenerator:
         if(not self.isPaused):
             self.generate()
             self.changeVolt(self.voltageValue)
-            print(self.voltageValue)
             
 
     def generate(self):
-        if(self.voltageValue > self.highRange):
+        if(self.voltageValue + self.step > self.highRange):
             if(self.step > 0):
                 self.step *= -1.0
-        if(self.voltageValue < self.lowRange):
+        if(self.voltageValue + self.step < self.lowRange):
             if(self.step < 0):
                 self.step *= -1.0
         temp = self.voltageValue

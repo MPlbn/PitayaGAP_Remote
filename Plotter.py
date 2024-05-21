@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.animation import FuncAnimation as FAnim
 
-from ProgramRunner.constants import *
+from constants import *
 
 class Plotter:
     def __init__(self):
@@ -33,13 +33,13 @@ class Plotter:
 
     def processData(self, uNewData):
         if(self.isRunning):
-            if(len(self.data) >= MAX_DATA_SIZE):
-                self.data = self.data[SAMPLE_SIZE:]
+            if(len(self.data) >= PLOT_MAX_DATA_SIZE):
+                self.data = self.data[ACQ_SAMPLE_SIZE:]
             self.data = np.append(self.data, uNewData)
 
     def updatePlot(self):
         if(self.isRunning):
-            x = np.linspace(0, MAX_DATA_SIZE - 1, len(self.data))
+            x = np.linspace(0, PLOT_MAX_DATA_SIZE - 1, len(self.data))
             self.line.set_data(x, self.data)
             self.ax.relim()
             self.ax.autoscale_view()

@@ -2,7 +2,7 @@ import redpitaya_scpi as scpi
 import time
 
 
-from ProgramRunner.constants import *
+from constants import *
 #Acquisition commands wrapper - WIP TODO
 class Acquisitor:
     def __init__(self, uIP):
@@ -31,7 +31,7 @@ class Acquisitor:
                 break
 
     def getBuff(self) -> list:
-        return self.RP_S.acq_data(self.channelNumber, convert=True)[BUFFER_SIZE-SAMPLE_SIZE:BUFFER_SIZE]
+        return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE]
 
     # def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 0):
     #     self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)

@@ -9,15 +9,13 @@ import sys
 
 #inside imports
 import ProgramRunner
-from ProgramRunner.constants import *
+from constants import *
 
 class GUI:
     def __init__(self):
         self.PR = ProgramRunner.ProgramRunner()
         self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
-        self.initGUI()
-        self.startGUI()
 
     #buttons
     def startGeneratingPress(self):
@@ -140,7 +138,7 @@ class GUI:
 
     # VALIDATION FUNCTIONS
 
-    def validateInt(uEntryValue) -> bool:
+    def validateInt(self, uEntryValue) -> bool:
         if(uEntryValue == ""):
             return True
         try:
@@ -149,7 +147,7 @@ class GUI:
         except ValueError:
             return False
 
-    def validateFloat(uEntryValue) -> bool:
+    def validateFloat(self, uEntryValue) -> bool:
         if(uEntryValue == ''):
             return True
     
@@ -161,7 +159,7 @@ class GUI:
         except ValueError:
             return False 
 
-    def validatePositiveFloat(uEntryValue) -> bool:
+    def validatePositiveFloat(self, uEntryValue) -> bool:
         if(uEntryValue == ''):
             return True
         if(uEntryValue == '-' or uEntryValue[0] == '-'):
@@ -249,8 +247,9 @@ class GUI:
 
         self.buttonsFrame.grid(row=0, column=4, rowspan=3)
         self.lockBtn.grid(row=0, column=0, pady=5)
-        self.stopBtn.grid(row=1,column=0, pady=5)
-        self.startBtn.grid(row=2,column=0, pady=5)
+        self.unlockBtn.grid(row=1,column=0, pady=5)
+        self.stopBtn.grid(row=2,column=0, pady=5)
+        self.startBtn.grid(row=3,column=0, pady=5)
 
 
         self.progressFrame.pack(padx=20,pady=20)
