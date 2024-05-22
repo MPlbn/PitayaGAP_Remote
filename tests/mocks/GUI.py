@@ -17,6 +17,7 @@ class GUI:
         self.PR = mProgramRunner.ProgramRunner()
         self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
+        self.thread = None
 
     #buttons
     def startGeneratingPress(self):
@@ -129,9 +130,18 @@ class GUI:
 
     def mainLoopEvent(self):
         #Running the program runner routine
-        self.PR.run()
-        self.PR.updateGUIElements(self.progressBar, self.progressLabel)
+        self.thread = thread.Thread(target=self.threadTask)
+        self.thread.daemon = True
+        self.thread.start()
         self.root.after(self.interval, self.mainLoopEvent) #get interval
+
+    def threadTask(self):
+        self.PR.run()
+        self.root.after(0, self.updateFun)
+    
+    def updateFun(self):
+        self.PR.updateGUIElements(self.progressBar, self.progressLabel)
+        
 
     def stopGUI(self):
         #Close ProgramRunner and gui
