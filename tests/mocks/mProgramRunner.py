@@ -88,7 +88,6 @@ class ProgramRunner:
     #   uProgressLabel - label showing current voltage value, passed from GUI to be updated 
 
     def run(self):
-        print(self.PROGRAM_MODE)
         match self.PROGRAM_MODE:
             case ProgramMode.IDLE: #idle state
                 pass
@@ -125,7 +124,6 @@ class ProgramRunner:
                 self.ContGenerator.startGen()
                 self.Plotter.start()
                 self.changeMode(ProgramMode.CONT_WORK_ROUTINE) 
-                print(self.PROGRAM_MODE)
     
             case ProgramMode.CONT_STOP: #Stop continous
                 #run to 0 and stop

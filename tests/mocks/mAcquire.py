@@ -35,10 +35,13 @@ class Acquisitor:
         #     self.RP_S.tx_txt('ACQ:TRig:FILL?')
         #     if(self.RP_S.rx_txt() == '1'):
         #         break
-        time.sleep(0.3)
+        print("waiting to sleep")
+        time.sleep(0.5)
+        print("after sleep")
 
     def getBuff(self):
         #return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE]
+        time.sleep(0.3)
         return np.full(50, self.Data)
     
     def mockedSetBuff(self, uData):

@@ -7,6 +7,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sys
+import time
 
 #inside imports
 import mProgramRunner
@@ -17,7 +18,9 @@ class GUI:
         self.PR = mProgramRunner.ProgramRunner()
         self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
-        self.thread = None
+        self.thread = thread.Thread(target=self.threadTask)
+        self.thread.daemon = True
+        self.running = False
 
     #buttons
     def startGeneratingPress(self):
@@ -128,16 +131,11 @@ class GUI:
         self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
         self.interval = tempTime
 
-    def mainLoopEvent(self):
-        #Running the program runner routine
-        self.thread = thread.Thread(target=self.threadTask)
-        self.thread.daemon = True
-        self.thread.start()
-        self.root.after(self.interval, self.mainLoopEvent) #get interval
-
     def threadTask(self):
-        self.PR.run()
-        self.root.after(0, self.updateFun)
+        while True:
+            self.PR.run()
+            self.root.after(0, self.updateFun)
+            time.sleep(self.interval/1000)
     
     def updateFun(self):
         self.PR.updateGUIElements(self.progressBar, self.progressLabel)
@@ -274,6 +272,6 @@ class GUI:
         #plotting done in Plotter class     
 
         #need to run update function once 
-        self.mainLoopEvent()
+        self.thread.start()
         #run gui
         self.root.mainloop()
