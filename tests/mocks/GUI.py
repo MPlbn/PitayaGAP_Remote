@@ -7,7 +7,6 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sys
-import time
 
 #inside imports
 import mProgramRunner
@@ -18,21 +17,15 @@ class GUI:
         self.PR = mProgramRunner.ProgramRunner()
         self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
-        self.running: bool = False
-        self.SCPIthread = None
 
-
+    #buttons
     def startGeneratingPress(self):
+        #starting continous generation in Program Runner work routine
         self.PR.changeMode(ProgramMode.CONT_START)
-        self.SCPIthread = thread.Thread(target=self.SCPItargetFun)
-        self.SCPIthread.start()
 
     def stopGeneratingPress(self):
         #stopping continous generation in Program Runner work routine
         self.PR.changeMode(ProgramMode.CONT_STOP)
-        
-
-
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
@@ -134,18 +127,11 @@ class GUI:
         self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
         self.interval = tempTime
 
-    def SCPItargetFun(self):
-        while self.running:
-            self.PR.run()
-            self.root.after(0, self.mainLoopEvent)
-            time.sleep(self.interval)
-
-        if self.SCPIthread != None:
-            self.SCPIthread.join()
-
     def mainLoopEvent(self):
-        #This does nothing, gui still is laggy        
+        #Running the program runner routine
+        self.PR.run()
         self.PR.updateGUIElements(self.progressBar, self.progressLabel)
+        self.root.after(self.interval, self.mainLoopEvent) #get interval
 
     def stopGUI(self):
         #Close ProgramRunner and gui
@@ -277,6 +263,7 @@ class GUI:
 
         #plotting done in Plotter class     
 
+        #need to run update function once 
         self.mainLoopEvent()
         #run gui
         self.root.mainloop()

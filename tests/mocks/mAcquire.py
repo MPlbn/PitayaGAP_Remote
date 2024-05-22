@@ -14,19 +14,19 @@ class Acquisitor:
 
     def reset(self):
         #self.RP_S.tx_txt('ACQ:RST')
-        time.sleep(100)
+        time.sleep(0.1)
 
     def setup(self):
         #self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
-        time.sleep(100)
+        time.sleep(0.1)
 
     def start(self):
         # self.RP_S.tx_txt('ACQ:START')
-        time.sleep(100)
+        time.sleep(0.1)
 
     def stop(self):
         # self.RP_S.tx_txt('ACQ:STOP')
-        time.sleep(100)
+        time.sleep(0.1)
 
     def run(self):
         # self.RP_S.tx_txt('ACQ:TRig NOW')
@@ -35,7 +35,7 @@ class Acquisitor:
         #     self.RP_S.tx_txt('ACQ:TRig:FILL?')
         #     if(self.RP_S.rx_txt() == '1'):
         #         break
-        time.sleep(300)
+        time.sleep(0.3)
 
     def getBuff(self):
         #return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE]

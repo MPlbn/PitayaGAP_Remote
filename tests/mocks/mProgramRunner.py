@@ -125,6 +125,7 @@ class ProgramRunner:
                 self.ContGenerator.startGen()
                 self.Plotter.start()
                 self.changeMode(ProgramMode.CONT_WORK_ROUTINE) 
+                print(self.PROGRAM_MODE)
     
             case ProgramMode.CONT_STOP: #Stop continous
                 #run to 0 and stop

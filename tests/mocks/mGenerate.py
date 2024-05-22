@@ -56,7 +56,7 @@ class ContGenerator:
 
     def changeVolt(self, uNewVoltage):
         #self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {abs(uNewVoltage)}')
-        time.sleep(100)
+        time.sleep(0.1)
         
 
     def pause(self):
@@ -67,12 +67,12 @@ class ContGenerator:
 
     def reset(self):
         #self.RP_S.tx_txt('GEN:RST')
-        time.sleep(100)
+        time.sleep(0.1)
 
     def startGen(self):
         # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
         # self.RP_S.tx_txt(f'SOUR{self.output}:TRig:INT')
-        time.sleep(100)
+        time.sleep(0.1)
 
     def workRoutine(self):
         if(not self.isPaused):
