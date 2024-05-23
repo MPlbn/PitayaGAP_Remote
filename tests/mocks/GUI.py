@@ -27,9 +27,12 @@ class GUI:
         #starting continous generation in Program Runner work routine
         self.PR.changeMode(ProgramMode.CONT_START)
 
+    def startGeneratingSteppingPress(self):
+        self.PR.changeMode(ProgramMode.STEPPING_START)
+
     def stopGeneratingPress(self):
         #stopping continous generation in Program Runner work routine
-        self.PR.changeMode(ProgramMode.CONT_STOP)
+        self.PR.changeMode(ProgramMode.GEN_STOP)
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
@@ -224,6 +227,7 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
+        self.startStepBtn = ttk.Button(self.buttonsFrame, text='Start Step', bootstyle=(SUCCESS, OUTLINE), command=self.startGeneratingSteppingPress)
 
         #progress
         self.progressFrame = ttk.Frame(self.root)
@@ -260,6 +264,7 @@ class GUI:
         self.unlockBtn.grid(row=1,column=0, pady=5)
         self.stopBtn.grid(row=2,column=0, pady=5)
         self.startBtn.grid(row=3,column=0, pady=5)
+        self.startStepBtn.grid(row=4,column=0, pady=5)
 
 
         self.progressFrame.pack(padx=20,pady=20)

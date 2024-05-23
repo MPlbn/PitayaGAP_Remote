@@ -5,12 +5,15 @@ class ProgramMode(Enum):
     IDLE = auto()
     FULL_RUN = auto()
     CONT_START = auto()
-    CONT_STOP = auto()
-    CONT_WORK_ROUTINE = auto()
-    TEST_1 = auto()
-    TEST_2 = auto()
+    GEN_STOP = auto()
+    GEN_WORK_ROUTINE = auto()
+    STEPPING_START = auto()
 
-FIRST_MODE: int = 0
+class GeneratorMode(Enum):
+    CONT = auto()
+    STEPPING = auto()
+
+FIRST_MODE: int = 1
 LAST_MODE: int = 6
 
 DEFAULT_CHANNEL = 1
@@ -26,9 +29,13 @@ GEN_DEFAULT_STEP: float = 0.1
 GEN_MAX_RANGE: float = 1.0
 GEN_MIN_RANGE: float = -1.0
 GEN_MAX_STEP: float = 1.0
+GEN_DEFAULT_STEPPING_RANGES = [0.3, 0.5, 0.7, 0.9]
+GEN_DEFAULT_VOLTAGE = 0.0
 
 GUI_DEFAULT_INTERVAL: int = 50
 GUI_DEFAULT_WINDOW_SIZE = (1000,1000)
 GUI_MAX_INTERVAL: int = 5000
 GUI_MIN_INTERVAL: int = 5
 
+MOCK_TIME_SLOW: float = 0.0
+MOCK_TIME_SLOW_LONG: float = 0.0

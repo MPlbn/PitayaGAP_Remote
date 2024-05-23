@@ -14,19 +14,19 @@ class Acquisitor:
 
     def reset(self):
         #self.RP_S.tx_txt('ACQ:RST')
-        time.sleep(0.1)
+        time.sleep(MOCK_TIME_SLOW)
 
     def setup(self):
         #self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
-        time.sleep(0.1)
+        time.sleep(MOCK_TIME_SLOW)
 
     def start(self):
         # self.RP_S.tx_txt('ACQ:START')
-        time.sleep(0.1)
+        time.sleep(MOCK_TIME_SLOW)
 
     def stop(self):
         # self.RP_S.tx_txt('ACQ:STOP')
-        time.sleep(0.1)
+        time.sleep(MOCK_TIME_SLOW)
 
     def run(self):
         # self.RP_S.tx_txt('ACQ:TRig NOW')
@@ -35,13 +35,11 @@ class Acquisitor:
         #     self.RP_S.tx_txt('ACQ:TRig:FILL?')
         #     if(self.RP_S.rx_txt() == '1'):
         #         break
-        print("waiting to sleep")
-        time.sleep(0.5)
-        print("after sleep")
+        pass
 
     def getBuff(self):
         #return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE]
-        time.sleep(0.3)
+        time.sleep(MOCK_TIME_SLOW_LONG)
         return np.full(50, self.Data)
     
     def mockedSetBuff(self, uData):
