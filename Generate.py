@@ -35,6 +35,20 @@ class ContGenerator:
         self.step: float = GEN_DEFAULT_STEP
         self.roundingNumber = 1
         self.isPaused: bool = False
+        self.GEN_MODE = GeneratorMode.CONT
+        self.steppingIndex: int = 0
+        self.steppingLevelsIncrement: int = 1
+
+        self.steppingRanges = GEN_DEFAULT_STEPPING_RANGES
+
+    def changeMode(self, uNewMode: GeneratorMode):
+        self.GEN_MODE = uNewMode
+
+    def getNextSteppingLevel(self) -> float:
+        if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
+            self.steppingLevelsIncrement *= -1
+        self.steppingIndex += self.steppingLevelsIncrement
+        return self.steppingRanges[self.steppingIndex]
 
     def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
         self.output = uChannelNumber
@@ -43,9 +57,14 @@ class ContGenerator:
 
         self.RP_S.sour_set(self.output, "dc", self.voltageValue, self.frequency)
 
-    def setRanges(self, uHRange, uLRange):
-        self.lowRange = uLRange
-        self.highRange = uHRange
+    def setRanges(self, uHRange = None, uLRange = None):
+        if(uHRange != None):
+            self.highRange = uHRange
+        if(uLRange != None):
+            self.lowRange = uLRange
+
+    def setBase(self, uBase):
+        self.setRanges(uLRange=uBase)
 
     def setStep(self, uStep):
         self.step = uStep
@@ -78,21 +97,35 @@ class ContGenerator:
             
 
     def generate(self):
-        if(self.voltageValue + self.step > self.highRange):
-            if(self.step > 0):
-                self.step *= -1.0
-        if(self.voltageValue + self.step < self.lowRange):
-            if(self.step < 0):
-                self.step *= -1.0
-        temp = self.voltageValue
-        self.voltageValue += self.step
+        match self.GEN_MODE:
+            case GeneratorMode.CONT:
+                if(self.voltageValue + self.step > self.highRange):
+                    if(self.step > 0):
+                        self.step *= -1.0
+                if(self.voltageValue + self.step < self.lowRange):
+                    if(self.step < 0):
+                        self.step *= -1.0
+                temp = self.voltageValue
+                self.voltageValue += self.step
 
-        if(temp*self.voltageValue < 0):
-            if(self.voltageValue < 0):
-                self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
-            else:
-                self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
+                if(temp*self.voltageValue < 0):
+                    if(self.voltageValue < 0):
+                        self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
+                    else:
+                        self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
             
+            case GeneratorMode.STEPPING:
+                if(self.voltageValue + self.step > self.highRange):
+                    if(self.step > 0):
+                        self.step *= -1.0
+                        self.setRanges(uHRange=self.getNextSteppingLevel())
+                if(self.voltageValue + self.step < self.lowRange):
+                    if(self.step < 0):
+                        self.step *= -1.0
+
+                self.voltageValue += self.step
+
+                #TODO MAYBE DIFFERENT RANGING
    
     def voltageToPercent(self) -> int:
         fullRange: float = self.highRange - self.lowRange

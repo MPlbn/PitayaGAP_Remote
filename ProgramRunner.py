@@ -127,15 +127,15 @@ class ProgramRunner:
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
                 self.Plotter.start()
-                self.changeMode(ProgramMode.CONT_WORK_ROUTINE) 
+                self.changeMode(ProgramMode.GEN_WORK_ROUTINE) 
     
-            case ProgramMode.CONT_STOP: #Stop continous
+            case ProgramMode.GEN_STOP: #Stop continous
                 #run to 0 and stop
                 self.ContGenerator.stopGen()
                 self.Plotter.stop()
                 self.changeMode(ProgramMode.IDLE)
 
-            case ProgramMode.CONT_WORK_ROUTINE:
+            case ProgramMode.GEN_WORK_ROUTINE:
                 self.ContGenerator.workRoutine()
                 self.Acquisitor.reset()
                 self.Acquisitor.setup()
@@ -144,44 +144,16 @@ class ProgramRunner:
                 self.processAcqBuffer(buffer)
                 self.Acquisitor.stop()
                 
-
-            # TEST MODES
-            case ProgramMode.TEST_1:
-                pass
-                # self.Acquisitor.reset()
-                # self.ContGenerator.reset()
+            case ProgramMode.STEPPING_START:
+                self.ContGenerator.changeMode(GeneratorMode.STEPPING)
+                self.ContGenerator.reset()
+                self.ContGenerator.setup()
+                self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE)
+                self.ContGenerator.startGen()
+                self.Plotter.start()
+                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
                 
-                # self.setGeneratorConstants(uFrequency=7)
-                # self.setAcquisitionConstants()
-                # self.Generator.startGenerating()
-
-                # self.Acquisitor.setup()
-                # print("odpalanie akwizycji")
-                # self.ContGenerator.setupTEST()
-                # print("setup generatora")
-                # self.ContGenerator.startGen()
-                # print("Start generatora")
-                # self.Acquisitor.startAcquisition()
-                #self.changeMode(0)
-                #print("zmiana trybu")
             
-            case ProgramMode.TEST_2:
-                pass
-                # self.Acquisitor.startAcquisition()
-                # self.dataBuffer = self.Acquisitor.runAcquisition()
-                # self.Acquisitor.stopAcquisition()
-                # self.Plotter.plot(self.dataBuffer, uAx, uCanvas)
-
-                # print("Wykonywanie rutyny")
-                # self.ContGenerator.workRoutineTEST()
-                # time.sleep(1)
-                # print("odbieranie danych")
-                # self.Acquisitor.triggerContAcquisition()
-                # voltage = self.Acquisitor.runContAcquisition()
-                # print(voltage)
-                # self.continousData.append(voltage)
-                # self.Plotter.plot(self.continousData, uAx, uCanvas)
-
     #   Changing the work routine
     #   newMode: int - new mode to be set
 

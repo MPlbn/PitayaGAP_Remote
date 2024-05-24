@@ -18,21 +18,20 @@ class GUI:
         self.PR = ProgramRunner.ProgramRunner()
         self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
+        self.thread = thread.Thread(target=self.threadTask)
+        self.thread.daemon = True
         self.running: bool = False
-        self.SCPIthread = None
 
 
     def startGeneratingPress(self):
         self.PR.changeMode(ProgramMode.CONT_START)
-        self.SCPIthread = thread.Thread(target=self.SCPItargetFun)
-        self.SCPIthread.start()
+
+    def startGeneratingSteppingPress(self):
+        self.PR.changeMode(ProgramMode.STEPPING_START)
 
     def stopGeneratingPress(self):
         #stopping continous generation in Program Runner work routine
-        self.PR.changeMode(ProgramMode.CONT_STOP)
-        
-
-
+        self.PR.changeMode(ProgramMode.GEN_STOP)
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
@@ -134,17 +133,13 @@ class GUI:
         self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
         self.interval = tempTime
 
-    def SCPItargetFun(self):
-        while self.running:
+    def threadTask(self):
+        while True:
             self.PR.run()
-            self.root.after(0, self.mainLoopEvent)
-            time.sleep(self.interval)
+            self.root.after(0, self.updateFun)
+            time.sleep(self.interval/1000)
 
-        if self.SCPIthread != None:
-            self.SCPIthread.join()
-
-    def mainLoopEvent(self):
-        #This does nothing, gui still is laggy        
+    def updateFun(self):
         self.PR.updateGUIElements(self.progressBar, self.progressLabel)
 
     def stopGUI(self):
@@ -230,6 +225,7 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
+        self.startStepBtn = ttk.Button(self.buttonsFrame, text='Start Step', bootstyle=(SUCCESS,OUTLINE), command=self.startGeneratingSteppingPress)
 
         #progress
         self.progressFrame = ttk.Frame(self.root)
@@ -266,6 +262,7 @@ class GUI:
         self.unlockBtn.grid(row=1,column=0, pady=5)
         self.stopBtn.grid(row=2,column=0, pady=5)
         self.startBtn.grid(row=3,column=0, pady=5)
+        self.startStepBtn.grid(row=4,column=0, pady=5)
 
 
         self.progressFrame.pack(padx=20,pady=20)
@@ -277,6 +274,6 @@ class GUI:
 
         #plotting done in Plotter class     
 
-        self.mainLoopEvent()
+        self.thread.start()
         #run gui
         self.root.mainloop()

@@ -130,10 +130,6 @@ class ContGenerator:
                 
                 self.voltageValue += self.step
 
-    # for test
-    def steppingGenerate(self):
-        pass
-
     def voltageToPercent(self) -> int:
         fullRange: float = self.highRange - self.lowRange
         currentPlace: float = self.voltageValue - self.lowRange
