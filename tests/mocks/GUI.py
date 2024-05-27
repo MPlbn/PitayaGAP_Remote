@@ -150,8 +150,14 @@ class GUI:
                     tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
                     self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
             case "stepping":
-                pass
-               #self.PR.setSteppingGeneratorParameters(tempMaxRange, tempBase, tempStep, tempNumOfSteps)
+                #collecting values
+                tempMaxRange: float = float(self.maxRangeEntry.get()) if self.maxRangeEntry.get() != "" else GEN_DEFAULT_HRANGE 
+                tempBase: float = float(self.baseEntry.get()) if self.baseEntry.get() != "" else GEN_DEFAULT_VOLTAGE
+                tempNumOfSteps: int = int(self.numOfStepsEntry.get()) if self.numOfStepsEntry.get() != "" else GEN_DEFAULT_NUM_STEPS
+
+                #validations TODO
+
+                self.PR.setSteppingGeneratorParameters(tempMaxRange, tempBase, tempStep, tempNumOfSteps)
 
         #showing error message
         self.errorLabel.configure(text = tempMessage)

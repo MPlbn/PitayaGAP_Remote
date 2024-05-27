@@ -43,7 +43,6 @@ class ProgramRunner:
         self.ContGenerator.setStep(uStep)
 
     def setSteppingGeneratorParameters(self, uMaxRange, uBase, uStep, uNumOfSteps):
-        #TODO
         self.ContGenerator.setBase(uBase)
         self.ContGenerator.setRanges(uHRange=uMaxRange)
         self.ContGenerator.createSteps(uNumOfSteps)
