@@ -44,6 +44,9 @@ class ProgramRunner:
 
     def setSteppingGeneratorParameters(self, uMaxRange, uBase, uStep, uNumOfSteps):
         #TODO
+        self.ContGenerator.setBase(uBase)
+        self.ContGenerator.setRanges(uHRange=uMaxRange)
+        self.ContGenerator.createSteps(uNumOfSteps)
         self.ContGenerator.setStep(uStep)
 
     #   handler of acquisition values
