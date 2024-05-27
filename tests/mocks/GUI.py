@@ -21,26 +21,45 @@ class GUI:
         self.thread = thread.Thread(target=self.threadTask)
         self.thread.daemon = True
         self.running = False
+        self.genMode = "normal"
 
     #buttons
     def startGeneratingPress(self):
         #starting continous generation in Program Runner work routine
-        self.PR.changeMode(ProgramMode.CONT_START)
+        match self.genMode:
+            case "normal":
+                self.PR.changeMode(ProgramMode.CONT_START)
+            case "stepping":
+                self.PR.changeMode(ProgramMode.STEPPING_START)
 
-    def startGeneratingSteppingPress(self):
-        self.PR.changeMode(ProgramMode.STEPPING_START)
+        self.startBtn.state(GUI_DISABLED)
+        self.stopBtn.state(GUI_ENABLED)
+        self.lockBtn.state(GUI_ENABLED)
 
     def stopGeneratingPress(self):
         #stopping continous generation in Program Runner work routine
         self.PR.changeMode(ProgramMode.GEN_STOP)
+        self.stopBtn.state(GUI_DISABLED)
+        self.startBtn.state(GUI_ENABLED)
+        self.lockBtn.state(GUI_DISABLED)
+        self.unlockBtn.state(GUI_DISABLED)
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
         self.PR.pauseContGenerator()
+        self.lockBtn.state(GUI_DISABLED)
+        self.unlockBtn.state(GUI_ENABLED)
     
     def unlockGeneratingPress(self):
         #unlocking current voltage value on Continous Generator and resuming autogeneration
         self.PR.unpauseContGenerator()
+        self.unlockBtn.state(GUI_DISABLED)
+        self.lockBtn.state(GUI_ENABLED)
+
+    def comboboxCallback(self, value):
+        self.genMode = str(self.genModeCombobox.get())
+        self.FRAME_LIST[str(self.genModeCombobox.get())].tkraise()
+
 
     def stepUpKey(self):
         #Increment step manually
@@ -201,21 +220,46 @@ class GUI:
 
         #settings
         self.settingsFrame = ttk.Labelframe(self.settingsAndButtonsFrame, bootstyle=INFO, text='settings')
-        self.hRangeLabel = ttk.Label(self.settingsFrame, bootstyle=INFO , text='High Range')
-        self.lRangeLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Low Range')
-        self.stepLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Step value')
-        self.intervalLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Speed value')
-        self.hRangeEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
-        self.lRangeEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
-        self.stepEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
-        self.intervalEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
-        self.setBtn = ttk.Button(self.settingsFrame, text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
+        self.genModeCombobox = ttk.Combobox(self.settingsFrame, bootstyle=INFO, state=READONLY)
+
+        #standard settings used everytime
+        self.standardSetFrame = ttk.Frame(self.settingsFrame)
+        self.stepLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Step value')
+        self.intervalLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Speed value')
+        self.stepEntry = ttk.Entry(self.standardSetFrame , bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
+        self.intervalEntry = ttk.Entry(self.standardSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+        self.setBtn = ttk.Button(self.standardSetFrame , text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
+
+        #normal settings
+        self.normalSetFrame = ttk.Frame(self.settingsFrame)
+        self.hRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO , text='High Range')
+        self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low Range')
+        self.hRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.lRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
     
+        #stepping settings
+        self.steppingSetFrame = ttk.Frame(self.settingsFrame)
+        self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level')
+        self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Upper limit')
+        self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Number of steps')
+        self.baseEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.maxRangeEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.numOfStepsEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+
+        #Setting combobox values
+        self.genModeCombobox['values'] = GUI_COMBOBOX_VALUES
+        self.genModeCombobox.set(GUI_COMBOBOX_VALUES[0])
+        self.genModeCombobox.bind('<<ComboboxSelected>>', self.comboboxCallback)
+
         #Setting default values to entries
         self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
         self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
         self.stepEntry.insert(0, str(GEN_DEFAULT_STEP))
         self.intervalEntry.insert(0, str(GUI_DEFAULT_INTERVAL))
+
+        self.baseEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
+        self.maxRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
+        self.numOfStepsEntry.insert(0, str(GEN_DEFAULT_NUM_STEPS))
 
         #errors
         self.errorFrame = ttk.Frame(self.settingsAndButtonsFrame, width=450)
@@ -227,7 +271,10 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
-        self.startStepBtn = ttk.Button(self.buttonsFrame, text='Start Step', bootstyle=(SUCCESS, OUTLINE), command=self.startGeneratingSteppingPress)
+
+        self.stopBtn.state(["disabled"])
+        self.lockBtn.state(["disabled"])
+        self.unlockBtn.state(["disabled"])
 
         #progress
         self.progressFrame = ttk.Frame(self.root)
@@ -239,21 +286,36 @@ class GUI:
         self.plotFrame = ttk.Frame(self.root)
         self.PR.setPlotterFrame(self.plotFrame)
 
+        #frame list
+        self.FRAME_LIST = {"normal" : self.normalSetFrame, "stepping" : self.steppingSetFrame}
+
 
     def startGUI(self):
         #placing widgets
         self.settingsAndButtonsFrame.pack(padx=20, pady=20)
 
         self.settingsFrame.grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
+        self.genModeCombobox.grid(row=0, column=0)
+
+        self.normalSetFrame.grid(row=1, column=0)
         self.hRangeLabel.grid(row=0, column=0, padx=5)
         self.lRangeLabel.grid(row=1, column=0, padx=5)
-        self.stepLabel.grid(row=2, column=0, padx=5)
-        self.intervalLabel.grid(row=3, column=0, padx=5)
         self.hRangeEntry.grid(row=0, column=1, pady=5)
         self.lRangeEntry.grid(row=1, column=1, pady=5)
-        self.stepEntry.grid(row=2, column=1, pady=5)
-        self.intervalEntry.grid(row=3, column=1, pady=5)
-        self.setBtn.grid(row=4,column=1, pady=10)
+        
+        self.steppingSetFrame.grid(row=1, column=0)
+        self.baseLabel.grid(row=0, column=0, padx=5)
+        self.maxRangeLabel.grid(row=1, column=0, padx=5)
+        self.baseEntry.grid(row=0, column=1, pady=5)
+        self.maxRangeEntry.grid(row=1, column=1, pady=5)
+
+        self.standardSetFrame.grid(row=2,column=0)
+        self.stepLabel.grid(row=1, column=0, padx=5)
+        self.intervalLabel.grid(row=2, column=0, padx=5)
+        self.stepEntry.grid(row=1, column=1, pady=5)
+        self.intervalEntry.grid(row=2, column=1, pady=5)
+        self.setBtn.grid(row=3,column=1, pady=10)
+
 
         self.errorFrame.grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)
@@ -264,8 +326,6 @@ class GUI:
         self.unlockBtn.grid(row=1,column=0, pady=5)
         self.stopBtn.grid(row=2,column=0, pady=5)
         self.startBtn.grid(row=3,column=0, pady=5)
-        self.startStepBtn.grid(row=4,column=0, pady=5)
-
 
         self.progressFrame.pack(padx=20,pady=20)
         self.progressInfoLabel.pack(padx=20)
@@ -274,9 +334,10 @@ class GUI:
 
         self.plotFrame.pack(padx=20, pady=10, fill=BOTH)
 
+        self.normalSetFrame.tkraise()
+
         #plotting done in Plotter class     
 
-        #need to run update function once 
         self.thread.start()
         #run gui
         self.root.mainloop()
