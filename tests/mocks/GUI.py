@@ -70,57 +70,9 @@ class GUI:
         pass
 
     def setRangesPress(self):
-
-        #collecting data from entries
-        tempHRange: float = float(self.hRangeEntry.get()) if self.hRangeEntry.get() != "" else GEN_DEFAULT_HRANGE
-        tempLRange: float = float(self.lRangeEntry.get()) if self.lRangeEntry.get() != "" else GEN_DEFAULT_LRANGE
+        tempMessage: str = ""
         tempStep: float = float(self.stepEntry.get()) if self.stepEntry.get() != "" else GEN_DEFAULT_STEP
         tempTime: int = int(self.intervalEntry.get()) if self.intervalEntry.get() != "" else GUI_DEFAULT_INTERVAL
-
-        tempMessage: str = ""
-
-        #validations
-        if(tempHRange < tempLRange):
-            temp = tempLRange
-            tempHRange = tempLRange
-            tempLRange = temp
-            self.hRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, f'{tempHRange}')
-            self.lRangeEntry.insert(0, f'{tempLRange}')
-
-        if(tempHRange > GEN_MAX_RANGE):
-            tempHRange = GEN_MAX_RANGE
-            self.hRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, str(GEN_MAX_RANGE))
-            tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
-
-        if(tempHRange < GEN_MIN_RANGE):
-            tempHRange = GEN_MIN_RANGE
-            self.hRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, str(GEN_MIN_RANGE))
-            tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"
-
-        if(tempLRange > GEN_MAX_RANGE):
-            tempLRange = GEN_MAX_RANGE
-            self.lRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.insert(0, str(GEN_MAX_RANGE))
-            tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
-
-        if(tempLRange < GEN_MIN_RANGE):
-            tempLRange = GEN_MIN_RANGE
-            self.lRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.insert(0, str(GEN_MIN_RANGE))
-            tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"    
-
-        if(tempHRange == tempLRange):
-            tempHRange = GEN_DEFAULT_HRANGE
-            tempLRange = GEN_DEFAULT_LRANGE
-            self.hRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
-            self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
-            tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
 
         if(tempStep > GEN_MAX_STEP):
             tempStep = GEN_MAX_STEP
@@ -146,11 +98,65 @@ class GUI:
             self.intervalEntry.insert(0, str(GUI_MIN_INTERVAL))
             tempMessage += f"Error: Interval cannot be lower than {GUI_MIN_INTERVAL}ms\n"
 
+
+        match self.genMode:
+            case "normal":
+                #collecting data from entries
+                tempHRange: float = float(self.hRangeEntry.get()) if self.hRangeEntry.get() != "" else GEN_DEFAULT_HRANGE
+                tempLRange: float = float(self.lRangeEntry.get()) if self.lRangeEntry.get() != "" else GEN_DEFAULT_LRANGE
+
+
+                #validations
+                if(tempHRange < tempLRange):
+                    temp = tempLRange
+                    tempHRange = tempLRange
+                    tempLRange = temp
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, f'{tempHRange}')
+                    self.lRangeEntry.insert(0, f'{tempLRange}')
+
+                if(tempHRange > GEN_MAX_RANGE):
+                    tempHRange = GEN_MAX_RANGE
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
+
+                if(tempHRange < GEN_MIN_RANGE):
+                    tempHRange = GEN_MIN_RANGE
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"
+
+                if(tempLRange > GEN_MAX_RANGE):
+                    tempLRange = GEN_MAX_RANGE
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
+
+                if(tempLRange < GEN_MIN_RANGE):
+                    tempLRange = GEN_MIN_RANGE
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"    
+
+                if(tempHRange == tempLRange):
+                    tempHRange = GEN_DEFAULT_HRANGE
+                    tempLRange = GEN_DEFAULT_LRANGE
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
+                    self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
+                    tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
+                    self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
+            case "stepping":
+                pass
+               #self.PR.setSteppingGeneratorParameters(tempMaxRange, tempBase, tempStep, tempNumOfSteps)
+
         #showing error message
         self.errorLabel.configure(text = tempMessage)
 
         #setting values
-        self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
         self.interval = tempTime
 
     def threadTask(self):
@@ -241,7 +247,7 @@ class GUI:
         self.steppingSetFrame = ttk.Frame(self.settingsFrame)
         self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level')
         self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Upper limit')
-        self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Number of steps')
+        self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='No. of steps')
         self.baseEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.maxRangeEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.numOfStepsEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
@@ -272,9 +278,9 @@ class GUI:
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
 
-        self.stopBtn.state(["disabled"])
-        self.lockBtn.state(["disabled"])
-        self.unlockBtn.state(["disabled"])
+        self.stopBtn.state(GUI_DISABLED)
+        self.lockBtn.state(GUI_DISABLED)
+        self.unlockBtn.state(GUI_DISABLED)
 
         #progress
         self.progressFrame = ttk.Frame(self.root)
@@ -297,7 +303,7 @@ class GUI:
         self.settingsFrame.grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
         self.genModeCombobox.grid(row=0, column=0)
 
-        self.normalSetFrame.grid(row=1, column=0)
+        self.normalSetFrame.grid(row=1, column=0, sticky=NSEW)
         self.hRangeLabel.grid(row=0, column=0, padx=5)
         self.lRangeLabel.grid(row=1, column=0, padx=5)
         self.hRangeEntry.grid(row=0, column=1, pady=5)
@@ -306,8 +312,10 @@ class GUI:
         self.steppingSetFrame.grid(row=1, column=0)
         self.baseLabel.grid(row=0, column=0, padx=5)
         self.maxRangeLabel.grid(row=1, column=0, padx=5)
+        self.numOfStepsLabel.grid(row=2, column=0, padx=5)
         self.baseEntry.grid(row=0, column=1, pady=5)
         self.maxRangeEntry.grid(row=1, column=1, pady=5)
+        self.numOfStepsEntry.grid(row=2, column=1, pady=5)
 
         self.standardSetFrame.grid(row=2,column=0)
         self.stepLabel.grid(row=1, column=0, padx=5)

@@ -33,16 +33,6 @@ class ProgramRunner:
         self.Plotter.setFrame(uPlotterFrame)
         self.Plotter.initVisuals()
 
-    #   handler of generation values
-    #   uChannelNumber: int - channel that generation will be performed on - [1,2]
-    #   uWaveForm: string - type of signal to be generated - [sine, dc, saw, square, triangle, arbitrary]
-    #   uAmplitude: float - amplitude of signal, in case of dc: value of constant
-    #   uFrequency: int - frequency of signal, in Hz
-    #   NOT USED NOT USED NOT USED NOT USED NOT USED
-
-   # def setGeneratorConstants(self, uChannelNumber = DEFAULT_CHANNEL, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
-        #self.Generator.setup(uChannelNumber, uWaveform, uFrequency, uAmplitude)
-
     #   setting generator parameters passed from GUI
     #   uHighRange: float - ceiling voltage value which won't be passed while generating
     #   uLowRange: float - floor voltage value which won't be passed while generating
@@ -50,6 +40,10 @@ class ProgramRunner:
 
     def setContGeneratorParameters(self, uHighRange, uLowRange, uStep):
         self.ContGenerator.setRanges(uHighRange, uLowRange)
+        self.ContGenerator.setStep(uStep)
+
+    def setSteppingGeneratorParameters(self, uMaxRange, uBase, uStep, uNumOfSteps):
+        #TODO
         self.ContGenerator.setStep(uStep)
 
     #   handler of acquisition values
