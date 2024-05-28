@@ -42,15 +42,12 @@ class ContGenerator:
         if(uLRange != None):    
             self.lowRange = uLRange
 
-    def setBase(self, uBase):
-        self.setRanges(uLRange=uBase)
-
     def createSteps(self, uNumOfSteps):
         fullSize = self.highRange - self.lowRange
         stepSize = fullSize / uNumOfSteps
         self.steppingRanges = []
         stepValue = 0.0
-        for i in range(0, uNumOfSteps - 1):
+        for _ in range(0, uNumOfSteps):
             stepValue += stepSize
             self.steppingRanges.append(stepValue)
         print(self.steppingRanges) #Debug purposes

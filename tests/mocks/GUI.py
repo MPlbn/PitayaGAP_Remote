@@ -155,7 +155,61 @@ class GUI:
                 tempBase: float = float(self.baseEntry.get()) if self.baseEntry.get() != "" else GEN_DEFAULT_VOLTAGE
                 tempNumOfSteps: int = int(self.numOfStepsEntry.get()) if self.numOfStepsEntry.get() != "" else GEN_DEFAULT_NUM_STEPS
 
-                #validations TODO
+                if(tempMaxRange > GEN_MAX_RANGE):
+                    tempMaxRange = GEN_MAX_RANGE
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Upper limit cannot be higher than {GEN_MAX_RANGE}"
+
+                if(tempMaxRange < GEN_MIN_RANGE):
+                    tempMaxRange = GEN_MIN_RANGE
+                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Upper limit cannot be lower than {GEN_MIN_RANGE}"
+
+                if(tempBase > GEN_MAX_RANGE):
+                    tempBase = GEN_MAX_RANGE
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Base voltage cannot be higher than {GEN_MAX_RANGE}"
+                
+                if(tempBase < GEN_MIN_RANGE):
+                    tempBase = GEN_MIN_RANGE
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Base voltage cannot be lower than {GEN_MIN_RANGE}"
+
+                if(tempBase == tempMaxRange):
+                    tempBase = GEN_DEFAULT_VOLTAGE
+                    tempMaxRange = GEN_MAX_RANGE
+
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
+                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Base voltage and upper limit cannot be tha same - resetting values"
+
+                #Temporary, for sure to change TODO
+                if(tempBase > tempMaxRange):
+                    temp = tempBase
+                    tempBase = tempMaxRange
+                    tempMaxRange = temp
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(tempBase))
+                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.insert(0, str(tempMaxRange))
+
+                if(tempNumOfSteps < 2):
+                    tempNumOfSteps = 2
+                    self.numOfStepsEntry.delete(0, ttk.END)
+                    self.numOfStepsEntry.insert(0, str(2))
+                    tempMessage += f"Error: Number of steps cannot be lower than 2"
+
+                if(tempNumOfSteps > 30):
+                    tempNumOfSteps = 30
+                    self.numOfStepsEntry.delete(0, ttk.END)
+                    self.numOfStepsEntry.insert(0, str(30))
+                    tempMessage += f"Error: Number of steps cannot be higher than 30"
 
                 self.PR.setSteppingGeneratorParameters(tempMaxRange, tempBase, tempStep, tempNumOfSteps)
 
