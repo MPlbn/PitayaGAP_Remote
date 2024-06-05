@@ -38,12 +38,13 @@ class ProgramRunner:
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep):
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection):
         self.ContGenerator.setRanges(uHighRange, uLowRange)
         self.ContGenerator.setStep(uStep)
+        self.ContGenerator.setDirection(uDirection)
 
-    def setSteppingGeneratorParameters(self, uMaxRange, uBase, uStep, uNumOfSteps):
-        self.ContGenerator.setRanges(uHRange=uMaxRange, uLRange=uBase)
+    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps):
+        self.ContGenerator.setSteppingRanges(uLimit, uBase)
         self.ContGenerator.createSteps(uNumOfSteps)
         self.ContGenerator.setStep(uStep)
 
@@ -119,6 +120,7 @@ class ProgramRunner:
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
                 self.Plotter.start()
+                self.ContGenerator.applyDirection()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE) 
     
             case ProgramMode.GEN_STOP: #Stop continous

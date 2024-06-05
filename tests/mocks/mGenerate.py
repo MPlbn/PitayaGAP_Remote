@@ -1,6 +1,12 @@
 from mConstants import *
 import time
 
+
+#
+#   BUG - Setting midflight hard resets step to be >0
+#   BUG - Never starts at 0, always at next step - both generation variants
+#
+
 class ContGenerator:
     def __init__(self, uIP):
         #self.RP_S = scpi.scpi(uIP)
@@ -10,11 +16,14 @@ class ContGenerator:
         self.highRange: float = GEN_DEFAULT_HRANGE
         self.lowRange: float = GEN_DEFAULT_LRANGE
         self.step: float = GEN_DEFAULT_STEP
-        self.roundingNumber = 1
+        self.roundingNumber: int = 1
         self.isPaused: bool = False
         self.GEN_MODE = GeneratorMode.CONT
         self.steppingIndex: int = 0
         self.steppingLevelsIncrement: int = 1
+        self.base: float = GEN_DEFAULT_VOLTAGE
+        self.limit: float = GEN_DEFAULT_HRANGE
+        self.direction = "anodic"
 
         #for test
         self.steppingRanges = []
@@ -26,7 +35,7 @@ class ContGenerator:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
             self.steppingLevelsIncrement *= -1
         self.steppingIndex += self.steppingLevelsIncrement
-        print(self.steppingRanges[self.steppingIndex])
+        #print(self.steppingRanges[self.steppingIndex]) #DEBUG PURPOSE
         return self.steppingRanges[self.steppingIndex]
 
     def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
@@ -42,19 +51,40 @@ class ContGenerator:
         if(uLRange != None):    
             self.lowRange = uLRange
 
+    def setSteppingRanges(self, uLimit, uBase = None):
+        if(uBase != None):
+            if(uBase > uLimit):
+                self.direction = "kathodic"
+            else:
+                self.direction = "anodic"
+            self.applyDirection()
+            self.base = uBase
+            self.voltageValue = self.base
+
+        self.limit = uLimit
+
     def createSteps(self, uNumOfSteps):
-        fullSize = self.highRange - self.lowRange
+        fullSize = self.limit - self.base
         stepSize = fullSize / uNumOfSteps
         self.steppingRanges = []
         stepValue = 0.0
         for _ in range(0, uNumOfSteps):
             stepValue += stepSize
             self.steppingRanges.append(stepValue)
-        print(self.steppingRanges) #Debug purposes
 
     def setStep(self, uStep):
         self.step = uStep
         self.calculateRoundingNumber()
+
+    def setDirection(self, uDirection):
+        self.direction = uDirection
+
+    def applyDirection(self):
+        match self.direction:
+            case "anodic":
+                pass
+            case "kathodic":
+                self.step *= -1.0
 
     def setOutput(self, uOutput):
         self.output = uOutput
@@ -81,6 +111,7 @@ class ContGenerator:
 
     def workRoutine(self):
         if(not self.isPaused):
+            print(self.voltageValue)
             self.generate()
             self.changeVolt(self.voltageValue)
             
@@ -104,13 +135,23 @@ class ContGenerator:
                 #         self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
 
             case GeneratorMode.STEPPING:
-                if(self.voltageValue + self.step > self.highRange):
-                    if(self.step > 0):
-                        self.step *= -1.0
-                        self.setRanges(uHRange=self.getNextSteppingLevel())
-                if(self.voltageValue + self.step < self.lowRange):
-                    if(self.step < 0):
-                        self.step *= -1.0
+                match self.direction:
+                    case "anodic":
+                        if(self.voltageValue + self.step > self.limit):
+                            if(self.step > 0):
+                                self.step *= -1.0
+                                self.setSteppingRanges(uLimit=self.getNextSteppingLevel())
+                        if(self.voltageValue + self.step < self.base):
+                            if(self.step < 0):
+                                self.step *= -1.0
+                    case "kathodic":
+                        if(self.voltageValue + self.step < self.limit):
+                            if(self.step < 0):
+                                self.step *= -1.0
+                                self.setSteppingRanges(uLimit=self.getNextSteppingLevel())
+                        if(self.voltageValue + self.step > self.base):
+                            if(self.step > 0):
+                                self.step *= -1.0
                 
                 self.voltageValue += self.step
 
