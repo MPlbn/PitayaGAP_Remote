@@ -2,11 +2,6 @@ from mConstants import *
 import time
 
 
-#
-#   BUG - Setting midflight hard resets step to be >0
-#   BUG - Never starts at 0, always at next step - both generation variants
-#
-
 class ContGenerator:
     def __init__(self, uIP):
         #self.RP_S = scpi.scpi(uIP)
@@ -35,7 +30,7 @@ class ContGenerator:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
             self.steppingLevelsIncrement *= -1
         self.steppingIndex += self.steppingLevelsIncrement
-        #print(self.steppingRanges[self.steppingIndex]) #DEBUG PURPOSE
+        print(self.steppingRanges[self.steppingIndex]) #DEBUG PURPOSE
         return self.steppingRanges[self.steppingIndex]
 
     def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
@@ -73,7 +68,10 @@ class ContGenerator:
             self.steppingRanges.append(stepValue)
 
     def setStep(self, uStep):
-        self.step = uStep
+        if(self.step < 0):
+            self.step = -uStep
+        else:
+            self.step = uStep
         self.calculateRoundingNumber()
 
     def setDirection(self, uDirection):
@@ -100,6 +98,9 @@ class ContGenerator:
     def unpause(self):
         self.isPaused = False
 
+    def getPause(self):
+        return self.isPaused
+
     def reset(self):
         #self.RP_S.tx_txt('GEN:RST')
         time.sleep(MOCK_TIME_SLOW)
@@ -111,7 +112,6 @@ class ContGenerator:
 
     def workRoutine(self):
         if(not self.isPaused):
-            print(self.voltageValue)
             self.generate()
             self.changeVolt(self.voltageValue)
             

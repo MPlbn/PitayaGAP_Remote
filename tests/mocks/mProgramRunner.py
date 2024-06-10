@@ -70,6 +70,10 @@ class ProgramRunner:
     def unpauseContGenerator(self):
         self.ContGenerator.unpause()
 
+    #   getter for current generator pause value
+    def getContGeneratorPauseState(self):
+        return self.ContGenerator.getPause()
+
     ##HELPER
 
     def updateGUIElements(self, uProgressBar, uProgressLabel):
@@ -121,7 +125,7 @@ class ProgramRunner:
                 self.ContGenerator.startGen()
                 self.Plotter.start()
                 self.ContGenerator.applyDirection()
-                self.changeMode(ProgramMode.GEN_WORK_ROUTINE) 
+                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
     
             case ProgramMode.GEN_STOP: #Stop continous
                 #run to 0 and stop
@@ -146,6 +150,16 @@ class ProgramRunner:
                 self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) # value for test
                 self.ContGenerator.startGen()
                 self.Plotter.start()
+                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
+            
+            case ProgramMode.PRE_WORK_ROUTINE:
+                self.Acquisitor.reset()
+                self.Acquisitor.setup()
+                self.Acquisitor.start()
+                self.Acquisitor.mockedSetBuff(self.ContGenerator.mockedGetGeneratedValue())
+                buffer = self.Acquisitor.getBuff()
+                self.processAcqBuffer(buffer)
+                self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
     #   Changing the work routine
@@ -157,6 +171,12 @@ class ProgramRunner:
         else:
             print("Error: Invalid mode number")
     
+    #   Step increment/decrement handler
+    #   uChangeType: int - modifier to step value
+
+    def changeGenStep(self, uChangeType):
+        self.ContGenerator.step += uChangeType * self.ContGenerator.step
+
     #   Passing data to plotter processing function
     #   uBuffer: array of floats - buffer returned from aqcuisition
 

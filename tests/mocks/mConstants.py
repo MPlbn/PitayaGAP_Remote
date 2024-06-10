@@ -8,13 +8,14 @@ class ProgramMode(Enum):
     GEN_STOP = auto()
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
+    PRE_WORK_ROUTINE = auto()
 
 class GeneratorMode(Enum):
     CONT = auto()
     STEPPING = auto()
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 6
+LAST_MODE: int = 7
 
 DEFAULT_CHANNEL = 1
 
@@ -42,6 +43,8 @@ GUI_COMBOBOX_VALUES = ("normal", "stepping")
 GUI_DIR_COMBOBOX_VALUES = ("anodic", "kathodic")
 GUI_DISABLED = ["disabled"]
 GUI_ENABLED = ["!disabled"]
+GUI_INCREMENT_STEP = 1
+GUI_DECREMENT_STEP = -1
 
 MOCK_TIME_SLOW: float = 0.0
 MOCK_TIME_SLOW_LONG: float = 0.0

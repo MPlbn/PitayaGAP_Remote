@@ -13,6 +13,8 @@ import time
 import mProgramRunner
 from mConstants import *
 
+#BUG step changing with keyboard is bugged
+
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()
@@ -64,13 +66,14 @@ class GUI:
     def dirComboboxCallback(self, value):
         self.direction = str(self.directionCombobox.get())
 
-    def stepUpKey(self):
-        #Increment step manually
-        pass
+    #Only working when gen values are locked
+    def stepUpKey(self, event=None):
+        if(self.PR.getContGeneratorPauseState()):
+            self.PR.changeGenStep(GUI_INCREMENT_STEP)
 
-    def stepDownKey(self):
-        #Decrement step manually
-        pass
+    def stepDownKey(self, event=None):
+        if(self.PR.getContGeneratorPauseState()):
+            self.PR.changeGenStep(GUI_DECREMENT_STEP)
 
     def setRangesPress(self):
         tempMessage: str = ""
@@ -366,6 +369,16 @@ class GUI:
 
         #frame list
         self.FRAME_LIST = {"normal" : self.normalSetFrame, "stepping" : self.steppingSetFrame}
+
+        #binding keyboard keys to their functionality
+        #temporary without numpad
+        self.root.bind('[', self.stepUpKey)
+        self.root.bind(']', self.stepDownKey)
+
+
+        #should work, don't have a numpad to check out
+        #self.root.bind('KP_Add', self.stepUpKey)
+        #self.root.bind('KP_Substract', self.stepDownKey)
 
 
     def startGUI(self):
