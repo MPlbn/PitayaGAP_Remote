@@ -13,8 +13,6 @@ import time
 import mProgramRunner
 from mConstants import *
 
-#BUG step changing with keyboard is bugged
-
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()
@@ -69,11 +67,11 @@ class GUI:
     #Only working when gen values are locked
     def stepUpKey(self, event=None):
         if(self.PR.getContGeneratorPauseState()):
-            self.PR.changeGenStep(GUI_INCREMENT_STEP)
+            self.PR.manualChangeGenVoltage(GUI_INCREMENT_STEP)
 
     def stepDownKey(self, event=None):
         if(self.PR.getContGeneratorPauseState()):
-            self.PR.changeGenStep(GUI_DECREMENT_STEP)
+            self.PR.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
     def setRangesPress(self):
         tempMessage: str = ""

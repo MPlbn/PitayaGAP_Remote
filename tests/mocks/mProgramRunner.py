@@ -174,8 +174,8 @@ class ProgramRunner:
     #   Step increment/decrement handler
     #   uChangeType: int - modifier to step value
 
-    def changeGenStep(self, uChangeType):
-        self.ContGenerator.step += uChangeType * self.ContGenerator.step
+    def manualChangeGenVoltage(self, uChangeType):
+        self.ContGenerator.manualChangeVoltage(uChangeType)
 
     #   Passing data to plotter processing function
     #   uBuffer: array of floats - buffer returned from aqcuisition
@@ -186,5 +186,5 @@ class ProgramRunner:
     #   closing the scpi connection
 
     def exit(self):
-        self.changeMode(ProgramMode.CONT_STOP)
+        self.changeMode(ProgramMode.GEN_STOP)
     

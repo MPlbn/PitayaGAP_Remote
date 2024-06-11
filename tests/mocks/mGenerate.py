@@ -26,6 +26,24 @@ class ContGenerator:
     def changeMode(self, uNewMode: GeneratorMode):
         self.GEN_MODE = uNewMode
     
+    def manualChangeVoltage(self, uChangeType):
+        tempValue = self.voltageValue + (uChangeType * abs(self.step))
+        match self.GEN_MODE:
+            case GeneratorMode.CONT:
+                if(tempValue < self.lowRange or
+                   tempValue > self.highRange):
+                    pass
+                else:
+                    self.voltageValue = tempValue
+            case GeneratorMode.STEPPING:
+                if(tempValue > self.base or
+                   tempValue < self.base or
+                   tempValue > self.limit or
+                   tempValue < self.limit):
+                    pass
+                else:
+                    self.voltageValue = tempValue
+
     def getNextSteppingLevel(self) -> float:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
             self.steppingLevelsIncrement *= -1
