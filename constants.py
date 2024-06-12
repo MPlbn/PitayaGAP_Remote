@@ -8,13 +8,14 @@ class ProgramMode(Enum):
     GEN_STOP = auto()
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
+    PRE_WORK_ROUTINE = auto()
 
 class GeneratorMode(Enum):
     CONT = auto()
     STEPPING = auto()
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 6
+LAST_MODE: int = 7
 
 DEFAULT_CHANNEL = 1
 
@@ -31,9 +32,15 @@ GEN_MIN_RANGE: float = -1.0
 GEN_MAX_STEP: float = 1.0
 GEN_DEFAULT_STEPPING_RANGES = [0.3, 0.5, 0.7, 0.9]
 GEN_DEFAULT_VOLTAGE = 0.0
+GEN_DEFAULT_NUM_STEPS = 4
 
 GUI_DEFAULT_INTERVAL: int = 50
 GUI_DEFAULT_WINDOW_SIZE = (1000,1000)
 GUI_MAX_INTERVAL: int = 5000
 GUI_MIN_INTERVAL: int = 5
-
+GUI_COMBOBOX_VALUES = ("normal", "stepping")
+GUI_DIR_COMBOBOX_VALUES = ("anodic", "kathodic")
+GUI_DISABLED = ["disabled"]
+GUI_ENABLED = ["!disabled"]
+GUI_INCREMENT_STEP = 1
+GUI_DECREMENT_STEP = -1

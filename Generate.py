@@ -2,47 +2,67 @@ import redpitaya_scpi as scpi
 from constants import *
 
 #Generating commands wrapper - obsolete
-class Generator:
-    def __init__(self, uIP):
-        self.RP_S = scpi.scpi(uIP)
+# class Generator:
+#     def __init__(self, uIP):
+#         self.RP_S = scpi.scpi(uIP)
         
-    def reset(self):
-        self.RP_S.tx_txt('GEN:RST')
+#     def reset(self):
+#         self.RP_S.tx_txt('GEN:RST')
 
-    def setup(self, uChannelNumber, uWaveform, uFrequency, uAmplitude):
-        self.channelNumber = uChannelNumber
-        self.frequency = uFrequency
-        self.amplitude = uAmplitude
-        self.RP_S.sour_set(uChannelNumber, uWaveform, uAmplitude, uFrequency)
+#     def setup(self, uChannelNumber, uWaveform, uFrequency, uAmplitude):
+#         self.channelNumber = uChannelNumber
+#         self.frequency = uFrequency
+#         self.amplitude = uAmplitude
+#         self.RP_S.sour_set(uChannelNumber, uWaveform, uAmplitude, uFrequency)
 
-    def startGenerating(self):
-        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
-        self.RP_S.tx_txt(f'SOUR{self.channelNumber}:TRIG:INT')
+#     def startGenerating(self):
+#         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
+#         self.RP_S.tx_txt(f'SOUR{self.channelNumber}:TRIG:INT')
 
-    def stopGenerating(self):
-        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
-
-#   WIP TODO
+#     def stopGenerating(self):
+#         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
 
 class ContGenerator:
     def __init__(self, uIP):
-        self.RP_S = scpi.scpi(uIP)
+        #self.RP_S = scpi.scpi(uIP)
         self.output: int = DEFAULT_CHANNEL
         self.frequency: int = 1000 #prob not needed
-        self.voltageValue: float = 0.0
+        self.voltageValue: float = GEN_DEFAULT_VOLTAGE
         self.highRange: float = GEN_DEFAULT_HRANGE
         self.lowRange: float = GEN_DEFAULT_LRANGE
         self.step: float = GEN_DEFAULT_STEP
-        self.roundingNumber = 1
+        self.roundingNumber: int = 1
         self.isPaused: bool = False
         self.GEN_MODE = GeneratorMode.CONT
         self.steppingIndex: int = 0
         self.steppingLevelsIncrement: int = 1
+        self.base: float = GEN_DEFAULT_VOLTAGE
+        self.limit: float = GEN_DEFAULT_HRANGE
+        self.direction = "anodic"
 
-        self.steppingRanges = GEN_DEFAULT_STEPPING_RANGES
+        #for test
+        self.steppingRanges = []
 
     def changeMode(self, uNewMode: GeneratorMode):
         self.GEN_MODE = uNewMode
+
+    def manualChangeVoltage(self, uChangeType):
+        tempValue = self.voltageValue + (uChangeType * abs(self.step))
+        match self.GEN_MODE:
+            case GeneratorMode.CONT:
+                if(tempValue < self.lowRange or
+                   tempValue > self.highRange):
+                    pass
+                else:
+                    self.voltageValue = tempValue
+            case GeneratorMode.STEPPING:
+                if(tempValue > self.base or
+                   tempValue < self.base or
+                   tempValue > self.limit or
+                   tempValue < self.limit):
+                    pass
+                else:
+                    self.voltageValue = tempValue
 
     def getNextSteppingLevel(self) -> float:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
@@ -63,12 +83,42 @@ class ContGenerator:
         if(uLRange != None):
             self.lowRange = uLRange
 
-    def setBase(self, uBase):
-        self.setRanges(uLRange=uBase)
+    def setSteppingRanges(self, uLimit, uBase = None):
+        if(uBase != None):
+            if(uBase > uLimit):
+                self.direction = "kathodic"
+            else:
+                self.direction = "anodic"
+            self.applyDirection()
+            self.base = uBase
+            self.voltageValue = uBase
+        self.limit = uLimit
+
+    def createSteps(self, uNumOfSteps):
+        fullSize = self.limit - self.base
+        stepSize = fullSize / uNumOfSteps
+        self.steppingRanges = []
+        stepValue = 0.0
+        for _ in range(0, uNumOfSteps):
+            stepValue += stepSize
+            self.steppingRanges.append(stepValue)
 
     def setStep(self, uStep):
-        self.step = uStep
+        if(self.step < 0):
+            self.step = -uStep
+        else:
+            self.step = uStep
         self.calculateRoundingNumber()
+
+    def setDirection(self, uDirection):
+        self.direction = uDirection
+
+    def applyDirection(self):
+        match self.direction:
+            case "anodic":
+                pass
+            case "kathodic":
+                self.step *= -1.0
 
     def setOutput(self, uOutput):
         self.output = uOutput
@@ -76,12 +126,14 @@ class ContGenerator:
     def changeVolt(self, uNewVoltage):
         self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {abs(uNewVoltage)}')
         
-
     def pause(self):
         self.isPaused = True
 
     def unpause(self):
         self.isPaused = False
+
+    def getPause(self) -> bool:
+        return self.isPaused
 
     def reset(self):
         self.RP_S.tx_txt('GEN:RST')
@@ -104,28 +156,37 @@ class ContGenerator:
                         self.step *= -1.0
                 if(self.voltageValue + self.step < self.lowRange):
                     if(self.step < 0):
-                        self.step *= -1.0
-                temp = self.voltageValue
-                self.voltageValue += self.step
+                        self.step *= -1.0  
 
-                if(temp*self.voltageValue < 0):
-                    if(self.voltageValue < 0):
-                        self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
-                    else:
-                        self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
-            
             case GeneratorMode.STEPPING:
-                if(self.voltageValue + self.step > self.highRange):
-                    if(self.step > 0):
-                        self.step *= -1.0
-                        self.setRanges(uHRange=self.getNextSteppingLevel())
-                if(self.voltageValue + self.step < self.lowRange):
-                    if(self.step < 0):
-                        self.step *= -1.0
-
-                self.voltageValue += self.step
-
-                #TODO MAYBE DIFFERENT RANGING
+                tempValue = self.voltageValue + self.step
+                match self.direction:
+                    case "anodic":
+                        if(tempValue > self.limit):
+                            if(self.step > 0):
+                                self.step *= -1.0
+                                self.setSteppingRanges(uLimit=self.getNextSteppingLevel())
+                        if(tempValue < self.base):
+                            if(self.step < 0):
+                                self.step *= -1.0
+                    case "kathodic":
+                        if(tempValue < self.limit):
+                            if(self.step < 0):
+                                self.step *= -1.0
+                                self.setSteppingRanges(uLimit=self.getNextSteppingLevel())
+                        if(tempValue > self.base):
+                            if(self.step > 0):
+                                self.step *= -1.0
+                
+        temp = self.voltageValue
+        self.voltageValue += self.step
+        if(temp*self.voltageValue < 0):
+            if(self.voltageValue < 0):
+                self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
+            else:
+                self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
+                    
+                
    
     def voltageToPercent(self) -> int:
         fullRange: float = self.highRange - self.lowRange

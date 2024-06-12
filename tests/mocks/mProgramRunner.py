@@ -84,8 +84,6 @@ class ProgramRunner:
 
 
     #   main work routine of program runner
-    #   uProgressBar - progress bar passed from GUI to be updated
-    #   uProgressLabel - label showing current voltage value, passed from GUI to be updated 
 
     def run(self):
         match self.PROGRAM_MODE:

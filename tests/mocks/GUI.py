@@ -63,8 +63,7 @@ class GUI:
 
     def dirComboboxCallback(self, value):
         self.direction = str(self.directionCombobox.get())
-
-    #Only working when gen values are locked
+        
     def stepUpKey(self, event=None):
         if(self.PR.getContGeneratorPauseState()):
             self.PR.manualChangeGenVoltage(GUI_INCREMENT_STEP)

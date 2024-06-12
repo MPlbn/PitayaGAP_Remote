@@ -43,16 +43,28 @@ class ProgramRunner:
     #   uFrequency: int - frequency of signal, in Hz
     #   NOT USED NOT USED NOT USED NOT USED NOT USED
 
-    def setGeneratorConstants(self, uChannelNumber = DEFAULT_CHANNEL, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
-        self.Generator.setup(uChannelNumber, uWaveform, uFrequency, uAmplitude)
+    # def setGeneratorConstants(self, uChannelNumber = DEFAULT_CHANNEL, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
+    #     self.Generator.setup(uChannelNumber, uWaveform, uFrequency, uAmplitude)
 
-    #   setting generator parameters passed from GUI
+    #   setting generator parameters passed from GUI when in normal mode
     #   uHighRange: float - ceiling voltage value which won't be passed while generating
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep):
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection):
         self.ContGenerator.setRanges(uHighRange, uLowRange)
+        self.ContGenerator.setStep(uStep)
+        self.ContGenerator.setDirection(uDirection)
+
+    #   setting generator parameters passed from GUI when in stepping mode
+    #   uLimit: float - upper/lower voltage limit which won't be passed while generating
+    #   uBase: float - base voltage that will be the starting point for each peak run while generating
+    #   uStep: float - value by which voltage output will change each step
+    #   uNumofSteps: int - number of different voltage peaks to be created
+
+    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps):
+        self.ContGenerator.setSteppingRanges(uLimit, uBase)
+        self.ContGenerator.createSteps(uNumOfSteps)
         self.ContGenerator.setStep(uStep)
 
     #   handler of acquisition values
@@ -65,12 +77,10 @@ class ProgramRunner:
         self.Acquisitor.setup(uDecimation, uTriggerLevel, uTriggerDelay)
         self.Acquisitor.channelNumber = uChannelNumber
 
-
     #   pausing generation of continous generator
 
     def pauseContGenerator(self):
         self.ContGenerator.pause()
-
 
     #   unpausing generation of continous generator
 
@@ -87,11 +97,8 @@ class ProgramRunner:
 
 
     #   main work routine of program runner
-    #   uProgressBar - progress bar passed from GUI to be updated
-    #   uProgressLabel - label showing current voltage value, passed from GUI to be updated 
 
     def run(self):
-        print(self.PROGRAM_MODE)
         match self.PROGRAM_MODE:
             case ProgramMode.IDLE: #idle state
                 pass
@@ -123,11 +130,13 @@ class ProgramRunner:
                 #self.changeMode(0)
 
             case ProgramMode.CONT_START: #Continous run start
+                self.ContGenerator.changeMode(GeneratorMode.CONT)
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
                 self.Plotter.start()
-                self.changeMode(ProgramMode.GEN_WORK_ROUTINE) 
+                self.ContGenerator.applyDirection()
+                self.changeMode(ProgramMode.PRE_WORK_ROUTINE) 
     
             case ProgramMode.GEN_STOP: #Stop continous
                 #run to 0 and stop
@@ -148,11 +157,19 @@ class ProgramRunner:
                 self.ContGenerator.changeMode(GeneratorMode.STEPPING)
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
-                self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE)
+                self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #here to change
                 self.ContGenerator.startGen()
                 self.Plotter.start()
+                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
+            
+            case ProgramMode.PRE_WORK_ROUTINE:
+                self.Acquisitor.reset()
+                self.Acquisitor.setup()
+                self.Acquisitor.start()
+                buffer = np.array(self.Acquisitor.getBuff())
+                self.processAcqBuffer(buffer)
+                self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
-                
             
     #   Changing the work routine
     #   newMode: int - new mode to be set
@@ -163,6 +180,12 @@ class ProgramRunner:
         else:
             print("Error: Invalid mode number")
     
+    #   Step increment/decrement handler
+    #   uChangeType: int = modifier to step value
+
+    def manualChangeGenVoltage(self, uChangeType):
+        self.ContGenerator.manualChangeVoltage(uChangeType)
+
     #   Passing data to plotter processing function
     #   uBuffer: array of floats - buffer returned from aqcuisition
 

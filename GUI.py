@@ -21,86 +21,58 @@ class GUI:
         self.thread = thread.Thread(target=self.threadTask)
         self.thread.daemon = True
         self.running: bool = False
+        self.genMode = "normal"
+        self.direction = "anodic"
 
 
     def startGeneratingPress(self):
-        self.PR.changeMode(ProgramMode.CONT_START)
-
-    def startGeneratingSteppingPress(self):
-        self.PR.changeMode(ProgramMode.STEPPING_START)
+        match self.genMode:
+            case "normal":
+                self.PR.changeMode(ProgramMode.CONT_START)
+            case "stepping":
+                self.PR.changeMode(ProgramMode.STEPPING_START)
+        self.startBtn.state(GUI_DISABLED)
+        self.stopBtn.state(GUI_ENABLED)
+        self.lockBtn.state(GUI_ENABLED)
 
     def stopGeneratingPress(self):
-        #stopping continous generation in Program Runner work routine
         self.PR.changeMode(ProgramMode.GEN_STOP)
+        self.stopBtn.state(GUI_DISABLED)
+        self.startBtn.state(GUI_ENABLED)
+        self.lockBtn.state(GUI_DISABLED)
+        self.unlockBtn.state(GUI_DISABLED)
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
         self.PR.pauseContGenerator()
+        self.lockBtn.state(GUI_DISABLED)
+        self.unlockBtn.state(GUI_ENABLED)
     
     def unlockGeneratingPress(self):
         #unlocking current voltage value on Continous Generator and resuming autogeneration
         self.PR.unpauseContGenerator()
+        self.lockBtn.state(GUI_ENABLED)
+        self.unlockBtn.state(GUI_DISABLED)
+
+    def comboboxCallback(self, value):
+        self.genMode = str(self.genModeCombobox.get())
+        self.FRAME_LIST[str(self.genModeCombobox.get())].tkraise()
+
+    def dirComboboxCallback(self, value):
+        self.direction = str(self.directionCombobox.get())
 
     def stepUpKey(self):
-        #Increment step manually
-        pass
+        if(self.PR.getContGeneratorPauseState()):
+            self.PR.manualChanngeGenVoltage(GUI_INCREMENT_STEP)
 
     def stepDownKey(self):
-        #Decrement step manually
-        pass
+        if(self.PR.getContGeneratorPauseState()):
+            self.PR.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
     def setRangesPress(self):
-
-        #collecting data from entries
-        tempHRange: float = float(self.hRangeEntry.get()) if self.hRangeEntry.get() != "" else GEN_DEFAULT_HRANGE
-        tempLRange: float = float(self.lRangeEntry.get()) if self.lRangeEntry.get() != "" else GEN_DEFAULT_LRANGE
+        tempMessage: str = ""
         tempStep: float = float(self.stepEntry.get()) if self.stepEntry.get() != "" else GEN_DEFAULT_STEP
         tempTime: int = int(self.intervalEntry.get()) if self.intervalEntry.get() != "" else GUI_DEFAULT_INTERVAL
-
-        tempMessage: str = ""
-
-        #validations
-        if(tempHRange < tempLRange):
-            temp = tempLRange
-            tempHRange = tempLRange
-            tempLRange = temp
-            self.hRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, f'{tempHRange}')
-            self.lRangeEntry.insert(0, f'{tempLRange}')
-
-        if(tempHRange > GEN_MAX_RANGE):
-            tempHRange = GEN_MAX_RANGE
-            self.hRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, str(GEN_MAX_RANGE))
-            tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
-
-        if(tempHRange < GEN_MIN_RANGE):
-            tempHRange = GEN_MIN_RANGE
-            self.hRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, str(GEN_MIN_RANGE))
-            tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"
-
-        if(tempLRange > GEN_MAX_RANGE):
-            tempLRange = GEN_MAX_RANGE
-            self.lRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.insert(0, str(GEN_MAX_RANGE))
-            tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
-
-        if(tempLRange < GEN_MIN_RANGE):
-            tempLRange = GEN_MIN_RANGE
-            self.lRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.insert(0, str(GEN_MIN_RANGE))
-            tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"    
-
-        if(tempHRange == tempLRange):
-            tempHRange = GEN_DEFAULT_HRANGE
-            tempLRange = GEN_DEFAULT_LRANGE
-            self.hRangeEntry.delete(0, ttk.END)
-            self.lRangeEntry.delete(0, ttk.END)
-            self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
-            self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
-            tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
 
         if(tempStep > GEN_MAX_STEP):
             tempStep = GEN_MAX_STEP
@@ -126,11 +98,116 @@ class GUI:
             self.intervalEntry.insert(0, str(GUI_MIN_INTERVAL))
             tempMessage += f"Error: Interval cannot be lower than {GUI_MIN_INTERVAL}ms\n"
 
+
+        match self.genMode:
+            case "normal":
+                #collecting data from entries
+                tempHRange: float = float(self.hRangeEntry.get()) if self.hRangeEntry.get() != "" else GEN_DEFAULT_HRANGE
+                tempLRange: float = float(self.lRangeEntry.get()) if self.lRangeEntry.get() != "" else GEN_DEFAULT_LRANGE
+
+
+                #validations
+                if(tempHRange < tempLRange):
+                    temp = tempLRange
+                    tempHRange = tempLRange
+                    tempLRange = temp
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, f'{tempHRange}')
+                    self.lRangeEntry.insert(0, f'{tempLRange}')
+
+                if(tempHRange > GEN_MAX_RANGE):
+                    tempHRange = GEN_MAX_RANGE
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
+
+                if(tempHRange < GEN_MIN_RANGE):
+                    tempHRange = GEN_MIN_RANGE
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"
+
+                if(tempLRange > GEN_MAX_RANGE):
+                    tempLRange = GEN_MAX_RANGE
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
+
+                if(tempLRange < GEN_MIN_RANGE):
+                    tempLRange = GEN_MIN_RANGE
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"    
+
+                if(tempHRange == tempLRange):
+                    tempHRange = GEN_DEFAULT_HRANGE
+                    tempLRange = GEN_DEFAULT_LRANGE
+                    self.hRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
+                    self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
+                    tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
+
+                self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep, self.direction)
+            case "stepping":
+                #collecting values
+                tempLimit : float = float(self.maxRangeEntry.get()) if self.maxRangeEntry.get() != "" else GEN_DEFAULT_HRANGE 
+                tempBase: float = float(self.baseEntry.get()) if self.baseEntry.get() != "" else GEN_DEFAULT_VOLTAGE
+                tempNumOfSteps: int = int(self.numOfStepsEntry.get()) if self.numOfStepsEntry.get() != "" else GEN_DEFAULT_NUM_STEPS
+
+                if(tempLimit > GEN_MAX_RANGE):
+                    tempLimit = GEN_MAX_RANGE
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Upper limit cannot be higher than {GEN_MAX_RANGE}"
+
+                if(tempLimit < GEN_MIN_RANGE):
+                    tempLimit = GEN_MIN_RANGE
+                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Upper limit cannot be lower than {GEN_MIN_RANGE}"
+
+                if(tempBase > GEN_MAX_RANGE):
+                    tempBase = GEN_MAX_RANGE
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Base voltage cannot be higher than {GEN_MAX_RANGE}"
+                
+                if(tempBase < GEN_MIN_RANGE):
+                    tempBase = GEN_MIN_RANGE
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_MIN_RANGE))
+                    tempMessage += f"Error: Base voltage cannot be lower than {GEN_MIN_RANGE}"
+
+                if(tempBase == tempLimit):
+                    tempBase = GEN_DEFAULT_VOLTAGE
+                    tempLimit = GEN_MAX_RANGE
+
+                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
+                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.insert(0, str(GEN_MAX_RANGE))
+                    tempMessage += f"Error: Base voltage and upper limit cannot be tha same - resetting values"
+
+                if(tempNumOfSteps < 2):
+                    tempNumOfSteps = 2
+                    self.numOfStepsEntry.delete(0, ttk.END)
+                    self.numOfStepsEntry.insert(0, str(2))
+                    tempMessage += f"Error: Number of steps cannot be lower than 2"
+
+                if(tempNumOfSteps > 30):
+                    tempNumOfSteps = 30
+                    self.numOfStepsEntry.delete(0, ttk.END)
+                    self.numOfStepsEntry.insert(0, str(30))
+                    tempMessage += f"Error: Number of steps cannot be higher than 30"
+
+                self.PR.setSteppingGeneratorParameters(tempLimit, tempBase, tempStep, tempNumOfSteps)
+
         #showing error message
         self.errorLabel.configure(text = tempMessage)
 
         #setting values
-        self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep)
         self.interval = tempTime
 
     def threadTask(self):
@@ -199,21 +276,52 @@ class GUI:
 
         #settings
         self.settingsFrame = ttk.Labelframe(self.settingsAndButtonsFrame, bootstyle=INFO, text='settings')
-        self.hRangeLabel = ttk.Label(self.settingsFrame, bootstyle=INFO , text='High Range')
-        self.lRangeLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Low Range')
-        self.stepLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Step value')
-        self.intervalLabel = ttk.Label(self.settingsFrame, bootstyle=INFO, text='Speed value')
-        self.hRangeEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
-        self.lRangeEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
-        self.stepEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
-        self.intervalEntry = ttk.Entry(self.settingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
-        self.setBtn = ttk.Button(self.settingsFrame, text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
+        self.genModeCombobox = ttk.Combobox(self.settingsFrame, bootstyle=INFO, state=READONLY)
+        
+        #standard settings used everytime
+        self.standardSetFrame = ttk.Frame(self.settingsFrame)
+        self.stepLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Step value')
+        self.intervalLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Speed value')
+        self.stepEntry = ttk.Entry(self.standardSetFrame , bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
+        self.intervalEntry = ttk.Entry(self.standardSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+        self.setBtn = ttk.Button(self.standardSetFrame , text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
+
+        #normal settings
+        self.normalSetFrame = ttk.Frame(self.settingsFrame)
+        self.hRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO , text='High Range')
+        self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low Range')
+        self.directionLabel = ttk.Label(self.normalSetFrame, bootstyle=INFO, text='Direction')
+        self.hRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.lRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.directionCombobox = ttk.Combobox(self.normalSetFrame, bootstyle=INFO, state=READONLY, width=10)
     
+        #stepping settings
+        self.steppingSetFrame = ttk.Frame(self.settingsFrame)
+        self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level')
+        self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Limit value')
+        self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='No. of steps')
+        self.baseEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.maxRangeEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.numOfStepsEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+
+        #Setting combobox values
+        self.genModeCombobox['values'] = GUI_COMBOBOX_VALUES
+        self.genModeCombobox.set(GUI_COMBOBOX_VALUES[0])
+        self.genModeCombobox.bind('<<ComboboxSelected>>', self.comboboxCallback)
+
+        self.directionCombobox['values'] = GUI_DIR_COMBOBOX_VALUES 
+        self.directionCombobox.set(GUI_DIR_COMBOBOX_VALUES[0])
+        self.directionCombobox.bind('<<ComboboxSelected>>', self.dirComboboxCallback)
+
         #Setting default values to entries
         self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
         self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
         self.stepEntry.insert(0, str(GEN_DEFAULT_STEP))
         self.intervalEntry.insert(0, str(GUI_DEFAULT_INTERVAL))
+
+        self.baseEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
+        self.maxRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
+        self.numOfStepsEntry.insert(0, str(GEN_DEFAULT_NUM_STEPS))
 
         #errors
         self.errorFrame = ttk.Frame(self.settingsAndButtonsFrame, width=450)
@@ -225,7 +333,10 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
-        self.startStepBtn = ttk.Button(self.buttonsFrame, text='Start Step', bootstyle=(SUCCESS,OUTLINE), command=self.startGeneratingSteppingPress)
+
+        self.stopBtn.state(GUI_DISABLED)
+        self.lockBtn.state(GUI_DISABLED)
+        self.unlockBtn.state(GUI_DISABLED)
 
         #progress
         self.progressFrame = ttk.Frame(self.root)
@@ -237,21 +348,49 @@ class GUI:
         self.plotFrame = ttk.Frame(self.root)
         self.PR.setPlotterFrame(self.plotFrame)
 
+        #frame list
+        self.FRAME_LIST = {"normal" : self.normalSetFrame, "stepping" : self.steppingSetFrame}
+
+        #binding keyboard keys to their functionality
+        #temporary without numpad
+        self.root.bind('[', self.stepUpKey)
+        self.root.bind(']', self.stepDownKey)
+
+
+        #should work, don't have a numpad to check out
+        #self.root.bind('KP_Add', self.stepUpKey)
+        #self.root.bind('KP_Substract', self.stepDownKey)
+
 
     def startGUI(self):
-        #placing widgets
         self.settingsAndButtonsFrame.pack(padx=20, pady=20)
 
         self.settingsFrame.grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
+        self.genModeCombobox.grid(row=0, column=0)
+
+        self.normalSetFrame.grid(row=1, column=0, sticky=NSEW)
         self.hRangeLabel.grid(row=0, column=0, padx=5)
         self.lRangeLabel.grid(row=1, column=0, padx=5)
-        self.stepLabel.grid(row=2, column=0, padx=5)
-        self.intervalLabel.grid(row=3, column=0, padx=5)
+        self.directionLabel.grid(row=2, column=0, padx=5)
         self.hRangeEntry.grid(row=0, column=1, pady=5)
         self.lRangeEntry.grid(row=1, column=1, pady=5)
-        self.stepEntry.grid(row=2, column=1, pady=5)
-        self.intervalEntry.grid(row=3, column=1, pady=5)
+        self.directionCombobox.grid(row=2, column=1, pady=5, sticky=W)
+        
+        self.steppingSetFrame.grid(row=1, column=0)
+        self.baseLabel.grid(row=0, column=0, padx=5)
+        self.maxRangeLabel.grid(row=1, column=0, padx=5)
+        self.numOfStepsLabel.grid(row=2, column=0, padx=5)
+        self.baseEntry.grid(row=0, column=1, pady=5)
+        self.maxRangeEntry.grid(row=1, column=1, pady=5)
+        self.numOfStepsEntry.grid(row=2, column=1, pady=5)
+
+        self.standardSetFrame.grid(row=2,column=0)
+        self.stepLabel.grid(row=1, column=0, padx=5)
+        self.intervalLabel.grid(row=2, column=0, padx=5)
+        self.stepEntry.grid(row=1, column=1, pady=5)
+        self.intervalEntry.grid(row=2, column=1, pady=5)
         self.setBtn.grid(row=4,column=1, pady=10)
+
 
         self.errorFrame.grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)
@@ -262,8 +401,6 @@ class GUI:
         self.unlockBtn.grid(row=1,column=0, pady=5)
         self.stopBtn.grid(row=2,column=0, pady=5)
         self.startBtn.grid(row=3,column=0, pady=5)
-        self.startStepBtn.grid(row=4,column=0, pady=5)
-
 
         self.progressFrame.pack(padx=20,pady=20)
         self.progressInfoLabel.pack(padx=20)
@@ -271,6 +408,8 @@ class GUI:
         self.progressBar.pack(padx=20)
 
         self.plotFrame.pack(padx=20, pady=10, fill=BOTH)
+
+        self.normalSetFrame.tkraise()
 
         #plotting done in Plotter class     
 
