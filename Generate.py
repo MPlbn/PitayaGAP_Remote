@@ -22,9 +22,12 @@ from constants import *
 #     def stopGenerating(self):
 #         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
 
+
+#BUG weird behaviour after swapping Generator modes, cannot replicate easily
+
 class ContGenerator:
     def __init__(self, uIP):
-        #self.RP_S = scpi.scpi(uIP)
+        self.RP_S = scpi.scpi(uIP)
         self.output: int = DEFAULT_CHANNEL
         self.frequency: int = 1000 #prob not needed
         self.voltageValue: float = GEN_DEFAULT_VOLTAGE
@@ -102,6 +105,7 @@ class ContGenerator:
         for _ in range(0, uNumOfSteps):
             stepValue += stepSize
             self.steppingRanges.append(stepValue)
+        self.limit = self.steppingRanges[0]
 
     def setStep(self, uStep):
         if(self.step < 0):
@@ -177,10 +181,9 @@ class ContGenerator:
                         if(tempValue > self.base):
                             if(self.step > 0):
                                 self.step *= -1.0
-                
         temp = self.voltageValue
         self.voltageValue += self.step
-        if(temp*self.voltageValue < 0):
+        if(temp*self.voltageValue <= 0):
             if(self.voltageValue < 0):
                 self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
             else:

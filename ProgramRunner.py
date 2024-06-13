@@ -22,7 +22,7 @@ class ProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.IP = uIP
         self.PROGRAM_MODE = ProgramMode.IDLE
-        self.Generator = Generate.Generator(self.IP)
+        #self.Generator = Generate.Generator(self.IP)
         self.ContGenerator = Generate.ContGenerator(self.IP)
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.isRunningContinous = False
