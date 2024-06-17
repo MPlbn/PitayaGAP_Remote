@@ -13,6 +13,9 @@ import time
 import mProgramRunner
 from mConstants import *
 
+#TODO I/V Ratio
+#TODO Second Plotter
+
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()
@@ -23,6 +26,7 @@ class GUI:
         self.running = False
         self.genMode = "normal"
         self.direction = "anodic"
+        self.ratio = "1/1"
 
     #buttons
     def startGeneratingPress(self):
@@ -64,6 +68,9 @@ class GUI:
     def dirComboboxCallback(self, value):
         self.direction = str(self.directionCombobox.get())
         
+    def ratioComboboxCallback(self, value):
+        self.ratio = str(self.IVratioCombobox.get())    
+
     def stepUpKey(self, event=None):
         if(self.PR.getContGeneratorPauseState()):
             self.PR.manualChangeGenVoltage(GUI_INCREMENT_STEP)
@@ -71,6 +78,16 @@ class GUI:
     def stepDownKey(self, event=None):
         if(self.PR.getContGeneratorPauseState()):
             self.PR.manualChangeGenVoltage(GUI_DECREMENT_STEP)
+
+    def exitFullscreenKey(self, event=None):
+        self.root.attributes('-fullscreen', False)
+    
+    def enterFullscreenKey(self, event=None):
+        self.root.attributes('-fullscreen', True)
+
+    #TODO
+    def passRatio(self):
+        pass
 
     def setRangesPress(self):
         tempMessage: str = ""
@@ -224,6 +241,7 @@ class GUI:
 
         #setting values
         self.interval = tempTime
+        self.passRatio()
 
     def threadTask(self):
         while True:
@@ -296,16 +314,18 @@ class GUI:
 
         #standard settings used everytime
         self.standardSetFrame = ttk.Frame(self.settingsFrame)
-        self.stepLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Step value')
+        self.stepLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Step value [V]')
         self.intervalLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Speed value')
         self.stepEntry = ttk.Entry(self.standardSetFrame , bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
         self.intervalEntry = ttk.Entry(self.standardSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
         self.setBtn = ttk.Button(self.standardSetFrame , text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
+        self.IVratioLabel = ttk.Label(self.standardSetFrame, bootstyle=INFO, text='I/V [A/mV]')
+        self.IVratioCombobox = ttk.Combobox(self.standardSetFrame, bootstyle=INFO, state=READONLY)
 
         #normal settings
         self.normalSetFrame = ttk.Frame(self.settingsFrame)
-        self.hRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO , text='High Range')
-        self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low Range')
+        self.hRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO , text='High Range [V]')
+        self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low Range [V]')
         self.directionLabel = ttk.Label(self.normalSetFrame, bootstyle=INFO, text='Direction')
         self.hRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.lRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
@@ -313,8 +333,8 @@ class GUI:
     
         #stepping settings
         self.steppingSetFrame = ttk.Frame(self.settingsFrame)
-        self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level')
-        self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Limit value')
+        self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level [V]')
+        self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Limit value [V]')
         self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='No. of steps')
         self.baseEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.maxRangeEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
@@ -328,6 +348,10 @@ class GUI:
         self.directionCombobox['values'] = GUI_DIR_COMBOBOX_VALUES 
         self.directionCombobox.set(GUI_DIR_COMBOBOX_VALUES[0])
         self.directionCombobox.bind('<<ComboboxSelected>>', self.dirComboboxCallback)
+
+        self.IVratioCombobox['values'] = GUI_RATIO_COMBOBOX_VALUES
+        self.IVratioCombobox.set(GUI_RATIO_COMBOBOX_VALUES[0])
+        self.IVratioCombobox.bind('<<ComboboxSelected>>', self.ratioComboboxCallback)
 
         #Setting default values to entries
         self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
@@ -362,7 +386,11 @@ class GUI:
 
         #plot
         self.plotFrame = ttk.Frame(self.root)
-        self.PR.setPlotterFrame(self.plotFrame)
+        self.PR.setPlotterFrame(self.plotFrame, PlotType.ACQ)
+
+        #generation plot
+        self.genPlotFrame = ttk.Frame(self.root)
+        self.PR.setPlotterFrame(self.genPlotFrame, PlotType.GEN)
 
         #frame list
         self.FRAME_LIST = {"normal" : self.normalSetFrame, "stepping" : self.steppingSetFrame}
@@ -371,15 +399,17 @@ class GUI:
         #temporary without numpad
         self.root.bind('[', self.stepUpKey)
         self.root.bind(']', self.stepDownKey)
-
-
+        
         #should work, don't have a numpad to check out
         #self.root.bind('KP_Add', self.stepUpKey)
         #self.root.bind('KP_Substract', self.stepDownKey)
+        self.root.bind('f', self.enterFullscreenKey)
+        self.root.bind('<Escape>', self.exitFullscreenKey)
 
 
     def startGUI(self):
         #placing widgets
+        self.genPlotFrame.pack(side=LEFT)
         self.settingsAndButtonsFrame.pack(padx=20, pady=20)
 
         self.settingsFrame.grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
@@ -404,9 +434,11 @@ class GUI:
         self.standardSetFrame.grid(row=2,column=0)
         self.stepLabel.grid(row=1, column=0, padx=5)
         self.intervalLabel.grid(row=2, column=0, padx=5)
+        self.IVratioLabel.grid(row=3, column=0, padx=5)
         self.stepEntry.grid(row=1, column=1, pady=5)
         self.intervalEntry.grid(row=2, column=1, pady=5)
-        self.setBtn.grid(row=4,column=1, pady=10)
+        self.IVratioCombobox.grid(row=3, column=1, pady=5)
+        self.setBtn.grid(row=5,column=1, pady=10)
 
 
         self.errorFrame.grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)

@@ -25,13 +25,20 @@ class ProgramRunner:
         self.isRunningContinous = False
         self.dataBuffer = [] #not used for now
         self.Plotter = mPlotter.Plotter()
+        self.GenPlotter = mPlotter.Plotter()
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
+    #   uPlotterType: PlotType - determines which Plotter is to be configured
 
-    def setPlotterFrame(self, uPlotterFrame):
-        self.Plotter.setFrame(uPlotterFrame)
-        self.Plotter.initVisuals()
+    def setPlotterFrame(self, uPlotterFrame, uPlotterType):
+        match uPlotterType:
+            case PlotType.ACQ:
+                self.Plotter.setFrame(uPlotterFrame)
+                self.Plotter.initVisuals()
+            case PlotType.GEN:
+                self.GenPlotter.setFrame(uPlotterFrame)
+                self.GenPlotter.initVisuals()
 
     #   setting generator parameters passed from GUI
     #   uHighRange: float - ceiling voltage value which won't be passed while generating

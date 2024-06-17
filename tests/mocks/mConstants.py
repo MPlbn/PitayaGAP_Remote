@@ -14,6 +14,10 @@ class GeneratorMode(Enum):
     CONT = auto()
     STEPPING = auto()
 
+class PlotType(Enum):
+    ACQ = auto()
+    GEN = auto()
+
 FIRST_MODE: int = 1
 LAST_MODE: int = 7
 
@@ -36,11 +40,12 @@ GEN_DEFAULT_NUM_STEPS = 4
 
 
 GUI_DEFAULT_INTERVAL: int = 50
-GUI_DEFAULT_WINDOW_SIZE = (1000,1000)
+GUI_DEFAULT_WINDOW_SIZE = (1600,1080)
 GUI_MAX_INTERVAL: int = 5000
 GUI_MIN_INTERVAL: int = 5
 GUI_COMBOBOX_VALUES = ("normal", "stepping")
 GUI_DIR_COMBOBOX_VALUES = ("anodic", "kathodic")
+GUI_RATIO_COMBOBOX_VALUES = ("1/1", "1/10", "1/100", "1/250", "1/500") #TODO To trzeba sprawdzić jakie tam są wartości
 GUI_DISABLED = ["disabled"]
 GUI_ENABLED = ["!disabled"]
 GUI_INCREMENT_STEP = 1
