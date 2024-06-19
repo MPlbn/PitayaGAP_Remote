@@ -19,7 +19,7 @@ from mConstants import *
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()
-        self.root = ttk.Window(themename="cerculean", size=GUI_DEFAULT_WINDOW_SIZE)
+        self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
         self.thread = thread.Thread(target=self.threadTask)
         self.thread.daemon = True
@@ -85,9 +85,8 @@ class GUI:
     def enterFullscreenKey(self, event=None):
         self.root.attributes('-fullscreen', True)
 
-    #TODO
     def passRatio(self):
-        pass
+        self.PR.setDataRatio(self.ratio)
 
     def setRangesPress(self):
         tempMessage: str = ""
