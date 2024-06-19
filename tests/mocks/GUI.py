@@ -19,7 +19,7 @@ from mConstants import *
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()
-        self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
+        self.root = ttk.Window(themename="cerculean", size=GUI_DEFAULT_WINDOW_SIZE)
         self.interval: int = GUI_DEFAULT_INTERVAL
         self.thread = thread.Thread(target=self.threadTask)
         self.thread.daemon = True
@@ -306,10 +306,12 @@ class GUI:
 
         ####creating widgets
         #main frame containing top row of widgets
-        self.settingsAndButtonsFrame = ttk.Frame(self.root)
+        #self.settingsAndButtonsFrame = ttk.Frame(self.root)
+        #progress and generator frame
+        self.genProgFrame = ttk.Frame(self.root)
 
         #settings
-        self.settingsFrame = ttk.Labelframe(self.settingsAndButtonsFrame, bootstyle=INFO, text='settings')
+        self.settingsFrame = ttk.Labelframe(self.genProgFrame, bootstyle=INFO, text='settings')
         self.genModeCombobox = ttk.Combobox(self.settingsFrame, bootstyle=INFO, state=READONLY)
 
         #standard settings used everytime
@@ -364,11 +366,11 @@ class GUI:
         self.numOfStepsEntry.insert(0, str(GEN_DEFAULT_NUM_STEPS))
 
         #errors
-        self.errorFrame = ttk.Frame(self.settingsAndButtonsFrame, width=450)
-        self.errorLabel = ttk.Label(self.errorFrame, text="", bootstyle=(DANGER), width=450, font=("Segoe UI", 8))
+        self.errorFrame = ttk.LabelFrame(self.root, width=50, height=50, text='errors', bootstyle=INFO)
+        self.errorLabel = ttk.Label(self.errorFrame, text="", bootstyle=(DANGER), width=50, font=("Segoe UI", 8))
 
         #buttons
-        self.buttonsFrame = ttk.Frame(self.settingsAndButtonsFrame)
+        self.buttonsFrame = ttk.Frame(self.root)
         self.startBtn = ttk.Button(self.buttonsFrame, text='Start', bootstyle=(SUCCESS,OUTLINE), command=self.startGeneratingPress)
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
@@ -378,18 +380,19 @@ class GUI:
         self.lockBtn.state(GUI_DISABLED)
         self.unlockBtn.state(GUI_DISABLED)
 
+
         #progress
-        self.progressFrame = ttk.Frame(self.root)
+        self.progressFrame = ttk.Frame(self.genProgFrame)
         self.progressBar = ttk.Progressbar(self.progressFrame, length=300, bootstyle=(PRIMARY))
         self.progressInfoLabel = ttk.Label(self.progressFrame, bootstyle=INFO, text='Current generated value', font=("Segoe UI", 15, "bold"))
         self.progressLabel = ttk.Label(self.progressFrame, bootstyle=PRIMARY, text='0.00', font=("Segoe UI", 20, "bold"))
 
         #plot
-        self.plotFrame = ttk.Frame(self.root)
+        self.plotFrame = ttk.Frame(self.root, width=1000, height=700, border=5, relief="sunken", bootstyle=SECONDARY)
         self.PR.setPlotterFrame(self.plotFrame, PlotType.ACQ)
 
         #generation plot
-        self.genPlotFrame = ttk.Frame(self.root)
+        self.genPlotFrame = ttk.Frame(self.genProgFrame, border=5, relief="sunken", bootstyle=SECONDARY)
         self.PR.setPlotterFrame(self.genPlotFrame, PlotType.GEN)
 
         #frame list
@@ -409,10 +412,12 @@ class GUI:
 
     def startGUI(self):
         #placing widgets
-        self.genPlotFrame.pack(side=LEFT)
-        self.settingsAndButtonsFrame.pack(padx=20, pady=20)
+        #self.settingsAndButtonsFrame.pack(padx=20, pady=20)
+        self.genProgFrame.pack(side=LEFT, anchor=N)
+        self.plotFrame.pack(padx=20, pady=10, anchor=NE)#, fill=BOTH)
+        self.plotFrame.pack_propagate(False)
 
-        self.settingsFrame.grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
+        self.settingsFrame.pack(padx=20, pady=20, ipadx=20)   #grid(row=0, column=0, columnspan=2, rowspan=5, ipadx=20, ipady=20)
         self.genModeCombobox.grid(row=0, column=0)
 
         self.normalSetFrame.grid(row=1, column=0, sticky=NSEW)
@@ -441,22 +446,23 @@ class GUI:
         self.setBtn.grid(row=5,column=1, pady=10)
 
 
-        self.errorFrame.grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
-        self.errorLabel.grid(row=0,column=0)
-        self.errorFrame.grid_propagate(False)
 
-        self.buttonsFrame.grid(row=0, column=4, rowspan=3)
-        self.lockBtn.grid(row=0, column=0, pady=5)
-        self.unlockBtn.grid(row=1,column=0, pady=5)
-        self.stopBtn.grid(row=2,column=0, pady=5)
-        self.startBtn.grid(row=3,column=0, pady=5)
+        self.buttonsFrame.pack()#grid(row=0, column=4, rowspan=3)
+        self.lockBtn.grid(row=0, column=0, pady=5, padx=5)
+        self.unlockBtn.grid(row=0,column=1, pady=5, padx=5)
+        self.stopBtn.grid(row=0,column=2, pady=5, padx=5)
+        self.startBtn.grid(row=0,column=3, pady=5, padx=5)
+
+        self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
+        self.errorLabel.grid(row=0,column=0)
+        self.errorFrame.pack_propagate(False)
 
         self.progressFrame.pack(padx=20,pady=20)
         self.progressInfoLabel.pack(padx=20)
         self.progressLabel.pack(padx=20, pady=10)
         self.progressBar.pack(padx=20)
 
-        self.plotFrame.pack(padx=20, pady=10, fill=BOTH)
+        self.genPlotFrame.pack(padx=5)
 
         self.normalSetFrame.tkraise()
 
