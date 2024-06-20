@@ -48,7 +48,7 @@ class ContGenerator:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
             self.steppingLevelsIncrement *= -1
         self.steppingIndex += self.steppingLevelsIncrement
-        print(self.steppingRanges[self.steppingIndex]) #DEBUG PURPOSE
+        #print(self.steppingRanges) #DEBUG PURPOSE
         return self.steppingRanges[self.steppingIndex]
 
     def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):

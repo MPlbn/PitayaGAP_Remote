@@ -13,8 +13,7 @@ import time
 import mProgramRunner
 from mConstants import *
 
-#TODO I/V Ratio
-#TODO Second Plotter
+#TODO on set wrong stepping - i think this is fixed in real program
 
 class GUI:
     def __init__(self):
