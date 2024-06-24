@@ -14,6 +14,10 @@ class GeneratorMode(Enum):
     CONT = auto()
     STEPPING = auto()
 
+class PlotType(Enum):
+    ACQ = auto()
+    GEN = auto()
+
 FIRST_MODE: int = 1
 LAST_MODE: int = 7
 
@@ -23,6 +27,8 @@ ACQ_SAMPLE_SIZE: int = 50
 ACQ_BUFFER_SIZE: int = 16000 #TODO CHECK REAL VALUE
 
 PLOT_MAX_DATA_SIZE: int = 10000
+PLOT_GEN_MAX_DATA_SIZE: int = 150
+PLOT_DEFAULT_RATIO: float = 1.0
 
 GEN_DEFAULT_HRANGE: float = 1.0
 GEN_DEFAULT_LRANGE: float = -1.0
@@ -35,11 +41,12 @@ GEN_DEFAULT_VOLTAGE = 0.0
 GEN_DEFAULT_NUM_STEPS = 4
 
 GUI_DEFAULT_INTERVAL: int = 50
-GUI_DEFAULT_WINDOW_SIZE = (1000,1000)
+GUI_DEFAULT_WINDOW_SIZE = (1600,1080)
 GUI_MAX_INTERVAL: int = 5000
 GUI_MIN_INTERVAL: int = 5
 GUI_COMBOBOX_VALUES = ("normal", "stepping")
 GUI_DIR_COMBOBOX_VALUES = ("anodic", "kathodic")
+GUI_RATIO_COMBOBOX_VALUES = ("1/1", "1/10", "1/100", "1/250", "1/500")
 GUI_DISABLED = ["disabled"]
 GUI_ENABLED = ["!disabled"]
 GUI_INCREMENT_STEP = 1

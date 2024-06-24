@@ -24,6 +24,7 @@ from constants import *
 
 
 #BUG weird behaviour after swapping Generator modes, cannot replicate easily
+#BUG change how it behaves when paused
 
 class ContGenerator:
     def __init__(self, uIP):
@@ -49,6 +50,7 @@ class ContGenerator:
     def changeMode(self, uNewMode: GeneratorMode):
         self.GEN_MODE = uNewMode
 
+    #this doesnt work
     def manualChangeVoltage(self, uChangeType):
         tempValue = self.voltageValue + (uChangeType * abs(self.step))
         match self.GEN_MODE:
@@ -66,6 +68,7 @@ class ContGenerator:
                     pass
                 else:
                     self.voltageValue = tempValue
+        self.changeVolt(self.voltageValue)
 
     def getNextSteppingLevel(self) -> float:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
@@ -149,6 +152,7 @@ class ContGenerator:
     def workRoutine(self):
         if(not self.isPaused):
             self.generate()
+            print(self.voltageValue)
             self.changeVolt(self.voltageValue)
             
 

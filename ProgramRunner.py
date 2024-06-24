@@ -27,14 +27,21 @@ class ProgramRunner:
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.isRunningContinous = False
         self.dataBuffer = [] #not used for now
-        self.Plotter = Plotter.Plotter()
+        self.AcqPlotter = Plotter.AcqPlotter()
+        self.GenPlotter = Plotter.GenPlotter()
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
+    #   uPlotterType: PlotType - determines which Plotter is to be configured
 
-    def setPlotterFrame(self, uPlotterFrame):
-        self.Plotter.setFrame(uPlotterFrame)
-        self.Plotter.initVisuals()
+    def setPlotterFrame(self, uPlotterFrame, uPlotterType):
+        match uPlotterType:
+            case PlotType.ACQ:
+                self.AcqPlotter.setFrame(uPlotterFrame)
+                self.AcqPlotter.initVisuals()
+            case PlotType.GEN:
+                self.GenPlotter.setFrame(uPlotterFrame)
+                self.GenPlotter.initVisuals()        
 
     #   handler of generation values
     #   uChannelNumber: int - channel that generation will be performed on - [1,2]
@@ -77,6 +84,14 @@ class ProgramRunner:
         self.Acquisitor.setup(uDecimation, uTriggerLevel, uTriggerDelay)
         self.Acquisitor.channelNumber = uChannelNumber
 
+    #   converting ratio from combobox string to float ratio and passing it to plotter
+    #   uRatio: str - text acquired from combobox
+
+    def setDataRatio(self, uRatio: str):
+        numerator, denominator = map(int, uRatio.split('/'))
+        result: float = numerator/denominator
+        self.AcqPlotter.setRatio(result)    
+
     #   pausing generation of continous generator
 
     def pauseContGenerator(self):
@@ -87,13 +102,21 @@ class ProgramRunner:
     def unpauseContGenerator(self):
         self.ContGenerator.unpause()
 
-    ##HELPER
+    #   getter for current generator pause value
+    def getContGeneratorPauseState(self):
+        return self.ContGenerator.getPause()
+
+    #   updates GUI elements - progress bar, progress label and plots
+    #   uProgressBar - progress bar passed from GUI
+    #   uProgressLabel - progress label passed from GUI
 
     def updateGUIElements(self, uProgressBar, uProgressLabel):
         uProgressBar.configure(value = self.ContGenerator.voltageToPercent())
         uProgressLabel.configure(text=str(round(self.ContGenerator.voltageValue, self.ContGenerator.getRoundingNumber())))
-        self.Plotter.updatePlot()
-        self.Plotter.canvas.draw()
+        self.AcqPlotter.updatePlot()
+        self.AcqPlotter.canvas.draw()
+        self.GenPlotter.updatePlot()
+        self.GenPlotter.canvas.draw()
 
 
     #   main work routine of program runner
@@ -134,23 +157,26 @@ class ProgramRunner:
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
-                self.Plotter.start()
+                self.AcqPlotter.start()
+                self.GenPlotter.start()
                 self.ContGenerator.applyDirection()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE) 
     
             case ProgramMode.GEN_STOP: #Stop continous
                 #run to 0 and stop
                 self.ContGenerator.stopGen()
-                self.Plotter.stop()
+                self.AcqPlotter.stop()
+                self.GenPlotter.stop()
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.GEN_WORK_ROUTINE:
                 self.ContGenerator.workRoutine()
+                self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
                 self.Acquisitor.reset()
                 self.Acquisitor.setup()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff())
-                self.processAcqBuffer(buffer)
+                self.processDataBuffer(buffer, PlotType.ACQ)
                 self.Acquisitor.stop()
                 
             case ProgramMode.STEPPING_START:
@@ -159,15 +185,17 @@ class ProgramRunner:
                 self.ContGenerator.setup()
                 self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #here to change
                 self.ContGenerator.startGen()
-                self.Plotter.start()
+                self.AcqPlotter.start()
+                self.GenPlotter.start()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
             
             case ProgramMode.PRE_WORK_ROUTINE:
+                self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
                 self.Acquisitor.reset()
                 self.Acquisitor.setup()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff())
-                self.processAcqBuffer(buffer)
+                self.processDataBuffer(buffer, PlotType.ACQ)
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
@@ -188,13 +216,18 @@ class ProgramRunner:
 
     #   Passing data to plotter processing function
     #   uBuffer: array of floats - buffer returned from aqcuisition
-
-    def processAcqBuffer(self, uBuffer):
-        self.Plotter.processData(uBuffer)
+    #   uPlotterType: PlotType - determines which plotter should take care of data buffer
+    
+    def processDataBuffer(self, uBuffer, uPlotterType):
+        match uPlotterType:
+            case PlotType.ACQ:
+                self.AcqPlotter.processData(uBuffer)
+            case PlotType.GEN:
+                self.GenPlotter.processData(uBuffer)
     
     #   closing the scpi connection
 
     def exit(self):
-        self.changeMode(ProgramMode.CONT_STOP)
+        self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
     
