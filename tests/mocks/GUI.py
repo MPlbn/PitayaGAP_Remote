@@ -13,7 +13,7 @@ import time
 import mProgramRunner
 from mConstants import *
 
-#TODO on set wrong stepping - i think this is fixed in real program
+#TODO resets on stop, check if load works at all
 
 class GUI:
     def __init__(self):
@@ -59,6 +59,11 @@ class GUI:
         self.PR.unpauseContGenerator()
         self.unlockBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_ENABLED)
+
+    def loadPress(self):
+        self.startingPointEntry.delete(0, ttk.END)
+        self.startingPointEntry.insert(0, str(self.PR.loadDataLastState()))
+        self.updateFun()
 
     def comboboxCallback(self, value):
         self.genMode = str(self.genModeCombobox.get())
@@ -124,6 +129,7 @@ class GUI:
                 #collecting data from entries
                 tempHRange: float = float(self.hRangeEntry.get()) if self.hRangeEntry.get() != "" else GEN_DEFAULT_HRANGE
                 tempLRange: float = float(self.lRangeEntry.get()) if self.lRangeEntry.get() != "" else GEN_DEFAULT_LRANGE
+                tempStPoint: float = float(self.startingPointEntry.get()) if self.startingPointEntry != "" else GEN_DEFAULT_VOLTAGE
 
 
                 #validations
@@ -169,7 +175,19 @@ class GUI:
                     self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
                     tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
 
-                self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep, self.direction)
+                if(tempStPoint > GEN_MAX_RANGE or
+                    tempStPoint < GEN_MIN_RANGE):
+                        self.startingPointEntry.delete(0, ttk.END)
+                        self.startingPointEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
+                        tempMessage += f"Error: Starting point cannot have value outside of bounds - resseting to 0.0V\n"
+
+                # if(tempStPoint > tempHRange):
+                #     pass
+
+                # if(tempStPoint < tempLRange):
+                #     pass
+
+                self.PR.setContGeneratorParameters(tempHRange, tempLRange, tempStep, self.direction, tempStPoint)
             case "stepping":
                 #collecting values
                 tempLimit : float = float(self.maxRangeEntry.get()) if self.maxRangeEntry.get() != "" else GEN_DEFAULT_HRANGE 
@@ -323,16 +341,18 @@ class GUI:
         self.IVratioCombobox = ttk.Combobox(self.standardSetFrame, bootstyle=INFO, state=READONLY)
 
         #normal settings
-        self.normalSetFrame = ttk.Frame(self.settingsFrame)
+        self.normalSetFrame = ttk.Frame(self.settingsFrame, width=350, height=170)
         self.hRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO , text='High Range [V]')
         self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low Range [V]')
         self.directionLabel = ttk.Label(self.normalSetFrame, bootstyle=INFO, text='Direction')
+        self.startingPointLabel = ttk.Label(self.normalSetFrame, bootstyle=INFO, text='Starting voltage [V]')
         self.hRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.lRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.directionCombobox = ttk.Combobox(self.normalSetFrame, bootstyle=INFO, state=READONLY, width=10)
+        self.startingPointEntry = ttk.Entry(self.normalSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
     
         #stepping settings
-        self.steppingSetFrame = ttk.Frame(self.settingsFrame)
+        self.steppingSetFrame = ttk.Frame(self.settingsFrame, width=350, height=170)
         self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level [V]')
         self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Limit value [V]')
         self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='No. of steps')
@@ -358,6 +378,7 @@ class GUI:
         self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
         self.stepEntry.insert(0, str(GEN_DEFAULT_STEP))
         self.intervalEntry.insert(0, str(GUI_DEFAULT_INTERVAL))
+        self.startingPointEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
 
         self.baseEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
         self.maxRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
@@ -373,6 +394,7 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
+        self.loadBtn = ttk.Button(self.buttonsFrame, text='Load', bootstyle=(PRIMARY,OUTLINE), command=self.loadPress)
 
         self.stopBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_DISABLED)
@@ -419,14 +441,18 @@ class GUI:
         self.genModeCombobox.grid(row=0, column=0)
 
         self.normalSetFrame.grid(row=1, column=0, sticky=NSEW)
+        self.normalSetFrame.grid_propagate(False)
         self.hRangeLabel.grid(row=0, column=0, padx=5)
         self.lRangeLabel.grid(row=1, column=0, padx=5)
         self.directionLabel.grid(row=2, column=0, padx=5)
+        self.startingPointLabel.grid(row=3, column=0, padx=5)
         self.hRangeEntry.grid(row=0, column=1, pady=5)
         self.lRangeEntry.grid(row=1, column=1, pady=5)
         self.directionCombobox.grid(row=2, column=1, pady=5, sticky=W)
+        self.startingPointEntry.grid(row=3, column=1, pady=5)
         
-        self.steppingSetFrame.grid(row=1, column=0)
+        self.steppingSetFrame.grid(row=1, column=0, sticky=NSEW)
+        self.steppingSetFrame.grid_propagate(False)
         self.baseLabel.grid(row=0, column=0, padx=5)
         self.maxRangeLabel.grid(row=1, column=0, padx=5)
         self.numOfStepsLabel.grid(row=2, column=0, padx=5)
@@ -450,6 +476,7 @@ class GUI:
         self.unlockBtn.grid(row=0,column=1, pady=5, padx=5)
         self.stopBtn.grid(row=0,column=2, pady=5, padx=5)
         self.startBtn.grid(row=0,column=3, pady=5, padx=5)
+        self.loadBtn.grid(row=1, column=1, pady=5, padx=5)
 
         self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)

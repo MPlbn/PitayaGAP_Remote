@@ -10,6 +10,7 @@ import time
 import mGenerate
 import mAcquire
 import mPlotter
+import mFileManager
 from mConstants import *
 
 
@@ -26,6 +27,7 @@ class ProgramRunner:
         self.dataBuffer = [] #not used for now
         self.AcqPlotter = mPlotter.AcqPlotter()
         self.GenPlotter = mPlotter.GenPlotter()
+        self.FileManager = mFileManager.FileManager()
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -45,10 +47,11 @@ class ProgramRunner:
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection):
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue):
         self.ContGenerator.setRanges(uHighRange, uLowRange)
         self.ContGenerator.setStep(uStep)
         self.ContGenerator.setDirection(uDirection)
+        self.ContGenerator.setStartingValue(uStartingValue)
 
     def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps):
         self.ContGenerator.setSteppingRanges(uLimit, uBase)
@@ -79,7 +82,6 @@ class ProgramRunner:
     def pauseContGenerator(self):
         self.ContGenerator.pause()
 
-
     #   unpausing generation of continous generator
 
     def unpauseContGenerator(self):
@@ -101,6 +103,12 @@ class ProgramRunner:
         self.GenPlotter.updatePlot()
         self.GenPlotter.canvas.draw()
 
+    def loadDataLastState(self) -> float:
+        dataDict = self.FileManager.load()
+        self.AcqPlotter.loadData(dataDict['acq_data'])
+        self.GenPlotter.loadData(dataDict['gen_data'])
+        self.ContGenerator.loadValue(dataDict['cVoltage'])
+        return dataDict['cVoltage']
 
     #   main work routine of program runner
 
@@ -213,4 +221,7 @@ class ProgramRunner:
 
     def exit(self):
         self.changeMode(ProgramMode.GEN_STOP)
+        self.FileManager.setData(self.GenPlotter.data, self.AcqPlotter.data, self.ContGenerator.voltageValue)
+        self.FileManager.save()
+
     

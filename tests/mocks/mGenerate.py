@@ -23,6 +23,9 @@ class ContGenerator:
         #for test
         self.steppingRanges = []
 
+    def loadValue(self, uValue):
+        self.voltageValue = uValue
+
     def changeMode(self, uNewMode: GeneratorMode):
         self.GEN_MODE = uNewMode
     
@@ -63,6 +66,9 @@ class ContGenerator:
             self.highRange = uHRange
         if(uLRange != None):    
             self.lowRange = uLRange
+
+    def setStartingValue(self, uStartingValue):
+        self.voltageValue = uStartingValue
 
     def setSteppingRanges(self, uLimit, uBase = None):
         if(uBase != None):
