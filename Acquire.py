@@ -31,7 +31,7 @@ class Acquisitor:
                 break
 
     def getBuff(self) -> list:
-        return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE]
+        return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE] #Tutaj jest głupio, musi zbierać mniej a nie zbierać całości i wycinać, tutaj duże spadki czasowe
 
     # def setup(self, uDecimation = 1, uTriggerLevel = 0, uTriggerDelay = 0):
     #     self.RP_S.acq_set(uDecimation, uTriggerLevel, uTriggerDelay)
