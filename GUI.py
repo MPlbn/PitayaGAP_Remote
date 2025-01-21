@@ -8,11 +8,13 @@ import ttkbootstrap as ttk
 from ttkbootstrap.constants import *
 import sys
 import time
+import subprocess
 
 #inside imports
 import ProgramRunner
 from constants import *
 
+#TODO add close button with stopGUI()
 class GUI:
     def __init__(self):
         self.PR = ProgramRunner.ProgramRunner()
@@ -236,6 +238,7 @@ class GUI:
     def stopGUI(self):
         #Close ProgramRunner and gui
         self.PR.exit()
+        subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
 
     # VALIDATION FUNCTIONS
@@ -447,4 +450,56 @@ class GUI:
 
         self.thread.start()
         #run gui
+        self.root.mainloop()
+
+class fastGUI:
+    def __init__(self):
+        pass
+
+    def initGUI(self):
+        pass
+    def startGUI(self):
+        pass
+
+#TODO styling of buttons, too big
+
+class startupGUI:
+    def __init__(self):
+        self.root = (ttk.Window(themename="superhero"))
+        self.running: bool = False
+
+    def chooseFast(self):
+        subprocess.Popen([sys.executable, 'runFast.py'])
+        sys.exit()
+    
+    def chooseSlow(self):
+        subprocess.Popen([sys.executable, 'runRealTime.py'])
+        sys.exit()
+    
+    def exit(self):
+        sys.exit()
+
+    def initGUI(self):
+        ###style configuration
+        self.style = ttk.Style()
+        self.style.configure('TButton', font=("Segoe UI", 20))
+        self.style.configure('info.Outline.TButton', font=("Segoe UI", 12))
+
+        #choice buttons
+        self.buttonsFrame = ttk.Frame(self.root)
+        self.fastBtn = ttk.Button(self.buttonsFrame, text = 'Fast N Samples Generator', bootstyle=(PRIMARY,OUTLINE), command=self.chooseFast)
+        self.slowBtn = ttk.Button(self.buttonsFrame, text = 'In real time Generator', bootstyle=(PRIMARY,OUTLINE), command=self.chooseSlow)
+
+        #close button
+        self.closeFrame = ttk.Frame(self.root)
+        self.exitBtn = ttk.Button(self.closeFrame, text='EXIT', bootstyle=(DANGER,OUTLINE), command=self.exit)
+
+    def startGUI(self):
+        self.buttonsFrame.pack(side=TOP, anchor=N, padx=30, pady=30)
+        self.fastBtn.grid(row = 0, column = 0, padx=5)
+        self.slowBtn.grid(row = 0, column = 1, padx=5)
+
+        self.closeFrame.pack(side=BOTTOM, anchor=S, padx=30, pady=30)
+        self.exitBtn.grid(row = 0, column = 0, padx = 5)
+
         self.root.mainloop()
