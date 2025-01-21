@@ -1,30 +1,31 @@
 import redpitaya_scpi as scpi
 from constants import *
 
-#Generating commands wrapper - obsolete
-# class Generator:
-#     def __init__(self, uIP):
-#         self.RP_S = scpi.scpi(uIP)
+#Fast samples generator
+class Generator:
+    def __init__(self, uIP):
+        self.RP_S = scpi.scpi(uIP)
         
-#     def reset(self):
-#         self.RP_S.tx_txt('GEN:RST')
+    def reset(self):
+        self.RP_S.tx_txt('GEN:RST')
 
-#     def setup(self, uChannelNumber, uWaveform, uFrequency, uAmplitude):
-#         self.channelNumber = uChannelNumber
-#         self.frequency = uFrequency
-#         self.amplitude = uAmplitude
-#         self.RP_S.sour_set(uChannelNumber, uWaveform, uAmplitude, uFrequency)
+    def setup(self, uChannelNumber, uWaveform, uFrequency, uAmplitude):
+        self.channelNumber = uChannelNumber
+        self.frequency = uFrequency
+        self.amplitude = uAmplitude
+        self.waveform = uWaveform
+        #change this to pure scpi
+        # self.RP_S.sour_set(uChannelNumber, uWaveform, uAmplitude, uFrequency)
 
-#     def startGenerating(self):
-#         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
-#         self.RP_S.tx_txt(f'SOUR{self.channelNumber}:TRIG:INT')
+    def startGenerating(self):
+        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
+        self.RP_S.tx_txt(f'SOUR{self.channelNumber}:TRIG:INT')
 
-#     def stopGenerating(self):
-#         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
+    def stopGenerating(self):
+        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
 
 
 #BUG weird behaviour after swapping Generator modes, cannot replicate easily
-#BUG change how it behaves when paused
 
 class ContGenerator:
     def __init__(self, uIP):
@@ -50,7 +51,6 @@ class ContGenerator:
     def changeMode(self, uNewMode: GeneratorMode):
         self.GEN_MODE = uNewMode
 
-    #this doesnt work
     def manualChangeVoltage(self, uChangeType):
         tempValue = self.voltageValue + (uChangeType * abs(self.step))
         match self.GEN_MODE:

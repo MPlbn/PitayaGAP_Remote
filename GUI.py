@@ -14,7 +14,7 @@ import subprocess
 import ProgramRunner
 from constants import *
 
-#TODO add close button with stopGUI()
+#TODO make sure stopGUI() works as intended
 class GUI:
     def __init__(self):
         self.PR = ProgramRunner.ProgramRunner()

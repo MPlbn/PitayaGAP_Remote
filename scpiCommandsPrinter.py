@@ -1,3 +1,5 @@
+#   Prints out all available scpi commands
+
 from constants import *
 import redpitaya_scpi as scpi
 

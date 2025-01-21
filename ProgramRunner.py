@@ -24,7 +24,6 @@ class ProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.IP = uIP
         self.PROGRAM_MODE = ProgramMode.IDLE
-        #self.Generator = Generate.Generator(self.IP)
         self.ContGenerator = Generate.ContGenerator(self.IP)
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.isRunningContinous = False
@@ -177,7 +176,7 @@ class ProgramRunner:
 
             case ProgramMode.GEN_WORK_ROUTINE:
                 tStartTime = time.time()
-                
+
                 self.ContGenerator.workRoutine()
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
                 self.Acquisitor.reset()
@@ -244,7 +243,7 @@ class ProgramRunner:
         self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
 
-
+#   class responsible for work routine of N samples variant of the program
 class fastProgramRunner:
     def __init__(self):
         pass
