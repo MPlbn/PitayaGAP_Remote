@@ -16,6 +16,8 @@ import Plotter
 from constants import *
 
 
+#TODO Stop resets lock/unlock
+
 #   class responsible for work routine of a program
 
 class ProgramRunner:
@@ -165,6 +167,10 @@ class ProgramRunner:
             case ProgramMode.GEN_STOP: #Stop continous
                 #run to 0 and stop
                 self.ContGenerator.stopGen()
+
+                if(self.ContGenerator.getPause()):
+                    self.ContGenerator.unpause()
+                
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.changeMode(ProgramMode.IDLE)

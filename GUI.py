@@ -357,6 +357,7 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
+        self.exitBtn = ttk.Button(self.buttonsFrame, text='EXIT', bootstyle=(DANGER,OUTLINE), command=self.stopGUI)
 
         self.stopBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_DISABLED)
@@ -428,10 +429,11 @@ class GUI:
 
 
         self.buttonsFrame.pack()#grid(row=0, column=4, rowspan=3)
-        self.lockBtn.grid(row=0, column=0, pady=5, padx=5)
-        self.unlockBtn.grid(row=0,column=1, pady=5, padx=5)
-        self.stopBtn.grid(row=0,column=2, pady=5, padx=5)
-        self.startBtn.grid(row=0,column=3, pady=5, padx=5)
+        self.exitBtn.grid(row=0, column=0, pady=5, padx=5)
+        self.lockBtn.grid(row=0, column=1, pady=5, padx=5)
+        self.unlockBtn.grid(row=0,column=2, pady=5, padx=5)
+        self.stopBtn.grid(row=0,column=3, pady=5, padx=5)
+        self.startBtn.grid(row=0,column=4, pady=5, padx=5)
 
         self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)
@@ -452,6 +454,8 @@ class GUI:
         #run gui
         self.root.mainloop()
 
+#TODO with fast samples acquisition
+
 class fastGUI:
     def __init__(self):
         pass
@@ -467,11 +471,9 @@ class fastGUI:
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
 
-#TODO styling of buttons, too big
-
 class startupGUI:
     def __init__(self):
-        self.root = (ttk.Window(themename="superhero"))
+        self.root = (ttk.Window(themename="superhero", size=S_GUI_DEFAULT_WINDOW_SIZE))
         self.running: bool = False
 
     def chooseFast(self):
@@ -493,8 +495,8 @@ class startupGUI:
 
         #choice buttons
         self.buttonsFrame = ttk.Frame(self.root)
-        self.fastBtn = ttk.Button(self.buttonsFrame, text = 'Fast N Samples Generator', bootstyle=(PRIMARY,OUTLINE), command=self.chooseFast)
-        self.slowBtn = ttk.Button(self.buttonsFrame, text = 'In real time Generator', bootstyle=(PRIMARY,OUTLINE), command=self.chooseSlow)
+        self.fastBtn = ttk.Button(self.buttonsFrame, text = 'N Samples', bootstyle=(PRIMARY,OUTLINE), command=self.chooseFast)
+        self.slowBtn = ttk.Button(self.buttonsFrame, text = 'Real Time', bootstyle=(PRIMARY,OUTLINE), command=self.chooseSlow)
 
         #close button
         self.closeFrame = ttk.Frame(self.root)
