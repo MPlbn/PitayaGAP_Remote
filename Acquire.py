@@ -30,11 +30,11 @@ class Acquisitor:
             if(self.RP_S.rx_txt() == '1'):
                 break
 
-    #def getBuff(self) -> list:
-        #return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE] #Tutaj jest głupio, musi zbierać mniej a nie zbierać całości i wycinać, tutaj duże spadki czasowe
+    # def getBuff(self) -> list:
+    #     return self.RP_S.acq_data(self.channelNumber, convert=True)[ACQ_BUFFER_SIZE-ACQ_SAMPLE_SIZE:ACQ_BUFFER_SIZE] #Tutaj jest głupio, musi zbierać mniej a nie zbierać całości i wycinać, tutaj duże spadki czasowe
 
     def getBuff(self) -> list:
-        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:DATA:LATest:N? 10') #To juz dziala, max spadlo do 45ms co ruch
+        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:DATA:LATest:N? {ACQ_SAMPLE_SIZE}') #To juz dziala, max spadlo do 42ms co ruch
         buffer_string = self.RP_S.rx_txt()
         buffer_string = buffer_string.strip('{}\n\r').replace("  ", "").split(',')
         retList = list(map(float, buffer_string))
