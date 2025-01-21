@@ -461,6 +461,12 @@ class fastGUI:
     def startGUI(self):
         pass
 
+    def stopGUI(self):
+        #Close ProgramRunner and gui
+        self.PR.exit()
+        subprocess.Popen([sys.executable, 'runVolGen.py'])
+        sys.exit()
+
 #TODO styling of buttons, too big
 
 class startupGUI:

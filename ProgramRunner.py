@@ -237,4 +237,11 @@ class ProgramRunner:
     def exit(self):
         self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
-    
+
+
+class fastProgramRunner:
+    def __init__(self):
+        pass
+
+    def exit(self):
+        pass

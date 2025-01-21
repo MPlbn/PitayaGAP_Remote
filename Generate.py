@@ -210,6 +210,7 @@ class ContGenerator:
     def getRoundingNumber(self) -> int:
         return self.roundingNumber
 
+    #Smooth change if needed
     def stopGen(self):
         # if(self.voltageValue > 0):
         #     if(self.step > 0):

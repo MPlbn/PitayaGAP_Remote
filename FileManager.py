@@ -1,7 +1,7 @@
 import numpy as np
 
 class FileManager:
-    def __init_(self, fp = "/data"):
+    def __init__(self, fp = "/data"):
         self.filepath: str = fp + "/last_state.npz" 
         self.genData = np.array([])
         self.acqData = np.array([])
