@@ -348,7 +348,7 @@ class GUI:
         self.numOfStepsEntry.insert(0, str(GEN_DEFAULT_NUM_STEPS))
 
         #errors
-        self.errorFrame = ttk.LabelFrame(self.root, width=50, height=50, text='errors', bootstyle=INFO)
+        self.errorFrame = ttk.Labelframe(self.root, width=50, height=50, text='errors', bootstyle=INFO)
         self.errorLabel = ttk.Label(self.errorFrame, text="", bootstyle=(DANGER), width=50, font=("Segoe UI", 8))
 
         #buttons
@@ -458,23 +458,89 @@ class GUI:
 
 class fastGUI:
     def __init__(self):
-        pass
+        self.root = (ttk.Window(themename="superhero", size=F_GUI_DEFAULT_WINDOW_SIZE))
+
+    def validateInt(self, uEntryValue) -> bool:
+        if(uEntryValue == ""):
+            return True
+        try:
+            int(uEntryValue)
+            return True
+        except ValueError:
+            return False
+
+    def validateFloat(self, uEntryValue) -> bool:
+        if(uEntryValue == ''):
+            return True
+    
+        if(uEntryValue == '-'):
+            return True
+        try:
+            float(uEntryValue)
+            return True
+        except ValueError:
+            return False 
 
     def initGUI(self):
-        pass
+        ##style configuration
+        self.style = ttk.Style()
+        self.style.configure('TButton', font=("Segoe UI", 20))
+        self.style.configure('info.Outline.TButton', font=("Segoe UI", 12))
+
+        self.valInt = self.root.register(self.validateInt)
+        self.valFloat = self.root.register(self.validateFloat)
+
+        
+        #main Setttings frame
+        self.settingsFrame = ttk.Frame(self.root)
+
+        #genSettings frame
+        self.genSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Generator')
+        self.waveFormCB = ttk.Combobox(self.genSettingsFrame, bootstyle=INFO, state=READONLY)
+        self.ampEntry = ttk.Entry(self.genSettingsFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.freqEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+
+
+        #acqSettings frame
+        self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
+        self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
+        self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.validateInt, '%P'), validate="key")
+
+        #buttons frame
+        self.buttonsFrame = ttk.Frame(self.root)
+        self.runBtn = ttk.Button(self.buttonsFrame, text='RUN', bootstyle=(INFO,OUTLINE), command=self.run)
+        self.exitBtn = ttk.Button(self.buttonsFrame, text='EXIT', bootstyle=(DANGER,OUTLINE), command=self.stopGUI)
+
+
     def startGUI(self):
-        pass
+        #settings frame placement
+        self.settingsFrame.pack(side=LEFT, anchor=W, padx=30, pady=30)
+
+        #gen settings
+        self.genSettingsFrame.pack(side=LEFT, anchor=W, padx=10, pady=10)
+        #TODO combobox and entries default values
+
+        #acq settings
+        self.acqSettingsFrame.pack(side=RIGHT, anchor=E, padx=10, pady=10)
+        #TODO combobox and entries default values
+
+        #Buttons frame placement
+        self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
+        self.runBtn.grid(row=0, column=0, padx=10, pady=10)
+        self.exitBtn.grid(row=1, column=0, padx=10, pady=10)
 
     def stopGUI(self):
         #Close ProgramRunner and gui
-        self.PR.exit()
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
+
+    def run(self):
+        #TODO gather all selected data and run script on redpitaya
+        pass
 
 class startupGUI:
     def __init__(self):
         self.root = (ttk.Window(themename="superhero", size=S_GUI_DEFAULT_WINDOW_SIZE))
-        self.running: bool = False
 
     def chooseFast(self):
         subprocess.Popen([sys.executable, 'runFast.py'])
