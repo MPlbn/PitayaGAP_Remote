@@ -518,11 +518,17 @@ class fastGUI:
 
         #gen settings
         self.genSettingsFrame.pack(side=LEFT, anchor=W, padx=10, pady=10)
+        self.waveFormCB.grid(row=0, column=0, padx=10, pady=10)
         #TODO combobox and entries default values
+        self.ampEntry.grid(row=0, column=1, padx=10, pady=10)
+        self.freqEntry.grid(row=0, column=2, padx=10, pady=10)
+        
 
         #acq settings
         self.acqSettingsFrame.pack(side=RIGHT, anchor=E, padx=10, pady=10)
+        self.decCB.grid(row=0, column=0, padx=10, pady=10)
         #TODO combobox and entries default values
+        self.samplesEntry.grid(row=0, column=1, padx=10, pady=10)
 
         #Buttons frame placement
         self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
@@ -535,7 +541,7 @@ class fastGUI:
         sys.exit()
 
     def run(self):
-        #TODO gather all selected data and run script on redpitaya
+        #TODO gather all selected data and run script on redpitaya, then collect data from Pitaya
         pass
 
 class startupGUI:
