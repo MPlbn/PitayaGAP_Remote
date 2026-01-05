@@ -103,7 +103,7 @@ class ProgramRunner:
     def unpauseContGenerator(self):
         self.ContGenerator.unpause()
 
-    #   getter for current generator pause value
+    #   getter for current generator pause state
     def getContGeneratorPauseState(self):
         return self.ContGenerator.getPause()
 

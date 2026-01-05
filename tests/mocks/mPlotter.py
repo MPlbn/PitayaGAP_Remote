@@ -40,6 +40,9 @@ class Plotter(ABC):
     def loadData(self, uData):
         self.data = uData
 
+    def getData(self):
+        return self.data
+
     @abstractmethod
     def processData(self, uNewData):
         pass

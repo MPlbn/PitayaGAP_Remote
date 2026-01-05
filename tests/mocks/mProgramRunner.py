@@ -103,13 +103,6 @@ class ProgramRunner:
         self.GenPlotter.updatePlot()
         self.GenPlotter.canvas.draw()
 
-    def loadDataLastState(self) -> float:
-        dataDict = self.FileManager.load()
-        self.AcqPlotter.loadData(dataDict['acq_data'])
-        self.GenPlotter.loadData(dataDict['gen_data'])
-        self.ContGenerator.loadValue(dataDict['cVoltage'])
-        return dataDict['cVoltage']
-
     #   main work routine of program runner
 
     def run(self):
@@ -219,9 +212,11 @@ class ProgramRunner:
     
     #   closing the scpi connection
 
+    #   this never happens btw because it doesn't get invoked ever, TODO investigate
     def exit(self):
         self.changeMode(ProgramMode.GEN_STOP)
-        self.FileManager.setData(self.GenPlotter.data, self.AcqPlotter.data, self.ContGenerator.voltageValue)
-        self.FileManager.save()
+        #   This is dumb, I shouldn't get data from plotter of all things
+        self.FileManager.saveToFile(self.GenPlotter.getData(),
+                                    self.AcqPlotter.getData())
 
     

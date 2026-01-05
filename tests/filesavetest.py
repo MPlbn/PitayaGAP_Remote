@@ -1,5 +1,3 @@
-import numpy as np
-    
 # file save mock
 
 from datetime import datetime
@@ -7,10 +5,10 @@ import csv
 
 class FileManager:
     def __init__(self):
-        self.pathPrefix: str = "DATA"
+        self.pathPrefix: str = "LOG"
         self.pathPostfix: str = ".csv"
-    ### managing CSV data files
-    #   saving
+    
+    #saving
     def generatePath(self):
         path = datetime.today().strftime('%Y%m%d%H%M%S')
         return str(self.pathPrefix + path + self.pathPostfix)
@@ -21,7 +19,8 @@ class FileManager:
             writer.writerow(uGenData)
             writer.writerow(uAcqData)
     
-    #   loading
+    #loading
+
     def load(self, uPath):
         with open(uPath, 'r', newline='') as csvFile:
             reader = csv.reader(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
