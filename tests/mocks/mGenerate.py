@@ -194,7 +194,7 @@ class ContGenerator:
     def getRoundingNumber(self) -> int:
         return self.roundingNumber
 
-    def stopGen(self):
+    def stopGen(self, uStopType: StopType):
         # if(self.voltageValue > 0):
         #     if(self.step > 0):
         #         self.step *= -1.0
@@ -207,7 +207,11 @@ class ContGenerator:
         #     self.voltageValue += self.step
         
         #self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE OFF")
-        self.voltageValue = 0.0
+        match uStopType:
+            case StopType.STOP_RESET:
+                self.voltageValue = 0.0
+            case StopType.STOP_KEEP:
+                pass
 
     def mockedGetGeneratedValue(self) -> float:
         return self.voltageValue

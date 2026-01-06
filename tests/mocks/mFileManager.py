@@ -1,7 +1,7 @@
 import numpy as np
     
 # file save mock
-
+#   TODO change the GUI from "LOAD" to "SAVE" accordingly, also make room for periodic saves?
 from datetime import datetime
 import csv
 
@@ -20,11 +20,11 @@ class FileManager:
             writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(uGenData)
             writer.writerow(uAcqData)
-    
+### IS THE LOADING EVEN NEEDED? WHAT FOR? SKIP FOR NOW
     #   loading
-    def load(self, uPath):
-        with open(uPath, 'r', newline='') as csvFile:
-            reader = csv.reader(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-            tempGenData = next(reader)
-            tempAcqData = next(reader)
-            return tempGenData, tempAcqData
+    # def load(self, uPath):
+    #     with open(uPath, 'r', newline='') as csvFile:
+    #         reader = csv.reader(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+    #         tempGenData = next(reader)
+    #         tempAcqData = next(reader)
+    #         return tempGenData, tempAcqData

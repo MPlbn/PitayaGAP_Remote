@@ -60,10 +60,8 @@ class GUI:
         self.unlockBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_ENABLED)
 
-    def loadPress(self):
-        self.startingPointEntry.delete(0, ttk.END)
-        self.startingPointEntry.insert(0, str(self.PR.loadDataLastState()))
-        self.updateFun()
+    def savePress(self):
+        self.PR.saveDataToCSV()
 
     def comboboxCallback(self, value):
         self.genMode = str(self.genModeCombobox.get())
@@ -394,7 +392,7 @@ class GUI:
         self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
-        self.loadBtn = ttk.Button(self.buttonsFrame, text='Load', bootstyle=(PRIMARY,OUTLINE), command=self.loadPress)
+        self.saveBtn = ttk.Button(self.buttonsFrame, text='Save Data', bootstyle=(PRIMARY,OUTLINE), command=self.savePress)
 
         self.stopBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_DISABLED)
@@ -476,7 +474,7 @@ class GUI:
         self.unlockBtn.grid(row=0,column=1, pady=5, padx=5)
         self.stopBtn.grid(row=0,column=2, pady=5, padx=5)
         self.startBtn.grid(row=0,column=3, pady=5, padx=5)
-        self.loadBtn.grid(row=1, column=1, pady=5, padx=5)
+        self.saveBtn.grid(row=1, column=1, pady=5, padx=5)
 
         self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)
