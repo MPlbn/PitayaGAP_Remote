@@ -1,32 +1,30 @@
 import numpy as np
+    
+# TODO clear program runner and GUI from loading and change to saving. Rewrite program runner FileManager functions
+
+from datetime import datetime
+import csv
 
 class FileManager:
-    def __init__(self, fp = "/data"):
-        self.filepath: str = fp + "/last_state.npz" 
-        self.genData = np.array([])
-        self.acqData = np.array([])
-        self.currentVoltage: float = None
+    def __init__(self):
+        self.pathPrefix: str = "DATA"
+        self.pathPostfix: str = ".csv"
+    ### managing CSV data files
+    #   saving
+    def generatePath(self):
+        path = datetime.today().strftime('%Y%m%d%H%M%S')
+        return str(self.pathPrefix + path + self.pathPostfix)
 
-    def save(self):
-        np.savez(self.filepath, gen_data=self.genData, acq_data=self.acqData, cVoltage=self.currentVoltage)
-        print(f'data saved to {self.filepath}')
-
-    def load(self):
-        data = np.load(self.filepath)
-        self.genData = data['gen_data']
-        self.acqData = data['acq_data']
-        self.currentVoltage = data['cVoltage']
-
-    def setData(self, uGenData, uAcqData, uCurrentVoltage):
-        self.genData = uGenData
-        self.acqData = uAcqData
-        self.currentVoltage = uCurrentVoltage
-
-    def getData(self):
-        dataDict = {
-            'genData' : self.genData,
-            'acqData' : self.acqData,
-            'currentVoltage' : self.currentVoltage
-        }
-        
-        return dataDict
+    def saveToFile(self, uGenData, uAcqData):
+        with open(self.generatePath(), 'w', newline='') as csvFile:
+            writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+            writer.writerow(uGenData)
+            writer.writerow(uAcqData)
+### IS THE LOADING EVEN NEEDED? WHAT FOR? SKIP FOR NOW
+    #   loading
+    # def load(self, uPath):
+    #     with open(uPath, 'r', newline='') as csvFile:
+    #         reader = csv.reader(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+    #         tempGenData = next(reader)
+    #         tempAcqData = next(reader)
+    #         return tempGenData, tempAcqData
