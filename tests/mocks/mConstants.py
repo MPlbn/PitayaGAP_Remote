@@ -9,7 +9,8 @@ class ProgramMode(Enum):
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
     PRE_WORK_ROUTINE = auto()
-    SAVE_RUN = auto()
+    PAUSE = auto()
+    UNPAUSE = auto()
 
 class GeneratorMode(Enum):
     CONT = auto()
@@ -24,7 +25,7 @@ class StopType(Enum):
     STOP_KEEP = auto()
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 8
+LAST_MODE: int = 9
 
 DEFAULT_CHANNEL = 1
 

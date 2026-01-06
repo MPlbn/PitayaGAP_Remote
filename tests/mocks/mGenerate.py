@@ -8,6 +8,8 @@ class ContGenerator:
         self.output: int = DEFAULT_CHANNEL
         self.frequency: int = 1000 #prob not needed
         self.voltageValue: float = GEN_DEFAULT_VOLTAGE
+        self.resetVoltageValue: float = GEN_DEFAULT_VOLTAGE
+        self.resetFlag: bool = False
         self.highRange: float = GEN_DEFAULT_HRANGE
         self.lowRange: float = GEN_DEFAULT_LRANGE
         self.step: float = GEN_DEFAULT_STEP
@@ -68,6 +70,7 @@ class ContGenerator:
             self.lowRange = uLRange
 
     def setStartingValue(self, uStartingValue):
+        self.resetVoltageValue = uStartingValue
         self.voltageValue = uStartingValue
 
     def setSteppingRanges(self, uLimit, uBase = None):
@@ -134,11 +137,21 @@ class ContGenerator:
         # self.RP_S.tx_txt(f'SOUR{self.output}:TRig:INT')
         time.sleep(MOCK_TIME_SLOW)
 
+    def flipDirection(self):
+        self.step *= -1.0
+
     def workRoutine(self):
-        if(not self.isPaused):
-            self.generate()
-            self.changeVolt(self.voltageValue)
+        if(self.resetFlag):
+            self.voltageValue = self.resetVoltageValue #for mock reasons
+            self.changeVolt(self.resetVoltageValue)
+            self.resetFlag = False
+        else:
+            if(not self.isPaused):
+                self.generate()
+                self.changeVolt(self.voltageValue)
             
+    def resetGenValue(self):
+        self.resetFlag = True
 
     def generate(self):
         match self.GEN_MODE:

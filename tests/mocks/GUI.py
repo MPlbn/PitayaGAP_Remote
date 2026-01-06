@@ -63,6 +63,12 @@ class GUI:
     def savePress(self):
         self.PR.saveDataToCSV()
 
+    def resetGeneratingPress(self):
+        self.PR.resetGenerator()
+
+    def flipGeneratingPress(self):
+        self.PR.flipGenStep()
+
     def comboboxCallback(self, value):
         self.genMode = str(self.genModeCombobox.get())
         self.FRAME_LIST[str(self.genModeCombobox.get())].tkraise()
@@ -389,10 +395,12 @@ class GUI:
         #buttons
         self.buttonsFrame = ttk.Frame(self.root)
         self.startBtn = ttk.Button(self.buttonsFrame, text='Start', bootstyle=(SUCCESS,OUTLINE), command=self.startGeneratingPress)
-        self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress)
+        self.stopBtn = ttk.Button(self.buttonsFrame, text='Stop', bootstyle=(DANGER,OUTLINE), command=self.stopGeneratingPress) #Should not reset the generation TODO
         self.lockBtn = ttk.Button(self.buttonsFrame, text='Lock', bootstyle=(PRIMARY,OUTLINE), command=self.lockGeneratingPress)
         self.unlockBtn = ttk.Button(self.buttonsFrame, text='Unlock', bootstyle=(PRIMARY,OUTLINE), command=self.unlockGeneratingPress)
         self.saveBtn = ttk.Button(self.buttonsFrame, text='Save Data', bootstyle=(PRIMARY,OUTLINE), command=self.savePress)
+        self.resetBtn = ttk.Button(self.buttonsFrame, text='Reset', bootstyle=(DANGER,OUTLINE), command=self.resetGeneratingPress)
+        self.flipBtn = ttk.Button(self.buttonsFrame, text="Flip", bootstyle=(PRIMARY,OUTLINE), command=self.flipGeneratingPress)
 
         self.stopBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_DISABLED)
@@ -470,11 +478,13 @@ class GUI:
 
 
         self.buttonsFrame.pack()#grid(row=0, column=4, rowspan=3)
-        self.lockBtn.grid(row=0, column=0, pady=5, padx=5)
-        self.unlockBtn.grid(row=0,column=1, pady=5, padx=5)
-        self.stopBtn.grid(row=0,column=2, pady=5, padx=5)
-        self.startBtn.grid(row=0,column=3, pady=5, padx=5)
-        self.saveBtn.grid(row=1, column=1, pady=5, padx=5)
+        self.startBtn.grid( row=0, column=0, pady=5, padx=5)
+        self.stopBtn.grid(  row=0, column=1, pady=5, padx=5)
+        self.resetBtn.grid( row=0, column=2, pady=5, padx=5)
+        self.lockBtn.grid(  row=1, column=0, pady=5, padx=5)
+        self.unlockBtn.grid(row=1, column=1, pady=5, padx=5)
+        self.flipBtn.grid(  row=1, column=2, pady=5, padx=5)
+        self.saveBtn.grid(  row=2, column=0, pady=5, padx=5)
 
         self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)

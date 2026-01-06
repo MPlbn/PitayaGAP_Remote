@@ -105,8 +105,19 @@ class ProgramRunner:
 
     #   saves the current plot displayed data - generated voltage values and acquisition voltage values to the CSV file
     def saveDataToCSV(self):
-        self.changeMode(ProgramMode.SAVE_RUN)
-        
+        self.changeMode(ProgramMode.PAUSE)
+        self.FileManager.saveToFile(self.GenPlotter.getData(),
+                                    self.AcqPlotter.getData())
+        self.changeMode(ProgramMode.UNPAUSE)
+
+    #   resets the current voltage value to the set starting voltage
+    def resetGenerator(self):
+        self.ContGenerator.resetGenValue()
+
+    #   flips the step value of generator
+    def flipGenStep(self):
+        self.ContGenerator.flipDirection()
+       
     #   main work routine of program runner
 
     def run(self):
@@ -189,17 +200,17 @@ class ProgramRunner:
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
-            case ProgramMode.SAVE_RUN:
+            case ProgramMode.PAUSE:
                 self.ContGenerator.stopGen(StopType.STOP_KEEP)
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
-
-                self.FileManager.saveToFile(self.GenPlotter.getData(),
-                                            self.AcqPlotter.getData())
-                print("I DID IT YAY!")
+                self.changeMode(ProgramMode.IDLE)
+            
+            case ProgramMode.UNPAUSE:
+                self.ContGenerator.startGen()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
-                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
+                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
 
 
