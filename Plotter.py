@@ -37,6 +37,12 @@ class Plotter(ABC):
     def animate(self):
         animation = FAnim(self.fig, self.updatePlot, frames=100, blit=True)
         plt.show()
+
+    def loadData(self, uData):
+        self.data = uData
+
+    def getData(self):
+        return self.data
     
     @abstractmethod
     def processData(self, uNewData):

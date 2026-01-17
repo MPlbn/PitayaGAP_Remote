@@ -33,6 +33,8 @@ class ContGenerator:
         self.output: int = DEFAULT_CHANNEL
         self.frequency: int = 1000 #prob not needed
         self.voltageValue: float = GEN_DEFAULT_VOLTAGE
+        self.resetVoltageValue: float = GEN_DEFAULT_VOLTAGE
+        self.resetFlag: bool = False
         self.highRange: float = GEN_DEFAULT_HRANGE
         self.lowRange: float = GEN_DEFAULT_LRANGE
         self.step: float = GEN_DEFAULT_STEP
@@ -47,6 +49,9 @@ class ContGenerator:
 
         #for test
         self.steppingRanges = []
+
+    def loadValue(self, uValue):
+        self.voltageValue = uValue
 
     def changeMode(self, uNewMode: GeneratorMode):
         self.GEN_MODE = uNewMode
@@ -88,6 +93,10 @@ class ContGenerator:
             self.highRange = uHRange
         if(uLRange != None):
             self.lowRange = uLRange
+
+    def setStartingValue(self, uStartingValue):
+        self.resetVoltageValue = uStartingValue
+        self.voltageValue = uStartingValue
 
     def setSteppingRanges(self, uLimit, uBase = None):
         if(uBase != None):
@@ -149,12 +158,17 @@ class ContGenerator:
         self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
         self.RP_S.tx_txt(f'SOUR{self.output}:TRig:INT')
 
+    def flipDirection(self):
+        self.step *= -1.0
+
     def workRoutine(self):
         if(not self.isPaused):
             self.generate()
             print(self.voltageValue)
             self.changeVolt(self.voltageValue)
             
+    def resetGenValue(self):
+        self.resetFlag = True
 
     def generate(self):
         match self.GEN_MODE:
@@ -211,7 +225,7 @@ class ContGenerator:
         return self.roundingNumber
 
     #Smooth change if needed
-    def stopGen(self):
+    def stopGen(self, uStopType: StopType):
         # if(self.voltageValue > 0):
         #     if(self.step > 0):
         #         self.step *= -1.0
@@ -222,6 +236,9 @@ class ContGenerator:
 
         # while(self.voltageValue > 0.1 or self.voltageValue < -0.1):
         #     self.voltageValue += self.step
-        
-        self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE OFF")
-        self.voltageValue = 0.0
+        match uStopType:
+            case StopType.STOP_RESET:
+                self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE OFF")
+                self.voltageValue = 0.0
+            case StopType.STOP_KEEP:
+                self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE OFF')

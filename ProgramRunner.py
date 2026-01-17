@@ -13,6 +13,7 @@ import redpitaya_scpi as scpi
 import Generate
 import Acquire
 import Plotter
+import FileManager
 from constants import *
 
 
@@ -30,6 +31,7 @@ class ProgramRunner:
         self.dataBuffer = [] #not used for now
         self.AcqPlotter = Plotter.AcqPlotter()
         self.GenPlotter = Plotter.GenPlotter()
+        self.FileManager = FileManager.FileManager()
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -59,10 +61,11 @@ class ProgramRunner:
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection):
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue):
         self.ContGenerator.setRanges(uHighRange, uLowRange)
         self.ContGenerator.setStep(uStep)
         self.ContGenerator.setDirection(uDirection)
+        self.ContGenerator.setStartingValue(uStartingValue)
 
     #   setting generator parameters passed from GUI when in stepping mode
     #   uLimit: float - upper/lower voltage limit which won't be passed while generating
@@ -119,6 +122,20 @@ class ProgramRunner:
         self.GenPlotter.updatePlot()
         self.GenPlotter.canvas.draw()
 
+    #   saves the current plots displayed data to as CSV file - to be changed to save real data
+    def saveDataToCSV(self):
+        self.changeMode(ProgramMode.PAUSE)
+        self.FileManager.saveToFile(self.GenPlotter.getData(),
+                                    self.AcqPlotter.getData())
+        self.changeMode(ProgramMode.UNPAUSE)
+
+    #   resets the current voltage value to the set starting voltage value
+    def resetGenerator(self):
+        self.ContGenerator.resetGenValue()
+
+    #   flips the step value (*-1) of continouous generator
+    def flipGenStep(self):
+        self.ContGenerator.flipDirection()
 
     #   main work routine of program runner
 
@@ -165,7 +182,7 @@ class ProgramRunner:
     
             case ProgramMode.GEN_STOP: #Stop continous
                 #run to 0 and stop
-                self.ContGenerator.stopGen()
+                self.ContGenerator.stopGen(StopType.STOP_RESET)
 
                 if(self.ContGenerator.getPause()):
                     self.ContGenerator.unpause()
@@ -209,6 +226,18 @@ class ProgramRunner:
                 buffer = np.array(self.Acquisitor.getBuff())
                 self.processDataBuffer(buffer, PlotType.ACQ)
                 self.Acquisitor.stop()
+                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
+            
+            case ProgramMode.PAUSE:
+                self.ContGenerator.stopGen(StopType.STOP_KEEP)
+                self.AcqPlotter.stop()
+                self.GenPlotter.stop()
+                self.changeMode(ProgramMode.IDLE)
+            
+            case ProgramMode.UNPAUSE:
+                self.ContGenerator.startGen()
+                self.AcqPlotter.start()
+                self.GenPlotter.start()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
     #   Changing the work routine

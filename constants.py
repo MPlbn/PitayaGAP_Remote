@@ -9,6 +9,8 @@ class ProgramMode(Enum):
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
     PRE_WORK_ROUTINE = auto()
+    PAUSE = auto()
+    UNPAUSE = auto()
 
 class GeneratorMode(Enum):
     CONT = auto()
@@ -18,8 +20,12 @@ class PlotType(Enum):
     ACQ = auto()
     GEN = auto()
 
+class StopType(Enum):
+    STOP_RESET = auto()
+    STOP_KEEP = auto()
+
 FIRST_MODE: int = 1
-LAST_MODE: int = 7
+LAST_MODE: int = 9
 
 DEFAULT_CHANNEL = 1
 RED_PITAYA_IP = 'rp-f0ba38.local'
