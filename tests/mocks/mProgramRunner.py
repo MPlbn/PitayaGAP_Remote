@@ -248,4 +248,28 @@ class ProgramRunner:
         self.FileManager.saveToFile(self.GenPlotter.getData(),
                                     self.AcqPlotter.getData())
 
+    #   running full run for fast samples
+    #   uWaveForm: string - type of waveform
+    #   uAmplitude: float - amplitude
+    #   uFrequency: int - frequency
+    #   uDecimation: int - chosen decimation
+    #   uSamples: int - how many samples to collect before closing 
+
+    def fastFullRun(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+        #In full version this must start the generator, run few runs, then stop the generator
+        #   some setup gen
+        #   some setup acq
+        #   calculate how many 16k rounds to be done and how much leftover
+        #   run gen
+        #   run acq
+        #   repeat
+        #   and so on
+
+        #mocked to see if it's working
+        print(f'type of waveform: {uWaveForm}\n' + 
+              f'Amplitude: {uAmplitude}\n' +
+              f'frequency: {uFrequency}\n' +
+              f'decimation: {uDecimation}\n' +
+              f'N samples: {uSamples}')
+        pass
     

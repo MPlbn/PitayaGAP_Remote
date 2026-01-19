@@ -508,6 +508,9 @@ class GUI:
 class fastGUI:
     def __init__(self):
         self.root = (ttk.Window(themename="superhero", size=F_GUI_DEFAULT_WINDOW_SIZE))
+        self.PR = mProgramRunner.ProgramRunner()
+        self.waveForm = F_GEN_DEFAULT_WAVEFORM
+        self.decimation = F_GEN_DEFAULT_DEC
 
     def validateInt(self, uEntryValue) -> bool:
         if(uEntryValue == ""):
@@ -530,6 +533,12 @@ class fastGUI:
         except ValueError:
             return False 
 
+    def waveFormComboboxCallback(self, value):
+        self.waveForm = str(self.waveFormCB.get())
+
+    def decComboboxCallback(self, value):
+        self.decimation = int(self.decCB.get())
+
     def initGUI(self):
         ##style configuration
         self.style = ttk.Style()
@@ -537,11 +546,10 @@ class fastGUI:
         self.style.configure('info.Outline.TButton', font=("Segoe UI", 12))
 
         self.valInt = self.root.register(self.validateInt)
-        self.valFloat = self.root.register(self.validateFloat)
+        self.valFloat = self.root.register(self.validateFloat)    
 
-        
         #main Setttings frame
-        self.settingsFrame = ttk.Frame(self.root)
+        self.settingsFrame = ttk.LabelFrame(self.root, bootstyle=INFO, text='setting DBG')
 
         #genSettings frame
         self.genSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Generator')
@@ -549,60 +557,93 @@ class fastGUI:
         self.ampEntry = ttk.Entry(self.genSettingsFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.freqEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
 
+        self.waveFormLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Waveform type')
+        self.ampLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Amplitude')
+        self.freqLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Frequency')
+
 
         #acqSettings frame
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
         self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
-        self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.validateInt, '%P'), validate="key")
+        self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+
+        self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
+        self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
 
         #buttons frame
         self.buttonsFrame = ttk.Frame(self.root)
         self.runBtn = ttk.Button(self.buttonsFrame, text='RUN', bootstyle=(INFO,OUTLINE), command=self.run)
         self.exitBtn = ttk.Button(self.buttonsFrame, text='EXIT', bootstyle=(DANGER,OUTLINE), command=self.stopGUI)
 
+        #setting combobox values
+        self.waveFormCB['values'] = F_GUI_WF_COMBOBOX_VALUES
+        self.waveFormCB.set(F_GUI_WF_COMBOBOX_VALUES[0])
+        self.waveFormCB.bind('<<ComboboxSelected>>', self.waveFormComboboxCallback)
+
+        self.decCB['values'] = F_GUI_DEC_COMBOBOX_VALUES
+        self.decCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
+        self.decCB.bind('<<ComboboxSelected>>', self.decComboboxCallback)
+
+        #setting other values
+        self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
+        self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
+        self.samplesEntry.insert(0, str(F_GEN_DEFAULT_SAMPLES))
 
     def startGUI(self):
         #settings frame placement
         self.settingsFrame.pack(side=LEFT, anchor=W, padx=30, pady=30)
 
         #gen settings
-        self.genSettingsFrame.pack(side=LEFT, anchor=W, padx=10, pady=10)
-        self.waveFormCB.grid(row=0, column=0, padx=10, pady=10)
-        #TODO combobox and entries default values
-        self.ampEntry.grid(row=0, column=1, padx=10, pady=10)
-        self.freqEntry.grid(row=0, column=2, padx=10, pady=10)
-        
+        self.genSettingsFrame.pack(anchor=W, padx=10, pady=10)
+        self.waveFormCB.grid(row=0, column=1, padx=10, pady=10)
+        self.ampEntry.grid(row=1, column=1, padx=10, pady=10)
+        self.freqEntry.grid(row=2, column=1, padx=10, pady=10)
+
+        self.waveFormLabel.grid(row=0, column=0, padx=10, pady=10)
+        self.ampLabel.grid(row=1, column=0, padx=10, pady=10)
+        self.freqLabel.grid(row=2, column=0, padx=10, pady=10)
 
         #acq settings
-        self.acqSettingsFrame.pack(side=RIGHT, anchor=E, padx=10, pady=10)
-        self.decCB.grid(row=0, column=0, padx=10, pady=10)
-        #TODO combobox and entries default values
-        self.samplesEntry.grid(row=0, column=1, padx=10, pady=10)
+        self.acqSettingsFrame.pack(anchor=W, padx=10, pady=10)
+        self.decCB.grid(row=0, column=1, padx=10, pady=10)
+        self.samplesEntry.grid(row=1, column=1, padx=10, pady=10)
+
+        self.decLabel.grid(row=0, column=0, padx=10, pady=10)
+        self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
 
         #Buttons frame placement
         self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
         self.runBtn.grid(row=0, column=0, padx=10, pady=10)
         self.exitBtn.grid(row=1, column=0, padx=10, pady=10)
 
+        self.root.mainloop()
+
     def stopGUI(self):
         #Close ProgramRunner and gui
-        subprocess.Popen([sys.executable, 'runVolGen.py'])
+        #subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
 
     def run(self):
-        #TODO gather all selected data and run script on redpitaya, then collect data from Pitaya
-        pass
+
+        #TODO field validation
+        tempWaveForm = self.waveForm
+        tempAmp = self.ampEntry.get()
+        tempFreq = self.freqEntry.get()
+
+        tempDec = self.decimation
+        tempSamples = self.samplesEntry.get()
+        self.PR.fastFullRun(tempWaveForm, tempAmp, tempFreq, tempDec, tempSamples)
 
 class startupGUI:
     def __init__(self):
         self.root = (ttk.Window(themename="superhero", size=S_GUI_DEFAULT_WINDOW_SIZE))
 
     def chooseFast(self):
-        subprocess.Popen([sys.executable, 'runFast.py'])
+        #subprocess.Popen([sys.executable, 'runFast.py'])
         sys.exit()
     
     def chooseSlow(self):
-        subprocess.Popen([sys.executable, 'runRealTime.py'])
+        #subprocess.Popen([sys.executable, 'runRealTime.py'])
         sys.exit()
     
     def exit(self):
