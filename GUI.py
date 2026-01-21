@@ -591,8 +591,15 @@ class fastGUI:
         sys.exit()
 
     def run(self):
-        #TODO gather all selected data and run script on redpitaya, then collect data from Pitaya
-        pass
+
+        #TODO field validation
+        tempWaveForm = self.waveForm
+        tempAmp = self.ampEntry.get()
+        tempFreq = self.freqEntry.get()
+
+        tempDec = self.decimation
+        tempSamples = self.samplesEntry.get()
+        self.PR.fastFullRun(tempWaveForm, tempAmp, tempFreq, tempDec, tempSamples)
 
 class startupGUI:
     def __init__(self):

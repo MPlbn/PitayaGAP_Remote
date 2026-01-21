@@ -248,7 +248,7 @@ class ProgramRunner:
         self.FileManager.saveToFile(self.GenPlotter.getData(),
                                     self.AcqPlotter.getData())
 
-    #   running full run for fast samples
+    #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
     #   uAmplitude: float - amplitude
     #   uFrequency: int - frequency

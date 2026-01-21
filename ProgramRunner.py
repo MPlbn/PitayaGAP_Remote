@@ -272,10 +272,14 @@ class ProgramRunner:
         self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
 
-#   class responsible for work routine of N samples variant of the program
-class fastProgramRunner:
-    def __init__(self):
-        pass
+    #   Running full run for fast samples
+    #   uWaveForm: string - type of waveform
+    #   uAmplitude: float - amplitude
+    #   uFrequency: int - frequency
+    #   uDecimation: int - chosen decimation
+    #   uSamples: int - how many samples to collect before closing 
+    
 
-    def exit(self):
+    def fastFullRun(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+        #TODO
         pass
