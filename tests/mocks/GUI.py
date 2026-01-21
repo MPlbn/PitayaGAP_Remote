@@ -13,6 +13,7 @@ import time
 import mProgramRunner
 from mConstants import *
 
+#TODO create starting point field for cont and stepping
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()

@@ -162,10 +162,25 @@ class ContGenerator:
         self.step *= -1.0
 
     def workRoutine(self):
-        if(not self.isPaused):
-            self.generate()
-            print(self.voltageValue)
-            self.changeVolt(self.voltageValue)
+        if(self.resetFlag):
+            self.voltageValue = self.resetVoltageValue
+            self.changeVolt(self.resetVoltageValue)
+            match self.direction:
+                case "anodic":
+                    if(self.step < 0):
+                        self.flipDirection()
+                    else:
+                        pass
+                case "kathodic":
+                    if(self.step > 0):
+                        self.flipDirection()
+                    else:
+                        pass
+            self.resetFlag = False
+        else:
+            if(not self.isPaused):
+                self.generate()
+                self.changeVolt(self.voltageValue)
             
     def resetGenValue(self):
         self.resetFlag = True

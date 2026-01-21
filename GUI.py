@@ -449,6 +449,7 @@ class GUI:
         self.unlockBtn.grid(row=1, column=1, pady=5, padx=5)
         self.flipBtn.grid(  row=1, column=2, pady=5, padx=5)
         self.saveBtn.grid(  row=2, column=0, pady=5, padx=5)
+        self.exitBtn.grid(  row=2, column=1, pady=5, padx=5)
         
         self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)
@@ -531,7 +532,7 @@ class fastGUI:
         #acqSettings frame
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
         self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
-        self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.validateInt, '%P'), validate="key")
+        self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
 
         self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
         self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
