@@ -13,8 +13,6 @@ import time
 import mProgramRunner
 from mConstants import *
 
-#TODO resets on stop, check if load works at all
-
 class GUI:
     def __init__(self):
         self.PR = mProgramRunner.ProgramRunner()
@@ -560,7 +558,6 @@ class fastGUI:
         self.waveFormLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Waveform type')
         self.ampLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Amplitude')
         self.freqLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Frequency')
-
 
         #acqSettings frame
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
