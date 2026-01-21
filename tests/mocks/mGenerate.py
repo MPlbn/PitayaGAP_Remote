@@ -53,15 +53,12 @@ class ContGenerator:
         if(self.steppingIndex + self.steppingLevelsIncrement > len(self.steppingRanges) - 1 or self.steppingIndex + self.steppingLevelsIncrement < 0):
             self.steppingLevelsIncrement *= -1
         self.steppingIndex += self.steppingLevelsIncrement
-        #print(self.steppingRanges) #DEBUG PURPOSE
         return self.steppingRanges[self.steppingIndex]
 
     def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
         self.output = uChannelNumber
         self.frequency = uFrequency
         self.voltageValue = uAmplitude
-
-        #self.RP_S.sour_set(self.output, "dc", self.voltageValue, self.frequency)
 
     def setRanges(self, uHRange = None, uLRange = None):
         if(uHRange != None):
@@ -115,7 +112,6 @@ class ContGenerator:
         self.output = uOutput
 
     def changeVolt(self, uNewVoltage):
-        #self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {abs(uNewVoltage)}')
         time.sleep(MOCK_TIME_SLOW)
         
 
@@ -129,12 +125,9 @@ class ContGenerator:
         return self.isPaused
 
     def reset(self):
-        #self.RP_S.tx_txt('GEN:RST')
         time.sleep(MOCK_TIME_SLOW)
 
     def startGen(self):
-        # self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
-        # self.RP_S.tx_txt(f'SOUR{self.output}:TRig:INT')
         time.sleep(MOCK_TIME_SLOW)
 
     def flipDirection(self):
@@ -142,14 +135,25 @@ class ContGenerator:
 
     def workRoutine(self):
         if(self.resetFlag):
-            self.voltageValue = self.resetVoltageValue #for mock reasons
+            self.voltageValue = self.resetVoltageValue
             self.changeVolt(self.resetVoltageValue)
+            match self.direction:
+                case "anodic":
+                    if(self.step < 0):
+                        self.flipDirection()
+                    else:
+                        pass
+                case "kathodic":
+                    if(self.step > 0):
+                        self.flipDirection()
+                    else:
+                        pass
             self.resetFlag = False
         else:
             if(not self.isPaused):
                 self.generate()
-                self.changeVolt(self.voltageValue)
-            
+                self.changeVolt(self.voltageValue)   
+                         
     def resetGenValue(self):
         self.resetFlag = True
 
@@ -162,14 +166,7 @@ class ContGenerator:
                 if(self.voltageValue + self.step < self.lowRange):
                     if(self.step < 0):
                         self.step *= -1.0
-                #temp = self.voltageValue
                 self.voltageValue += self.step
-
-                # if(temp*self.voltageValue < 0):
-                #     if(self.voltageValue < 0):
-                #         self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC_NEG')
-                #     else:
-                #         self.RP_S.tx_txt(f'SOUR{self.output}:FUNC DC')
 
             case GeneratorMode.STEPPING:
                 match self.direction:
