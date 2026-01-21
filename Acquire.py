@@ -8,7 +8,7 @@ from constants import *
 class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
-        self.channelNumber = DEFAULT_CHANNEL
+        self.channelNumber = ACQ_DEFAULT_CHANNEL
         self.decimation = 4
 
     #   resets acquisition

@@ -30,7 +30,7 @@ class Generator:
 class ContGenerator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
-        self.output: int = DEFAULT_CHANNEL
+        self.output: int = GEN_DEFAULT_CHANNEL
         self.frequency: int = 1000 #prob not needed
         self.voltageValue: float = GEN_DEFAULT_VOLTAGE
         self.resetVoltageValue: float = GEN_DEFAULT_VOLTAGE
@@ -81,7 +81,7 @@ class ContGenerator:
         self.steppingIndex += self.steppingLevelsIncrement
         return self.steppingRanges[self.steppingIndex]
 
-    def setup(self, uChannelNumber = DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
+    def setup(self, uChannelNumber = GEN_DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
         self.output = uChannelNumber
         self.frequency = uFrequency
         self.voltageValue = uAmplitude

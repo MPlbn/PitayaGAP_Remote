@@ -14,7 +14,7 @@ import subprocess
 import ProgramRunner
 from constants import *
 
-#TODO make sure stopGUI() works as intended
+#TODO make sure stopGUI() works as intended - add another button to GUIS - EXIT -> goes back to starting app
 class GUI:
     def __init__(self):
         self.PR = ProgramRunner.ProgramRunner()
@@ -59,7 +59,7 @@ class GUI:
 
     def savePress(self):
         self.PR.saveDataToCSV()
-
+# BUG DOESNT DO ANYTHING
     def resetGeneratingPress(self):
         self.PR.resetGenerator()
 

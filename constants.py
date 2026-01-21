@@ -27,16 +27,17 @@ class StopType(Enum):
 FIRST_MODE: int = 1
 LAST_MODE: int = 9
 
-DEFAULT_CHANNEL = 1
 RED_PITAYA_IP = 'rp-f0ba38.local'
 
 ACQ_SAMPLE_SIZE: int = 10 #Recommended to not go more than 100 as it starts to loose time and goes above 42ms per step; Also PLOT_MAX_DATA_SIZE would need to go up, which is taxing on PC that runs the whole program
 ACQ_BUFFER_SIZE: int = 16384
+ACQ_DEFAULT_CHANNEL = 1
 
 PLOT_MAX_DATA_SIZE: int = 5000
 PLOT_GEN_MAX_DATA_SIZE: int = 150
 PLOT_DEFAULT_RATIO: float = 1.0
 
+GEN_DEFAULT_CHANNEL = 2
 GEN_DEFAULT_HRANGE: float = 1.0
 GEN_DEFAULT_LRANGE: float = -1.0
 GEN_DEFAULT_STEP: float = 0.1

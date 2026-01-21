@@ -61,7 +61,7 @@ class ProgramRunner:
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue):
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue = 0.0):
         self.ContGenerator.setRanges(uHighRange, uLowRange)
         self.ContGenerator.setStep(uStep)
         self.ContGenerator.setDirection(uDirection)
@@ -84,7 +84,7 @@ class ProgramRunner:
     #   uTriggerLevel: float - level that at which trigger will start acquisition
     #   uTriggerDelay: float - time needed after trigger to start acquisition 
 
-    def setAcquisitionConstants(self, uChannelNumber = DEFAULT_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
+    def setAcquisitionConstants(self, uChannelNumber = ACQ_DEFAULT_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
         self.Acquisitor.setup(uDecimation, uTriggerLevel, uTriggerDelay)
         self.Acquisitor.channelNumber = uChannelNumber
 
