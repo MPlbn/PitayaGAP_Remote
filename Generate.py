@@ -5,6 +5,10 @@ from constants import *
 class Generator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
+        self.channelNumber = GEN_DEFAULT_CHANNEL
+        self.frequency = F_GEN_DEFAULT_FREQ
+        self.amplitude = F_GEN_DEFAULT_AMPLITUDE
+        self.waveform = F_GEN_DEFAULT_WAVEFORM
         
     def reset(self):
         self.RP_S.tx_txt('GEN:RST')
@@ -14,8 +18,9 @@ class Generator:
         self.frequency = uFrequency
         self.amplitude = uAmplitude
         self.waveform = uWaveform
-        #change this to pure scpi
-        # self.RP_S.sour_set(uChannelNumber, uWaveform, uAmplitude, uFrequency)
+        
+    def setSCPIsettings(self):
+        self.RP_S.sour_set(self.channelNumber, self.waveform, self.amplitude, self.frequency)
 
     def startGenerating(self):
         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')

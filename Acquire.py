@@ -15,8 +15,12 @@ class Acquisitor:
     def reset(self):
         self.RP_S.tx_txt('ACQ:RST')
 
-    #   sets up additional parameters (currently only decimation, no problem adding other parameters if needed)
-    def setup(self):
+    #   acquisition settings
+    def setup(self, uDecimation):
+        self.decimation = uDecimation
+
+    #   sends the settings to SCPI
+    def setSCPIsettings(self):
         self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
 
     #   starts acquisition
@@ -35,7 +39,7 @@ class Acquisitor:
             self.RP_S.tx_txt('ACQ:TRig:FILL?')
             if(self.RP_S.rx_txt() == '1'):
                 break
-
+    
     #   transfers acquired data from redpitaya to the PC and returns the values as a list of floats
     def getBuff(self) -> list:
         self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:DATA:LATest:N? {ACQ_SAMPLE_SIZE}') #To juz dziala, max spadlo do 42ms co ruch

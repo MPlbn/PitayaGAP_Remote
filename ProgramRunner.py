@@ -26,6 +26,7 @@ class ProgramRunner:
         self.IP = uIP
         self.PROGRAM_MODE = ProgramMode.IDLE
         self.ContGenerator = Generate.ContGenerator(self.IP)
+        self.FastGenerator = Generate.Generator(self.IP)
         self.Acquisitor = Acquire.Acquisitor(self.IP)
         self.isRunningContinous = False
         self.dataBuffer = [] #not used for now
@@ -85,7 +86,7 @@ class ProgramRunner:
     #   uTriggerDelay: float - time needed after trigger to start acquisition 
 
     def setAcquisitionConstants(self, uChannelNumber = ACQ_DEFAULT_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
-        self.Acquisitor.setup(uDecimation, uTriggerLevel, uTriggerDelay)
+        self.Acquisitor.setSCPIsettings(uDecimation, uTriggerLevel, uTriggerDelay)
         self.Acquisitor.channelNumber = uChannelNumber
 
     #   converting ratio from combobox string to float ratio and passing it to plotter
@@ -197,7 +198,7 @@ class ProgramRunner:
                 self.ContGenerator.workRoutine()
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
                 self.Acquisitor.reset()
-                self.Acquisitor.setup()
+                self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff())
                 self.processDataBuffer(buffer, PlotType.ACQ)
@@ -221,7 +222,7 @@ class ProgramRunner:
             case ProgramMode.PRE_WORK_ROUTINE:
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
                 self.Acquisitor.reset()
-                self.Acquisitor.setup()
+                self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff())
                 self.processDataBuffer(buffer, PlotType.ACQ)
@@ -272,6 +273,15 @@ class ProgramRunner:
         self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
 
+    #   calculates number of loops + leftover samples that are needed for fast acquisition
+    #   uSamplesNumber: int - number of samples needed for full run
+    def processNumberOfSamples(uSamplesNumber):
+        loopNumber = uSamplesNumber / ACQ_BUFFER_SIZE
+        leftoverSamples = uSamplesNumber - (ACQ_BUFFER_SIZE * loopNumber)
+        print([loopNumber, leftoverSamples])
+        return [loopNumber, leftoverSamples]
+
+
     #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
     #   uAmplitude: float - amplitude
@@ -279,7 +289,22 @@ class ProgramRunner:
     #   uDecimation: int - chosen decimation
     #   uSamples: int - how many samples to collect before closing 
     
-
     def fastFullRun(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
-        #TODO
+        #Setups
+        self.FastGenerator.setup(uChannelNumber=GEN_DEFAULT_CHANNEL, uWaveform=uWaveForm, uFrequency=uFrequency, uAmplitude=uAmplitude)
+        self.FastGenerator.setSCPIsettings()
+        self.Acquisitor.setup(uDecimation=uDecimation)
+        self.Acquisitor.setSCPIsettings()
+        [loops, leftoverSamples] = self.processNumberOfSamples(uSamples)
+
+        #Run generator
+        self.FastGenerator.startGenerating()
+
+        #Start acquisition
+
+        #Stop acquisition
+
+        #stop generator
+        self.FastGenerator.stopGenerating()
+
         pass
