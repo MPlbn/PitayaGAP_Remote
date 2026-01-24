@@ -41,8 +41,8 @@ class Acquisitor:
                 break
     
     #   transfers acquired data from redpitaya to the PC and returns the values as a list of floats
-    def getBuff(self) -> list:
-        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:DATA:LATest:N? {ACQ_SAMPLE_SIZE}') #To juz dziala, max spadlo do 42ms co ruch
+    def getBuff(self, uSampleSize) -> list:
+        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:DATA:LATest:N? {uSampleSize}') #To juz dziala, max spadlo do 42ms co ruch
         buffer_string = self.RP_S.rx_txt()
         buffer_string = buffer_string.strip('{}\n\r').replace("  ", "").split(',')
         retList = list(map(float, buffer_string))

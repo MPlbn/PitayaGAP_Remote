@@ -477,7 +477,7 @@ class fastGUI:
         self.root = (ttk.Window(themename="superhero", size=F_GUI_DEFAULT_WINDOW_SIZE))
         self.PR = ProgramRunner.ProgramRunner()
         self.waveForm = F_GEN_DEFAULT_WAVEFORM
-        self.decimation = F_GEN_DEFAULT_DEC
+        self.decimation = F_ACQ_DEFAULT_DEC
 
     def validateInt(self, uEntryValue) -> bool:
         if(uEntryValue == ""):
@@ -554,7 +554,7 @@ class fastGUI:
         #setting other values
         self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
         self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
-        self.samplesEntry.insert(0, str(F_GEN_DEFAULT_SAMPLES))
+        self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
 
     def startGUI(self):
@@ -595,11 +595,11 @@ class fastGUI:
 
         #TODO field validation
         tempWaveForm = self.waveForm
-        tempAmp = self.ampEntry.get()
-        tempFreq = self.freqEntry.get()
+        tempAmp = float(self.ampEntry.get())
+        tempFreq = int(self.freqEntry.get())
 
         tempDec = self.decimation
-        tempSamples = self.samplesEntry.get()
+        tempSamples = int(self.samplesEntry.get())
         self.PR.fastFullRun(tempWaveForm, tempAmp, tempFreq, tempDec, tempSamples)
 
 class startupGUI:

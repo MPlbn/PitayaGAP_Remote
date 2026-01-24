@@ -1,7 +1,4 @@
 import numpy as np
-    
-# TODO clear program runner and GUI from loading and change to saving. Rewrite program runner FileManager functions
-
 from datetime import datetime
 import csv
 
@@ -11,12 +8,14 @@ class FileManager:
         self.pathPostfix: str = ".csv"
     ### managing CSV data files
     #   saving
-    def generatePath(self):
+    def generatePath(self, uAdditionalNamePart):
         path = datetime.today().strftime('%Y%m%d%H%M%S')
-        return str(self.pathPrefix + path + self.pathPostfix)
+        return str(uAdditionalNamePart + self.pathPrefix + path + self.pathPostfix)
 
-    def saveToFile(self, uGenData, uAcqData):
-        with open(self.generatePath(), 'w', newline='') as csvFile:
+    #   TODO different way to save as a columns, not as a rows
+
+    def saveToFile(self, uGenData, uAcqData, uAdditionalNamePart=""):
+        with open(self.generatePath(uAdditionalNamePart), 'w', newline='') as csvFile:
             writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
             writer.writerow(uGenData)
             writer.writerow(uAcqData)

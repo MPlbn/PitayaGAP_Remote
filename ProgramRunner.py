@@ -124,11 +124,17 @@ class ProgramRunner:
         self.GenPlotter.canvas.draw()
 
     #   saves the current plots displayed data to as CSV file - to be changed to save real data
-    def saveDataToCSV(self):
-        self.changeMode(ProgramMode.PAUSE)
-        self.FileManager.saveToFile(self.GenPlotter.getData(),
-                                    self.AcqPlotter.getData())
-        self.changeMode(ProgramMode.UNPAUSE)
+    #   manualDataFlag: bool - True for fast generation, False for cont generation
+    #   dataI: np.array() - Filled with value of the current, used with manualDataFlag = True
+    #   dataV: np.array() - Filled with value of the voltages, used with manualDataFlag = True
+    def saveDataToCSV(self, manualDataFlag = False, dataI = [], dataV = []):
+        if(manualDataFlag):
+            self.FileManager.saveToFile(dataI, dataV, uAdditionalNamePart="FAST_GEN_")
+        else:
+            self.changeMode(ProgramMode.PAUSE)
+            self.FileManager.saveToFile(self.GenPlotter.getData(),
+                                        self.AcqPlotter.getData())
+            self.changeMode(ProgramMode.UNPAUSE)
 
     #   resets the current voltage value to the set starting voltage value
     def resetGenerator(self):
@@ -200,7 +206,7 @@ class ProgramRunner:
                 self.Acquisitor.reset()
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
-                buffer = np.array(self.Acquisitor.getBuff())
+                buffer = np.array(self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE))
                 self.processDataBuffer(buffer, PlotType.ACQ)
                 self.Acquisitor.stop()
                 
@@ -224,7 +230,7 @@ class ProgramRunner:
                 self.Acquisitor.reset()
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
-                buffer = np.array(self.Acquisitor.getBuff())
+                buffer = np.array(self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE))
                 self.processDataBuffer(buffer, PlotType.ACQ)
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
@@ -275,7 +281,7 @@ class ProgramRunner:
 
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
-    def processNumberOfSamples(uSamplesNumber):
+    def processNumberOfSamples(self, uSamplesNumber):
         loopNumber = uSamplesNumber / ACQ_BUFFER_SIZE
         leftoverSamples = uSamplesNumber - (ACQ_BUFFER_SIZE * loopNumber)
         print([loopNumber, leftoverSamples])
@@ -295,16 +301,28 @@ class ProgramRunner:
         self.FastGenerator.setSCPIsettings()
         self.Acquisitor.setup(uDecimation=uDecimation)
         self.Acquisitor.setSCPIsettings()
-        [loops, leftoverSamples] = self.processNumberOfSamples(uSamples)
+        tempLoopsRetVal = self.processNumberOfSamples(uSamples)
+        loops = tempLoopsRetVal[0]
+        leftoverSamples = tempLoopsRetVal[1]
 
         #Run generator
         self.FastGenerator.startGenerating()
-
+        allData = np.array()
         #Start acquisition
-
-        #Stop acquisition
-
+        for i in range (0,loops - 1):
+            self.Acquisitor.start()
+            time.sleep(0.1)
+            buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
+            #Stop acquisition
+            self.Acquisitor.stop()
+            self.Acquisitor.reset()  
+            np.append(allData, buffer)
+        self.Acquisitor.start()
+        time.sleep(0.1)
+        buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
+        self.Acquisitor.stop()
+        self.Acquisitor.reset()
+        np.append(allData, buffer)      
         #stop generator
         self.FastGenerator.stopGenerating()
-
-        pass
+        self.saveDataToCSV(True, allData, allData)

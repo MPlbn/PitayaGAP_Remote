@@ -27,13 +27,13 @@ print(generatedPath)
 
 with open(generatedPath, 'w', newline='') as testFile:
     writer = csv.writer(testFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-    writer.writerow(dataOne)
-    writer.writerow(dataTwo)
+    for i in range(0, len(dataOne) - 1):
+        writer.writerow([dataOne[i], dataTwo[i]])
 
-with open('test.csv', 'r', newline='') as testFileTwo:
-    reader = csv.reader(testFileTwo, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-    NdataOne = next(reader)
-    NdataTwo = next(reader)
+# with open(generatedPath, 'r', newline='') as testFileTwo:
+#     reader = csv.reader(testFileTwo, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+#     NdataOne = next(reader)
+#     NdataTwo = next(reader)
 
-for i in range(0, 100):
-    print(NdataOne[i])
+# for i in range(0, 100):
+#     print(NdataOne[i])
