@@ -6,19 +6,24 @@ class FileManager:
     def __init__(self):
         self.pathPrefix: str = "DATA"
         self.pathPostfix: str = ".csv"
+        self.currentPath: str = ""
     ### managing CSV data files
     #   saving
     def generatePath(self, uAdditionalNamePart):
         path = datetime.today().strftime('%Y%m%d%H%M%S')
         return str(uAdditionalNamePart + self.pathPrefix + path + self.pathPostfix)
 
-    #   TODO different way to save as a columns, not as a rows
-
-    def saveToFile(self, uGenData, uAcqData, uAdditionalNamePart=""):
-        with open(self.generatePath(uAdditionalNamePart), 'w', newline='') as csvFile:
+    def createFile(self, uAdditionalNamePart=""):
+        self.currentPath = self.generatePath(uAdditionalNamePart)
+        with open(self.currentPath, 'w', newline='') as emptyCSV:
+            pass
+    
+    def saveToFile(self, uGenData, uAcqData):
+        with open(self.currentPath, 'a', newline='') as csvFile:
             writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-            writer.writerow(uGenData)
-            writer.writerow(uAcqData)
+            for i in range(0, len(uAcqData) - 1):
+                writer.writerow([uGenData[i], uAcqData[i]])
+
 ### IS THE LOADING EVEN NEEDED? WHAT FOR? SKIP FOR NOW
     #   loading
     # def load(self, uPath):

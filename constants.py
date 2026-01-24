@@ -9,7 +9,7 @@ class ProgramMode(Enum):
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
     PRE_WORK_ROUTINE = auto()
-    PAUSE = auto()
+    PAUSE_FOR_CSV = auto()
     UNPAUSE = auto()
 
 class GeneratorMode(Enum):

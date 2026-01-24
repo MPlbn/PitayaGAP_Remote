@@ -123,18 +123,17 @@ class ProgramRunner:
         self.GenPlotter.updatePlot()
         self.GenPlotter.canvas.draw()
 
-    #   saves the current plots displayed data to as CSV file - to be changed to save real data
-    #   manualDataFlag: bool - True for fast generation, False for cont generation
-    #   dataI: np.array() - Filled with value of the current, used with manualDataFlag = True
-    #   dataV: np.array() - Filled with value of the voltages, used with manualDataFlag = True
-    def saveDataToCSV(self, manualDataFlag = False, dataI = [], dataV = []):
-        if(manualDataFlag):
-            self.FileManager.saveToFile(dataI, dataV, uAdditionalNamePart="FAST_GEN_")
-        else:
-            self.changeMode(ProgramMode.PAUSE)
-            self.FileManager.saveToFile(self.GenPlotter.getData(),
-                                        self.AcqPlotter.getData())
-            self.changeMode(ProgramMode.UNPAUSE)
+    def startSaveProcess(self):
+        self.changeMode(ProgramMode.PAUSE_FOR_CSV)
+
+    def finishSaveProcess(self):
+        self.changeMode(ProgramMode.UNPAUSE)
+
+    #   saves the current plots displayed data to as CSV file - to be changed to save real data TODO REWORK
+    #   dataI: np.array() - Filled with value of the current
+    #   dataV: np.array() - Filled with value of the voltages
+    def saveDataToCSV(self, dataI = [], dataV = []):
+            self.FileManager.saveToFile(dataI, dataV)
 
     #   resets the current voltage value to the set starting voltage value
     def resetGenerator(self):
@@ -235,11 +234,12 @@ class ProgramRunner:
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
-            case ProgramMode.PAUSE:
+            case ProgramMode.PAUSE_FOR_CSV:
                 self.ContGenerator.stopGen(StopType.STOP_KEEP)
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.changeMode(ProgramMode.IDLE)
+                # TODO here is needed some sort of saving, there just could be one work routine -> pause, save -> unpause
             
             case ProgramMode.UNPAUSE:
                 self.ContGenerator.startGen()
@@ -304,10 +304,10 @@ class ProgramRunner:
         tempLoopsRetVal = self.processNumberOfSamples(uSamples)
         loops = tempLoopsRetVal[0]
         leftoverSamples = tempLoopsRetVal[1]
+        self.FileManager.createFile()
 
         #Run generator
         self.FastGenerator.startGenerating()
-        allData = np.array()
         #Start acquisition
         for i in range (0,loops - 1):
             self.Acquisitor.start()
@@ -315,14 +315,13 @@ class ProgramRunner:
             buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
             #Stop acquisition
             self.Acquisitor.stop()
-            self.Acquisitor.reset()  
-            np.append(allData, buffer)
+            self.Acquisitor.reset()
+            self.saveDataToCSV(buffer, buffer)  
         self.Acquisitor.start()
         time.sleep(0.1)
         buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
         self.Acquisitor.stop()
-        self.Acquisitor.reset()
-        np.append(allData, buffer)      
+        self.Acquisitor.reset()   
+        self.saveDataToCSV(buffer, buffer)
         #stop generator
         self.FastGenerator.stopGenerating()
-        self.saveDataToCSV(True, allData, allData)
