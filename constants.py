@@ -9,8 +9,7 @@ class ProgramMode(Enum):
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
     PRE_WORK_ROUTINE = auto()
-    PAUSE_FOR_CSV = auto()
-    UNPAUSE = auto()
+    CSV_WORK_ROUTINE = auto()
 
 class GeneratorMode(Enum):
     CONT = auto()
@@ -25,7 +24,7 @@ class StopType(Enum):
     STOP_KEEP = auto()
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 9
+LAST_MODE: int = 8
 
 RED_PITAYA_IP = 'rp-f0ba38.local'
 
@@ -55,6 +54,13 @@ GEN_DEFAULT_NUM_STEPS = 4
 F_GEN_DEFAULT_WAVEFORM: str = "SINE"
 F_GEN_DEFAULT_FREQ: int = 1000
 F_GEN_DEFAULT_AMPLITUDE: float = 1.0
+
+F_GEN_AMP_UP_LIMIT: float = 1.0
+F_GEN_AMP_DOWN_LIMIT: float = -1.0
+F_GEN_FREQ_UP_LIMIT: int = 1000000 #temp, maybe more?
+F_GEN_FREQ_DOWN_LIMIT: int = 1
+F_ACQ_SAMPLES_UP_LIMIT: int = 1000000 #temp, maybe more/less?
+F_ACQ_SAMPLES_DOWN_LIMIT: int = 1
 
 GUI_DEFAULT_INTERVAL: int = 50
 GUI_DEFAULT_WINDOW_SIZE = (1600,1080)

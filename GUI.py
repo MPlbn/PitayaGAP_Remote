@@ -542,6 +542,10 @@ class fastGUI:
         self.runBtn = ttk.Button(self.buttonsFrame, text='RUN', bootstyle=(INFO,OUTLINE), command=self.run)
         self.exitBtn = ttk.Button(self.buttonsFrame, text='EXIT', bootstyle=(DANGER,OUTLINE), command=self.stopGUI)
 
+        #Errorbox frame
+        self.errorFrame = ttk.Labelframe(self.root, bootstyle=DANGER, text='error box')
+        self.errorLabel = ttk.Label(self.errorFrame, bootstyle=DANGER, text='')
+
         #setting combobox values
         self.waveFormCB['values'] = F_GUI_WF_COMBOBOX_VALUES
         self.waveFormCB.set(F_GUI_WF_COMBOBOX_VALUES[0])
@@ -584,6 +588,10 @@ class fastGUI:
         self.runBtn.grid(row=0, column=0, padx=10, pady=10)
         self.exitBtn.grid(row=1, column=0, padx=10, pady=10)
 
+        #Error frame placement TODO check
+        self.errorFrame.pack() #where??
+        self.errorLabel.grid(row=0, column=0, padx=10, pady=10)
+
         self.root.mainloop()
 
     def stopGUI(self):
@@ -592,15 +600,38 @@ class fastGUI:
         sys.exit()
 
     def run(self):
-
-        #TODO field validation
+        errorFlag = False   
+        errorText = ""
         tempWaveForm = self.waveForm
-        tempAmp = float(self.ampEntry.get())
-        tempFreq = int(self.freqEntry.get())
-
         tempDec = self.decimation
-        tempSamples = int(self.samplesEntry.get())
-        self.PR.fastFullRun(tempWaveForm, tempAmp, tempFreq, tempDec, tempSamples)
+        
+        tempAmp = float(self.ampEntry.get()) if self.ampEntry.get() != "" else F_GEN_DEFAULT_AMPLITUDE and self.ampEntry.insert(0, str(tempAmp)) #will this work??? maybee TODO
+        if(tempAmp <= F_GEN_AMP_UP_LIMIT and tempAmp >= F_GEN_AMP_DOWN_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Amplitude: Amplitude is out of range. The value must be between {F_GEN_AMP_UP_LIMIT} and {F_GEN_AMP_DOWN_LIMIT}\n'
+
+        tempFreq = int(self.freqEntry.get()) if self.freqEntry.get() != "" else F_GEN_DEFAULT_FREQ
+        if(tempFreq <= F_GEN_FREQ_UP_LIMIT and tempFreq >= F_GEN_FREQ_DOWN_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Frequency: Frequency is out of range. The value must be between {F_GEN_FREQ_UP_LIMIT} and {F_GEN_FREQ_DOWN_LIMIT}\n'
+        
+        tempSamples = int(self.samplesEntry.get()) if self.samplesEntry.get() != "" else F_ACQ_DEFAULT_SAMPLES
+        if(tempSamples <= F_ACQ_SAMPLES_UP_LIMIT and tempSamples >= F_ACQ_SAMPLES_DOWN_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Samples: Number of samples is out of range. The value must be between {F_ACQ_SAMPLES_UP_LIMIT} and {F_ACQ_SAMPLES_DOWN_LIMIT}'
+
+        if(not errorFlag):
+            self.errorLabel.insert(0, "")
+            self.PR.fastFullRun(tempWaveForm, tempAmp, tempFreq, tempDec, tempSamples)
+        else:
+            self.errorLabel.insert(0, errorText)
+            
 
 class startupGUI:
     def __init__(self):

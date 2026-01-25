@@ -124,12 +124,8 @@ class ProgramRunner:
         self.GenPlotter.canvas.draw()
 
     def startSaveProcess(self):
-        self.changeMode(ProgramMode.PAUSE_FOR_CSV)
+        self.changeMode(ProgramMode.CSV_WORK_ROUTINE)
 
-    def finishSaveProcess(self):
-        self.changeMode(ProgramMode.UNPAUSE)
-
-    #   saves the current plots displayed data to as CSV file - to be changed to save real data TODO REWORK
     #   dataI: np.array() - Filled with value of the current
     #   dataV: np.array() - Filled with value of the voltages
     def saveDataToCSV(self, dataI = [], dataV = []):
@@ -234,14 +230,12 @@ class ProgramRunner:
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
-            case ProgramMode.PAUSE_FOR_CSV:
+            case ProgramMode.CSV_WORK_ROUTINE:
                 self.ContGenerator.stopGen(StopType.STOP_KEEP)
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
-                self.changeMode(ProgramMode.IDLE)
-                # TODO here is needed some sort of saving, there just could be one work routine -> pause, save -> unpause
-            
-            case ProgramMode.UNPAUSE:
+                self.FileManager.createFile()
+                self.saveDataToCSV(self.GenPlotter.getData(), self.AcqPlotter.getData())
                 self.ContGenerator.startGen()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
@@ -313,13 +307,13 @@ class ProgramRunner:
             self.Acquisitor.start()
             time.sleep(0.1)
             buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
-            #Stop acquisition
             self.Acquisitor.stop()
             self.Acquisitor.reset()
-            self.saveDataToCSV(buffer, buffer)  
+            self.saveDataToCSV(buffer, buffer)
         self.Acquisitor.start()
         time.sleep(0.1)
         buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
+        #Stop acquisition
         self.Acquisitor.stop()
         self.Acquisitor.reset()   
         self.saveDataToCSV(buffer, buffer)
