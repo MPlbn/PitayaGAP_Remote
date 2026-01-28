@@ -14,7 +14,6 @@ import subprocess
 import ProgramRunner
 from constants import *
 
-#TODO make sure stopGUI() works as intended - add another button to GUIS - EXIT -> goes back to starting app
 class GUI:
     def __init__(self):
         self.PR = ProgramRunner.ProgramRunner()
@@ -58,13 +57,17 @@ class GUI:
         self.unlockBtn.state(GUI_DISABLED)
 
     def savePress(self):
-        self.PR.saveDataToCSV()
-# BUG DOESNT DO ANYTHING
+        self.PR.startSaveProcess()
+
     def resetGeneratingPress(self):
         self.PR.resetGenerator()
 
     def flipGeneratingPress(self):
         self.PR.flipGenStep()
+
+    def clearPlotPress(self):
+        print("cplot1")
+        self.PR.clearPlot()
 
     def comboboxCallback(self, value):
         self.genMode = str(self.genModeCombobox.get())
@@ -370,6 +373,7 @@ class GUI:
         self.saveBtn = ttk.Button(self.buttonsFrame, text='Save Data', bootstyle=(PRIMARY,OUTLINE), command=self.savePress)
         self.resetBtn = ttk.Button(self.buttonsFrame, text='Reset', bootstyle=(DANGER,OUTLINE), command=self.resetGeneratingPress)
         self.flipBtn = ttk.Button(self.buttonsFrame, text="Flip", bootstyle=(PRIMARY,OUTLINE), command=self.flipGeneratingPress)
+        self.clearPlotBtn = ttk.Button(self.buttonsFrame, text="Clear Plot", bootstyle=(PRIMARY,OUTLINE), command=self.clearPlotPress())
 
 
         self.stopBtn.state(GUI_DISABLED)
@@ -442,14 +446,15 @@ class GUI:
 
 
         self.buttonsFrame.pack()#grid(row=0, column=4, rowspan=3)
-        self.startBtn.grid( row=0, column=0, pady=5, padx=5)
-        self.stopBtn.grid(  row=0, column=1, pady=5, padx=5)
-        self.resetBtn.grid( row=0, column=2, pady=5, padx=5)
-        self.lockBtn.grid(  row=1, column=0, pady=5, padx=5)
-        self.unlockBtn.grid(row=1, column=1, pady=5, padx=5)
-        self.flipBtn.grid(  row=1, column=2, pady=5, padx=5)
-        self.saveBtn.grid(  row=2, column=0, pady=5, padx=5)
-        self.exitBtn.grid(  row=2, column=1, pady=5, padx=5)
+        self.startBtn.grid(     row=0, column=0, pady=5, padx=5)
+        self.stopBtn.grid(      row=0, column=1, pady=5, padx=5)
+        self.resetBtn.grid(     row=0, column=2, pady=5, padx=5)
+        self.lockBtn.grid(      row=1, column=0, pady=5, padx=5)
+        self.unlockBtn.grid(    row=1, column=1, pady=5, padx=5)
+        self.flipBtn.grid(      row=1, column=2, pady=5, padx=5)
+        self.saveBtn.grid(      row=2, column=0, pady=5, padx=5)
+        self.exitBtn.grid(      row=2, column=1, pady=5, padx=5)
+        self.clearPlotBtn.grid( row=2, column=2, pady=5, padx=5)
         
         self.errorFrame.pack()#grid(row=0, column=3, rowspan=5, columnspan=1, padx=40, sticky=NSEW, pady=20)
         self.errorLabel.grid(row=0,column=0)
@@ -469,8 +474,6 @@ class GUI:
         self.thread.start()
         #run gui
         self.root.mainloop()
-
-#TODO with fast samples acquisition
 
 class fastGUI:
     def __init__(self):
@@ -589,7 +592,7 @@ class fastGUI:
         self.exitBtn.grid(row=1, column=0, padx=10, pady=10)
 
         #Error frame placement TODO check
-        self.errorFrame.pack() #where??
+        self.errorFrame.pack(side=BOTTOM, anchor=S, padx=30, pady=30)
         self.errorLabel.grid(row=0, column=0, padx=10, pady=10)
 
         self.root.mainloop()
@@ -605,21 +608,41 @@ class fastGUI:
         tempWaveForm = self.waveForm
         tempDec = self.decimation
         
-        tempAmp = float(self.ampEntry.get()) if self.ampEntry.get() != "" else F_GEN_DEFAULT_AMPLITUDE and self.ampEntry.insert(0, str(tempAmp)) #will this work??? maybee TODO
+        tempAmp = self.ampEntry.get()
+        if(tempAmp == ""):
+            tempAmp = F_GEN_DEFAULT_AMPLITUDE
+            self.ampEntry.insert(str(F_GEN_DEFAULT_AMPLITUDE))
+        else:
+            tempAmp = float(tempAmp)
+
         if(tempAmp <= F_GEN_AMP_UP_LIMIT and tempAmp >= F_GEN_AMP_DOWN_LIMIT):
             pass
         else:
             errorFlag = True
             errorText += f'Invalid field: Amplitude: Amplitude is out of range. The value must be between {F_GEN_AMP_UP_LIMIT} and {F_GEN_AMP_DOWN_LIMIT}\n'
 
-        tempFreq = int(self.freqEntry.get()) if self.freqEntry.get() != "" else F_GEN_DEFAULT_FREQ
+
+        tempFreq = self.freqEntry.get()
+        if(tempFreq == ""):
+            tempFreq = F_GEN_DEFAULT_FREQ
+            self.freqEntry.insert(str(F_GEN_DEFAULT_FREQ))
+        else:
+            tempFreq = int(tempFreq)
+
         if(tempFreq <= F_GEN_FREQ_UP_LIMIT and tempFreq >= F_GEN_FREQ_DOWN_LIMIT):
             pass
         else:
             errorFlag = True
             errorText += f'Invalid field: Frequency: Frequency is out of range. The value must be between {F_GEN_FREQ_UP_LIMIT} and {F_GEN_FREQ_DOWN_LIMIT}\n'
         
-        tempSamples = int(self.samplesEntry.get()) if self.samplesEntry.get() != "" else F_ACQ_DEFAULT_SAMPLES
+
+        tempSamples = self.samplesEntry.get()
+        if(tempSamples == ""):
+            tempSamples = F_ACQ_DEFAULT_SAMPLES
+            self.samplesEntry.insert(str(F_ACQ_DEFAULT_SAMPLES))
+        else:
+            tempSamples = int(tempSamples)
+
         if(tempSamples <= F_ACQ_SAMPLES_UP_LIMIT and tempSamples >= F_ACQ_SAMPLES_DOWN_LIMIT):
             pass
         else:
@@ -627,10 +650,10 @@ class fastGUI:
             errorText += f'Invalid field: Samples: Number of samples is out of range. The value must be between {F_ACQ_SAMPLES_UP_LIMIT} and {F_ACQ_SAMPLES_DOWN_LIMIT}'
 
         if(not errorFlag):
-            self.errorLabel.insert(0, "")
+            self.errorLabel.configure(text = "")
             self.PR.fastFullRun(tempWaveForm, tempAmp, tempFreq, tempDec, tempSamples)
         else:
-            self.errorLabel.insert(0, errorText)
+            self.errorLabel.configure(text = errorText)
             
 
 class startupGUI:
@@ -646,7 +669,7 @@ class startupGUI:
         sys.exit()
     
     def exit(self):
-        sys.exit()
+        sys.exit() #TODO doesn't stop terminal run
 
     def initGUI(self):
         ###style configuration

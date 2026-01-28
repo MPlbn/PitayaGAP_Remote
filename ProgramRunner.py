@@ -124,12 +124,15 @@ class ProgramRunner:
         self.GenPlotter.canvas.draw()
 
     def startSaveProcess(self):
-        self.changeMode(ProgramMode.CSV_WORK_ROUTINE)
+        if(self.PROGRAM_MODE == ProgramMode.IDLE):
+            self.changeMode(ProgramMode.CSV_WORK_ROUTINE_TO_IDLE)
+        else:
+            self.changeMode(ProgramMode.CSV_WORK_ROUTINE_TO_GEN)
 
     #   dataI: np.array() - Filled with value of the current
     #   dataV: np.array() - Filled with value of the voltages
     def saveDataToCSV(self, dataI = [], dataV = []):
-            self.FileManager.saveToFile(dataI, dataV)
+            self.FileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True)
 
     #   resets the current voltage value to the set starting voltage value
     def resetGenerator(self):
@@ -138,6 +141,12 @@ class ProgramRunner:
     #   flips the step value (*-1) of continouous generator
     def flipGenStep(self):
         self.ContGenerator.flipDirection()
+
+    #   clears the data from both plotters
+    def clearPlot(self):
+        self.AcqPlotter.clear()
+        self.GenPlotter.clear()
+        print('cplot2')
 
     #   main work routine of program runner
 
@@ -230,16 +239,30 @@ class ProgramRunner:
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
-            case ProgramMode.CSV_WORK_ROUTINE:
+            case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
                 self.ContGenerator.stopGen(StopType.STOP_KEEP)
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.FileManager.createFile()
-                self.saveDataToCSV(self.GenPlotter.getData(), self.AcqPlotter.getData())
+                self.saveDataToCSV(dataV=self.AcqPlotter.getData())
                 self.ContGenerator.startGen()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
+
+            case ProgramMode.CSV_WORK_ROUTINE_TO_IDLE:
+                self.ContGenerator.stopGen(StopType.STOP_KEEP)
+                self.AcqPlotter.stop()
+                self.GenPlotter.stop()
+                self.FileManager.createFile()
+                self.saveDataToCSV(dataV=self.AcqPlotter.getData())
+                self.ContGenerator.startGen()
+                self.AcqPlotter.start()
+                self.GenPlotter.start()
+                self.changeMode(ProgramMode.IDLE)
+
+            
+            
             
     #   Changing the work routine
     #   newMode: int - new mode to be set
@@ -276,7 +299,7 @@ class ProgramRunner:
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
     def processNumberOfSamples(self, uSamplesNumber):
-        loopNumber = uSamplesNumber / ACQ_BUFFER_SIZE
+        loopNumber = int(uSamplesNumber / ACQ_BUFFER_SIZE)
         leftoverSamples = uSamplesNumber - (ACQ_BUFFER_SIZE * loopNumber)
         print([loopNumber, leftoverSamples])
         return [loopNumber, leftoverSamples]
@@ -303,19 +326,18 @@ class ProgramRunner:
         #Run generator
         self.FastGenerator.startGenerating()
         #Start acquisition
-        for i in range (0,loops - 1):
-            self.Acquisitor.start()
-            time.sleep(0.1)
-            buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
-            self.Acquisitor.stop()
-            self.Acquisitor.reset()
-            self.saveDataToCSV(buffer, buffer)
         self.Acquisitor.start()
         time.sleep(0.1)
         buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
         #Stop acquisition
         self.Acquisitor.stop()
         self.Acquisitor.reset()   
-        self.saveDataToCSV(buffer, buffer)
-        #stop generator
+        self.saveDataToCSV(dataV=buffer)
+        for i in range (0,loops):
+            self.Acquisitor.start()
+            buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
+            self.Acquisitor.stop()
+            self.Acquisitor.reset()
+            self.saveDataToCSV(dataV=buffer)
         self.FastGenerator.stopGenerating()
+        print("done :D")

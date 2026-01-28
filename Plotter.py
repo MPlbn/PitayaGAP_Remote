@@ -44,6 +44,9 @@ class Plotter(ABC):
     def getData(self):
         return self.data
     
+    def clear(self):
+        self.data = np.array([])
+    
     @abstractmethod
     def processData(self, uNewData):
         pass

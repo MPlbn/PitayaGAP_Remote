@@ -9,7 +9,8 @@ class ProgramMode(Enum):
     GEN_WORK_ROUTINE = auto()
     STEPPING_START = auto()
     PRE_WORK_ROUTINE = auto()
-    CSV_WORK_ROUTINE = auto()
+    CSV_WORK_ROUTINE_TO_GEN = auto()
+    CSV_WORK_ROUTINE_TO_IDLE = auto()
 
 class GeneratorMode(Enum):
     CONT = auto()
@@ -24,7 +25,7 @@ class StopType(Enum):
     STOP_KEEP = auto()
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 8
+LAST_MODE: int = 9
 
 RED_PITAYA_IP = 'rp-f0ba38.local'
 

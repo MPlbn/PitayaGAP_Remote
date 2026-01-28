@@ -1,6 +1,7 @@
 import numpy as np
 from datetime import datetime
 import csv
+from constants import *
 
 class FileManager:
     def __init__(self):
@@ -18,11 +19,18 @@ class FileManager:
         with open(self.currentPath, 'w', newline='') as emptyCSV:
             pass
     
-    def saveToFile(self, uGenData, uAcqData):
-        with open(self.currentPath, 'a', newline='') as csvFile:
-            writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-            for i in range(0, len(uAcqData) - 1):
-                writer.writerow([uGenData[i], uAcqData[i]])
+    def saveToFile(self, uVData, uIData = [], uIsMock = False):
+        if(uIsMock):
+            with open(self.currentPath, 'a', newline='') as csvFile:
+                writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+                for i in range(0, len(uVData)):
+                    writer.writerow([uVData[i], uVData[i]])
+        else:
+            with open(self.currentPath, 'a', newline='') as csvFile:
+                writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+                for i in range(0, len(uVData)):
+                    writer.writerow([uIData[i], uVData[i]])
+
 
 ### IS THE LOADING EVEN NEEDED? WHAT FOR? SKIP FOR NOW
     #   loading
