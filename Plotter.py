@@ -22,6 +22,7 @@ class Plotter(ABC):
     def stop(self):
         self.isRunning = False
 
+    #TODO this will need to be changed
     def updatePlot(self):
         if(self.isRunning):
             x = np.linspace(0, PLOT_MAX_DATA_SIZE - 1, len(self.data))
@@ -78,7 +79,7 @@ class AcqPlotter(Plotter):
         if(self.isRunning):
             if(len(self.data) >= PLOT_MAX_DATA_SIZE):
                 self.data = self.data[ACQ_SAMPLE_SIZE:]
-            self.data = np.append(self.data, uNewData*self.ratio)
+            self.data = np.append(self.data, uNewData*self.ratio*MV_TO_V_VALUE)
 
 #   PLOTTER FOR GENERATOR DATA
 class GenPlotter(Plotter):
@@ -94,4 +95,4 @@ class GenPlotter(Plotter):
         if(self.isRunning):
             if(len(self.data) >= PLOT_GEN_MAX_DATA_SIZE):
                 self.data = self.data[1:]
-            self.data = np.append(self.data, uNewData)
+            self.data = np.append(self.data, uNewData*MV_TO_V_VALUE)

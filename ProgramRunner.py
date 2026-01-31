@@ -339,4 +339,4 @@ class ProgramRunner:
             self.Acquisitor.reset()
             self.saveDataToCSV(dataV=buffer)
         self.FastGenerator.stopGenerating()
-        print("done :D")
+        print("done :D") #TODO some visual change or popup
