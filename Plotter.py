@@ -16,11 +16,6 @@ class Plotter(ABC):
     def setFrame(self, uFrame):
         self.frame = uFrame
 
-    def initVisuals(self):
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
-        self.canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
-        self.line, = self.ax.plot([], [], lw=2)
-
     def start(self):
         self.isRunning = True
 
@@ -46,7 +41,15 @@ class Plotter(ABC):
     
     def clear(self):
         self.data = np.array([])
+        if(not self.isRunning):
+            self.isRunning = True
+            self.updatePlot()
+            self.isRunning = False
     
+    @abstractmethod
+    def initVisuals(self):
+        pass
+
     @abstractmethod
     def processData(self, uNewData):
         pass
@@ -58,6 +61,14 @@ class AcqPlotter(Plotter):
         self.isRunning: bool = False
         self.fig, self.ax = plt.subplots()
         self.ratio = PLOT_DEFAULT_RATIO
+
+
+    def initVisuals(self):
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
+        self.line, = self.ax.plot([], [], lw=2)
+        self.ax.set_xlabel("U (voltage)")
+        self.ax.set_ylabel("I (current)")
 
     def setRatio(self, uRatio: float):
         self.ratio = uRatio
@@ -71,6 +82,14 @@ class AcqPlotter(Plotter):
 
 #   PLOTTER FOR GENERATOR DATA
 class GenPlotter(Plotter):
+
+    def initVisuals(self):
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.frame)
+        self.canvas.get_tk_widget().pack(side="top", fill="both", expand=True)
+        self.line, = self.ax.plot([], [], lw=2)
+        self.ax.set_xlabel("No. of Samples")
+        self.ax.set_ylabel("U (Voltage)")
+
     def processData(self, uNewData):
         if(self.isRunning):
             if(len(self.data) >= PLOT_GEN_MAX_DATA_SIZE):

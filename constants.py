@@ -34,7 +34,7 @@ ACQ_BUFFER_SIZE: int = 16384
 ACQ_DEFAULT_CHANNEL = 2
 ACQ_UNITS = "VOLTS"
 ACQ_DATA_FORMAT = "ASCII"
-ACQ_GAIN = "HV"
+ACQ_GAIN = "HV" #change to ["LV"] in case of low voltage acquisition
 
 F_ACQ_SAMPLE_SIZE: int = 16384
 F_ACQ_DEFAULT_DEC: int = 1
