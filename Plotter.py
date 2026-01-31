@@ -45,6 +45,7 @@ class Plotter(ABC):
         return self.data
     
     def clear(self):
+        print('cplot')
         self.data = np.array([])
     
     @abstractmethod

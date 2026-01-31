@@ -71,7 +71,6 @@ class GUI:
         self.PR.flipGenStep()
 
     def clearPlotPress(self):
-        print("cplot1")
         self.PR.clearPlot()
 
     def comboboxCallback(self, value):
@@ -379,7 +378,7 @@ class GUI:
         self.saveBtn = ttk.Button(self.buttonsFrame, text='Save Data', bootstyle=(PRIMARY,OUTLINE), command=self.savePress)
         self.resetBtn = ttk.Button(self.buttonsFrame, text='Reset', bootstyle=(DANGER,OUTLINE), command=self.resetGeneratingPress)
         self.flipBtn = ttk.Button(self.buttonsFrame, text="Flip", bootstyle=(PRIMARY,OUTLINE), command=self.flipGeneratingPress)
-        self.clearPlotBtn = ttk.Button(self.buttonsFrame, text="Clear Plot", bootstyle=(PRIMARY,OUTLINE), command=self.clearPlotPress())
+        self.clearPlotBtn = ttk.Button(self.buttonsFrame, text="Clear Plot", bootstyle=(PRIMARY,OUTLINE), command=self.clearPlotPress)
 
 
         self.stopBtn.state(GUI_DISABLED)

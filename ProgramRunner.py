@@ -146,7 +146,6 @@ class ProgramRunner:
     def clearPlot(self):
         self.AcqPlotter.clear()
         self.GenPlotter.clear()
-        print('cplot2')
 
     #   main work routine of program runner
 
