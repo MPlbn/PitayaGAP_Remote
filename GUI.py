@@ -230,6 +230,7 @@ class GUI:
                     tempMessage += f"Error: Number of steps cannot be higher than 30"
 
                 self.PR.setSteppingGeneratorParameters(tempLimit, tempBase, tempStep, tempNumOfSteps)
+        self.PR.resetGenerator()
 
         #showing error message
         self.errorLabel.configure(text = tempMessage)

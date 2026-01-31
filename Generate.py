@@ -182,6 +182,9 @@ class ContGenerator:
                     else:
                         pass
             self.resetFlag = False
+            if(GeneratorMode.STEPPING):
+                self.steppingIndex = 0
+                self.setSteppingRanges(uLimit=self.steppingRanges[self.steppingIndex])
         else:
             if(not self.isPaused):
                 self.generate()
