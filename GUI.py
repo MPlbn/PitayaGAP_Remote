@@ -36,6 +36,7 @@ class GUI:
         self.startBtn.state(GUI_DISABLED)
         self.stopBtn.state(GUI_ENABLED)
         self.lockBtn.state(GUI_ENABLED)
+        self.resetBtn.state(GUI_ENABLED)
 
     def stopGeneratingPress(self):
         self.PR.changeMode(ProgramMode.GEN_STOP)
@@ -43,6 +44,7 @@ class GUI:
         self.startBtn.state(GUI_ENABLED)
         self.lockBtn.state(GUI_DISABLED)
         self.unlockBtn.state(GUI_DISABLED)
+        self.resetBtn.state(GUI_DISABLED)
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
@@ -60,6 +62,9 @@ class GUI:
         self.PR.startSaveProcess()
 
     def resetGeneratingPress(self):
+        #Unpausing first
+        self.unlockGeneratingPress()
+        #Then reset
         self.PR.resetGenerator()
 
     def flipGeneratingPress(self):
@@ -380,6 +385,7 @@ class GUI:
         self.stopBtn.state(GUI_DISABLED)
         self.lockBtn.state(GUI_DISABLED)
         self.unlockBtn.state(GUI_DISABLED)
+        self.resetBtn.state(GUI_DISABLED)
 
         #progress
         self.progressFrame = ttk.Frame(self.genProgFrame)

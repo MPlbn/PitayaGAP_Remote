@@ -182,7 +182,7 @@ class ContGenerator:
                     else:
                         pass
             self.resetFlag = False
-            if(GeneratorMode.STEPPING):
+            if(self.GEN_MODE == GeneratorMode.STEPPING):
                 self.steppingIndex = 0
                 self.setSteppingRanges(uLimit=self.steppingRanges[self.steppingIndex])
         else:
@@ -263,5 +263,6 @@ class ContGenerator:
             case StopType.STOP_RESET:
                 self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE OFF")
                 self.voltageValue = 0.0
+                self.resetFlag = True
             case StopType.STOP_KEEP:
                 self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE OFF')
