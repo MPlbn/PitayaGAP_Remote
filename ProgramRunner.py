@@ -216,7 +216,7 @@ class ProgramRunner:
                 #Time check
                 tStopTime = time.time()
                 tElapsed = (tStopTime - tStartTime) * 1000
-                print(f'Elapsed time: {tElapsed} ms')
+                #print(f'Elapsed time: {tElapsed} ms')
                 
             case ProgramMode.STEPPING_START:
                 self.ContGenerator.changeMode(GeneratorMode.STEPPING)

@@ -45,7 +45,6 @@ class Plotter(ABC):
         return self.data
     
     def clear(self):
-        print('cplot')
         self.data = np.array([])
     
     @abstractmethod
@@ -64,6 +63,7 @@ class AcqPlotter(Plotter):
         self.ratio = uRatio
 
     def processData(self, uNewData):
+        print(uNewData[0]*PLOT_DEFAULT_RATIO)
         if(self.isRunning):
             if(len(self.data) >= PLOT_MAX_DATA_SIZE):
                 self.data = self.data[ACQ_SAMPLE_SIZE:]

@@ -22,6 +22,9 @@ class Acquisitor:
     #   sends the settings to SCPI
     def setSCPIsettings(self):
         self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
+        self.RP_S.tx_txt(f'ACQ:DATA:Units {ACQ_UNITS}')
+        self.RP_S.tx_txt(f'ACQ:DATA:FORMAT {ACQ_DATA_FORMAT}')
+        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:GAIN {ACQ_GAIN}')
 
     #   starts acquisition
     def start(self):
