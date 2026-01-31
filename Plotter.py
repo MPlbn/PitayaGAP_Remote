@@ -22,13 +22,6 @@ class Plotter(ABC):
     def stop(self):
         self.isRunning = False
 
-    #TODO this will need to be changed
-    def updatePlot(self):
-        if(self.isRunning):
-            x = np.linspace(0, PLOT_MAX_DATA_SIZE - 1, len(self.data))
-            self.line.set_data(x, self.data)
-            self.ax.relim()
-            self.ax.autoscale_view()
 
     def animate(self):
         animation = FAnim(self.fig, self.updatePlot, frames=100, blit=True)
@@ -46,6 +39,10 @@ class Plotter(ABC):
             self.isRunning = True
             self.updatePlot()
             self.isRunning = False
+
+    @abstractmethod
+    def updatePlot(self):
+        pass
     
     @abstractmethod
     def initVisuals(self):
@@ -58,7 +55,8 @@ class Plotter(ABC):
 #   PLOTTER FOR ACQUIRED DATA
 class AcqPlotter(Plotter):
     def __init__(self):
-        self.data = np.array([])
+        self.dataI = np.array([])
+        self.dataV = np.array([])
         self.isRunning: bool = False
         self.fig, self.ax = plt.subplots()
         self.ratio = PLOT_DEFAULT_RATIO
@@ -74,12 +72,22 @@ class AcqPlotter(Plotter):
     def setRatio(self, uRatio: float):
         self.ratio = uRatio
 
-    def processData(self, uNewData):
-        print(uNewData[0]*PLOT_DEFAULT_RATIO)
+    def processData(self, uNewDataI, uNewDataV):
+        print(uNewDataI[0]*PLOT_DEFAULT_RATIO)
         if(self.isRunning):
-            if(len(self.data) >= PLOT_MAX_DATA_SIZE):
-                self.data = self.data[ACQ_SAMPLE_SIZE:]
-            self.data = np.append(self.data, uNewData*self.ratio*MV_TO_V_VALUE)
+            if(len(self.dataI) >= PLOT_MAX_DATA_SIZE):
+                self.dataI = self.dataI[ACQ_SAMPLE_SIZE:]
+            self.dataI = np.append(self.dataI, uNewDataI*MV_TO_V_VALUE)
+            if(len(self.dataV) >= PLOT_MAX_DATA_SIZE):
+                self.dataV = self.dataV[ACQ_SAMPLE_SIZE:]
+            self.dataV = np.append(self.dataV, uNewDataV*self.ratio*MV_TO_V_VALUE)
+    
+    def updatePlot(self):
+        if(self.isRunning):
+            self.line.set_data(self.dataV, self.dataI)
+            self.ax.relim()
+            self.ax.autoscale_view()
+
 
 #   PLOTTER FOR GENERATOR DATA
 class GenPlotter(Plotter):
@@ -96,3 +104,10 @@ class GenPlotter(Plotter):
             if(len(self.data) >= PLOT_GEN_MAX_DATA_SIZE):
                 self.data = self.data[1:]
             self.data = np.append(self.data, uNewData*MV_TO_V_VALUE)
+
+    def updatePlot(self):
+        if(self.isRunning):
+            x = np.linspace(0, PLOT_MAX_DATA_SIZE - 1, len(self.data))
+            self.line.set_data(x, self.data)
+            self.ax.relim()
+            self.ax.autoscale_view()

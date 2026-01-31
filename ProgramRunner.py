@@ -210,7 +210,7 @@ class ProgramRunner:
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE))
-                self.processDataBuffer(buffer, PlotType.ACQ)
+                self.processDataBuffer(buffer, PlotType.ACQ, buffer) #TODO change later for second acq channel
                 self.Acquisitor.stop()
                 
                 #Time check
@@ -234,7 +234,7 @@ class ProgramRunner:
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
                 buffer = np.array(self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE))
-                self.processDataBuffer(buffer, PlotType.ACQ)
+                self.processDataBuffer(buffer, PlotType.ACQ, buffer) #TODO change later for second acq channel
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
@@ -282,10 +282,10 @@ class ProgramRunner:
     #   uBuffer: array of floats - buffer returned from aqcuisition
     #   uPlotterType: PlotType - determines which plotter should take care of data buffer
     
-    def processDataBuffer(self, uBuffer, uPlotterType):
+    def processDataBuffer(self, uBuffer, uPlotterType, uBufferCurrent=[]):
         match uPlotterType:
             case PlotType.ACQ:
-                self.AcqPlotter.processData(uBuffer)
+                self.AcqPlotter.processData(uBufferCurrent, uBuffer)
             case PlotType.GEN:
                 self.GenPlotter.processData(uBuffer)
     
