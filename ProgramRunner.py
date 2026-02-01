@@ -85,7 +85,7 @@ class ProgramRunner:
     #   uTriggerLevel: float - level that at which trigger will start acquisition
     #   uTriggerDelay: float - time needed after trigger to start acquisition 
 
-    def setAcquisitionConstants(self, uChannelNumber = ACQ_DEFAULT_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
+    def setAcquisitionConstants(self, uChannelNumber = ACQ_VOLTAGE_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
         self.Acquisitor.setSCPIsettings(uDecimation, uTriggerLevel, uTriggerDelay)
         self.Acquisitor.channelNumber = uChannelNumber
 
@@ -153,32 +153,6 @@ class ProgramRunner:
         match self.PROGRAM_MODE:
             case ProgramMode.IDLE: #idle state
                 pass
-            case ProgramMode.FULL_RUN: #full run
-                pass
-                # self.Generator.reset()
-                # self.Acquisitor.reset()
-
-                # #settings
-                # self.setGeneratorConstants(uWaveform="sine") #Default vals
-                # self.setAcquisitionConstants() #Default vals
-
-                # #Starting generation
-                # self.Generator.startGenerating()
-
-                # #wait to limit initial junk data
-                # time.sleep(1)
-
-                # #Starting acquisition
-                # self.dataBuffer = self.Acquisitor.runAcquisition() #sth is broken
-                
-                # #stopping acquisition and generation
-                # self.Acquisitor.stopAcquisition()
-                # self.Generator.stopGenerating()
-                # self.Plotter.plot(self.dataBuffer, uAx, uCanvas)
-                # #back to idle
-
-                #Maybe clear dataBuffer?? TODO
-                #self.changeMode(0)
 
             case ProgramMode.CONT_START: #Continous run start
                 self.ContGenerator.changeMode(GeneratorMode.CONT)
@@ -209,8 +183,10 @@ class ProgramRunner:
                 self.Acquisitor.reset()
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
-                buffer = np.array(self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE))
-                self.processDataBuffer(buffer, PlotType.ACQ, buffer) #TODO change later for second acq channel
+                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                Vbuffer = np.array(buffer[0])
+                Ibuffer = np.array(buffer[1])
+                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
                 self.Acquisitor.stop()
                 
                 #Time check
@@ -222,7 +198,7 @@ class ProgramRunner:
                 self.ContGenerator.changeMode(GeneratorMode.STEPPING)
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
-                self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #here to change
+                self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #TODO something to check here
                 self.ContGenerator.startGen()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
@@ -233,8 +209,10 @@ class ProgramRunner:
                 self.Acquisitor.reset()
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
-                buffer = np.array(self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE))
-                self.processDataBuffer(buffer, PlotType.ACQ, buffer) #TODO change later for second acq channel
+                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                Vbuffer = np.array(buffer[0])
+                Ibuffer = np.array(buffer[1])
+                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
                 self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             

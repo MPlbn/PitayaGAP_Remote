@@ -8,7 +8,6 @@ from constants import *
 class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
-        self.channelNumber = ACQ_DEFAULT_CHANNEL
         self.decimation = 4
 
     #   resets acquisition
@@ -24,7 +23,8 @@ class Acquisitor:
         self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
         self.RP_S.tx_txt(f'ACQ:DATA:Units {ACQ_UNITS}')
         self.RP_S.tx_txt(f'ACQ:DATA:FORMAT {ACQ_DATA_FORMAT}')
-        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:GAIN {ACQ_GAIN}')
+        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_VOLTAGE_CHANNEL}:GAIN {ACQ_GAIN}')
+        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_CURRENT_CHANNEL}:GAIN {ACQ_GAIN}')
 
     #   starts acquisition
     def start(self):
@@ -45,8 +45,18 @@ class Acquisitor:
     
     #   transfers acquired data from redpitaya to the PC and returns the values as a list of floats
     def getBuff(self, uSampleSize) -> list:
-        self.RP_S.tx_txt(f'ACQ:SOUR{self.channelNumber}:DATA:LATest:N? {uSampleSize}') #To juz dziala, max spadlo do 42ms co ruch
-        buffer_string = self.RP_S.rx_txt()
-        buffer_string = buffer_string.strip('{}\n\r').replace("  ", "").split(',')
-        retList = list(map(float, buffer_string))
+        #Acquire Voltage values
+        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_VOLTAGE_CHANNEL}:DATA:LATest:N? {uSampleSize}')
+        buffer_stringVoltage = self.RP_S.rx_txt()
+        buffer_stringVoltage = buffer_stringVoltage.strip('{}\n\r').replace("  ", "").split(',')
+        retListVoltage = list(map(float, buffer_stringVoltage))
+
+        #Acquire current values
+        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_CURRENT_CHANNEL}:DATA:LATest:N? {uSampleSize}')
+        buffer_stringCurrent = self.RP_S.rx_txt()
+        buffer_stringCurrent = buffer_stringCurrent.strip('{}\n\r').replace("  ", "").split(',')
+        retListCurrent = list(map(float, buffer_stringCurrent))
+
+        #Return Voltage and Current in a list
+        retList = [retListVoltage, retListCurrent]
         return retList

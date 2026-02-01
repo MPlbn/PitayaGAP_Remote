@@ -33,12 +33,9 @@ class Plotter(ABC):
     def getData(self):
         return self.data
     
+    @abstractmethod
     def clear(self):
-        self.data = np.array([])
-        if(not self.isRunning):
-            self.isRunning = True
-            self.updatePlot()
-            self.isRunning = False
+        pass
 
     @abstractmethod
     def updatePlot(self):
@@ -88,6 +85,14 @@ class AcqPlotter(Plotter):
             self.ax.relim()
             self.ax.autoscale_view()
 
+    def clear(self):
+        self.dataI = np.array([])
+        self.dataV = np.array([])
+        if(not self.isRunning):
+            self.isRunning = True
+            self.updatePlot()
+            self.isRunning = False
+
 
 #   PLOTTER FOR GENERATOR DATA
 class GenPlotter(Plotter):
@@ -111,3 +116,10 @@ class GenPlotter(Plotter):
             self.line.set_data(x, self.data)
             self.ax.relim()
             self.ax.autoscale_view()
+
+    def clear(self):
+        self.data = np.array([])
+        if(not self.isRunning):
+            self.isRunning = True
+            self.updatePlot()
+            self.isRunning = False
