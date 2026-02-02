@@ -25,7 +25,9 @@ class GUI:
         self.genMode = "normal"
         self.direction = "anodic"
         self.ratio = "1/1"
+        self.gain = ACQ_DEFAULT_GAIN
 
+    #   Start button handling function
 
     def startGeneratingPress(self):
         match self.genMode:
@@ -38,6 +40,8 @@ class GUI:
         self.lockBtn.state(GUI_ENABLED)
         self.resetBtn.state(GUI_ENABLED)
 
+    #   Stop button handling function
+
     def stopGeneratingPress(self):
         self.PR.changeMode(ProgramMode.GEN_STOP)
         self.stopBtn.state(GUI_DISABLED)
@@ -45,6 +49,8 @@ class GUI:
         self.lockBtn.state(GUI_DISABLED)
         self.unlockBtn.state(GUI_DISABLED)
         self.resetBtn.state(GUI_DISABLED)
+   
+    #   Lock button hadnling function
 
     def lockGeneratingPress(self):
         #locking current voltage value on Continous Generator and pausing autogeneration
@@ -52,14 +58,20 @@ class GUI:
         self.lockBtn.state(GUI_DISABLED)
         self.unlockBtn.state(GUI_ENABLED)
     
+    #   Unlock button handling function
+
     def unlockGeneratingPress(self):
         #unlocking current voltage value on Continous Generator and resuming autogeneration
         self.PR.unpauseContGenerator()
         self.lockBtn.state(GUI_ENABLED)
         self.unlockBtn.state(GUI_DISABLED)
 
+    #   Save button handling function
+
     def savePress(self):
         self.PR.startSaveProcess()
+
+    #   Reset button handling function
 
     def resetGeneratingPress(self):
         #Unpausing first
@@ -67,13 +79,19 @@ class GUI:
         #Then reset
         self.PR.resetGenerator()
 
+    #   Flip button handling function
+
     def flipGeneratingPress(self):
         self.PR.flipGenStep()
+
+    #   Clear plot button handling function
 
     def clearPlotPress(self):
         self.PR.clearPlot()
 
-    def comboboxCallback(self, value):
+    #   COMBOBOX CALLBACK FUNCTIONS
+
+    def genModeComboboxCallback(self, value):
         self.genMode = str(self.genModeCombobox.get())
         self.FRAME_LIST[str(self.genModeCombobox.get())].tkraise()
 
@@ -82,6 +100,11 @@ class GUI:
 
     def ratioComboboxCallback(self, value):
         self.ratio = str(self.IVratioCombobox.get())
+
+    def gainComboboxCallback(self, value):
+        self.gain = str(self.gainCombobox.get())
+
+    #   KEYBOARD KEYS PRESS HANDLING FUNCTIONS
 
     def stepUpKey(self, event=None):
         if(self.PR.getContGeneratorPauseState()):
@@ -97,8 +120,12 @@ class GUI:
     def enterFullscreenKey(self, event=None):
         self.root.attributes('-fullscreen', True)
 
+    #   Handling the ratio
+
     def passRatio(self):
         self.PR.setDataRatio(self.ratio)
+
+    #   Set button press handling function    
 
     def setRangesPress(self):
         tempMessage: str = ""
@@ -234,6 +261,7 @@ class GUI:
                     tempMessage += f"Error: Number of steps cannot be higher than 30"
 
                 self.PR.setSteppingGeneratorParameters(tempLimit/MV_TO_V_VALUE, tempBase/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, tempNumOfSteps)
+        self.PR.setAcquisitorParameters(self.gain)
         self.PR.resetGenerator()
 
         #showing error message
@@ -243,17 +271,23 @@ class GUI:
         self.interval = tempTime
         self.passRatio()
 
+
+    #   Needed multithreading function for smooth GUI operation
+
     def threadTask(self):
         while True:
             self.PR.run()
             self.root.after(0, self.updateFun)
             time.sleep(self.interval/1000)
 
+    #   Update gui elements function
+
     def updateFun(self):
         self.PR.updateGUIElements(self.progressBar, self.progressLabel)
 
+    #   Close ProgramRunner and GUI
+
     def stopGUI(self):
-        #Close ProgramRunner and gui
         self.PR.exit()
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
@@ -292,6 +326,7 @@ class GUI:
         except ValueError:
             return False
 
+    #   Initialization of GUI elements
 
     def initGUI(self):
         ####style configuration
@@ -322,6 +357,8 @@ class GUI:
         self.setBtn = ttk.Button(self.standardSetFrame , text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
         self.IVratioLabel = ttk.Label(self.standardSetFrame, bootstyle=INFO, text='I/V [A/mV]')
         self.IVratioCombobox = ttk.Combobox(self.standardSetFrame, bootstyle=INFO, state=READONLY)
+        self.gainLabel = ttk.Label(self.standardSetFrame, bootstyle=INFO, text='Gain mode')
+        self.gainCombobox = ttk.Combobox(self.standardSetFrame, bootstyle=INFO, state=READONLY)
 
         #normal settings
         self.normalSetFrame = ttk.Frame(self.settingsFrame)
@@ -344,7 +381,7 @@ class GUI:
         #Setting combobox values
         self.genModeCombobox['values'] = GUI_COMBOBOX_VALUES
         self.genModeCombobox.set(GUI_COMBOBOX_VALUES[0])
-        self.genModeCombobox.bind('<<ComboboxSelected>>', self.comboboxCallback)
+        self.genModeCombobox.bind('<<ComboboxSelected>>', self.genModeComboboxCallback)
 
         self.directionCombobox['values'] = GUI_DIR_COMBOBOX_VALUES 
         self.directionCombobox.set(GUI_DIR_COMBOBOX_VALUES[0])
@@ -353,6 +390,10 @@ class GUI:
         self.IVratioCombobox['values'] = GUI_RATIO_COMBOBOX_VALUES
         self.IVratioCombobox.set(GUI_RATIO_COMBOBOX_VALUES[0])
         self.IVratioCombobox.bind('<<ComboboxSelected>>', self.ratioComboboxCallback)
+
+        self.gainCombobox['values'] = GUI_GAIN_COMBOBOX_VALUES
+        self.gainCombobox.set(GUI_GAIN_COMBOBOX_VALUES[0])
+        self.gainCombobox.bind('<<ComboboxSelected>>', self.gainComboboxCallback)
 
         #Setting default values to entries
         self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
@@ -415,6 +456,7 @@ class GUI:
         self.root.bind('f', self.enterFullscreenKey)
         self.root.bind('<Escape>', self.exitFullscreenKey)
 
+    #   Setup of GUI elements and start of main loop
 
     def startGUI(self):
         self.genProgFrame.pack(side=LEFT, anchor=N)
@@ -444,9 +486,11 @@ class GUI:
         self.stepLabel.grid(row=1, column=0, padx=5)
         self.intervalLabel.grid(row=2, column=0, padx=5)
         self.IVratioLabel.grid(row=3, column=0, padx=5)
+        self.gainLabel.grid(row=4, column=0, padx=5)
         self.stepEntry.grid(row=1, column=1, pady=5)
         self.intervalEntry.grid(row=2, column=1, pady=5)
         self.IVratioCombobox.grid(row=3, column=1, pady=5)
+        self.gainCombobox.grid(row=4, column=1, pady=5)
         self.setBtn.grid(row=5,column=1, pady=10)
 
 
@@ -487,6 +531,9 @@ class fastGUI:
         self.PR = ProgramRunner.ProgramRunner()
         self.waveForm = F_GEN_DEFAULT_WAVEFORM
         self.decimation = F_ACQ_DEFAULT_DEC
+        self.gain = ACQ_DEFAULT_GAIN
+
+    #   VALIDATION FUNCTIONS
 
     def validateInt(self, uEntryValue) -> bool:
         if(uEntryValue == ""):
@@ -509,11 +556,18 @@ class fastGUI:
         except ValueError:
             return False 
 
+    #   COMBOBOX CALLBACK FUNCTIONS
+
     def waveFormComboboxCallback(self, value):
         self.waveForm = str(self.waveFormCB.get())
 
     def decComboboxCallback(self, value):
         self.decimation = int(self.decCB.get())
+
+    def gainComboboxCallback(self, value):
+        self.gain = str(self.gainCB.get())
+
+    #   Initialization of GUI elements
 
     def initGUI(self):
         ##style configuration
@@ -542,9 +596,11 @@ class fastGUI:
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
         self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+        self.gainCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
 
         self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
         self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
+        self.gainLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Gain mode')
 
         #buttons frame
         self.buttonsFrame = ttk.Frame(self.root)
@@ -564,11 +620,16 @@ class fastGUI:
         self.decCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
         self.decCB.bind('<<ComboboxSelected>>', self.decComboboxCallback)
 
+        self.gainCB['values'] = GUI_GAIN_COMBOBOX_VALUES
+        self.gainCB.set(ACQ_DEFAULT_GAIN)
+        self.gainCB.bind('<<ComboboxSelected>>', self.gainComboboxCallback)
+
         #setting other values
         self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
         self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
+    #   Setup of GUI elements and start of main loop
 
     def startGUI(self):
         #settings frame placement
@@ -588,9 +649,11 @@ class fastGUI:
         self.acqSettingsFrame.pack(anchor=W, padx=10, pady=10)
         self.decCB.grid(row=0, column=1, padx=10, pady=10)
         self.samplesEntry.grid(row=1, column=1, padx=10, pady=10)
+        self.gainCB.grid(row=2, column=1, padx=10, pady=10)
 
         self.decLabel.grid(row=0, column=0, padx=10, pady=10)
         self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
+        self.gainLabel.grid(row=2, column=0, padx=10, pady=10)
 
         #Buttons frame placement
         self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
@@ -603,16 +666,20 @@ class fastGUI:
 
         self.root.mainloop()
 
+    #   Close ProgramRunner and GUI
+
     def stopGUI(self):
-        #Close ProgramRunner and gui
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
+
+    # Run button handling
 
     def run(self):
         errorFlag = False   
         errorText = ""
         tempWaveForm = self.waveForm
         tempDec = self.decimation
+        tempGain = self.gain
         
         tempAmp = self.ampEntry.get()
         if(tempAmp == ""):
@@ -657,7 +724,7 @@ class fastGUI:
 
         if(not errorFlag):
             self.errorLabel.configure(text = "")
-            self.PR.fastFullRun(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples)
+            self.PR.fastFullRun(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempGain)
         else:
             self.errorLabel.configure(text = errorText)
             

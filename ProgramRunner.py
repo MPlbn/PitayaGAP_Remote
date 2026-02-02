@@ -79,15 +79,12 @@ class ProgramRunner:
         self.ContGenerator.createSteps(uNumOfSteps)
         self.ContGenerator.setStep(uStep)
 
-    #   handler of acquisition values
-    #   uChannelNumber: int - channel that acquisition will be performed on - [1,2]
+    #   setting acquisitor parameters passed form GUI
+    #   uGain: string - gain mode (HV/LV)
     #   uDecimation: int - decimation value (how many samples are skipped between acquiring another one)
-    #   uTriggerLevel: float - level that at which trigger will start acquisition
-    #   uTriggerDelay: float - time needed after trigger to start acquisition 
 
-    def setAcquisitionConstants(self, uChannelNumber = ACQ_VOLTAGE_CHANNEL, uDecimation = 32, uTriggerLevel = 0.5, uTriggerDelay = 0):
-        self.Acquisitor.setSCPIsettings(uDecimation, uTriggerLevel, uTriggerDelay)
-        self.Acquisitor.channelNumber = uChannelNumber
+    def setAcquisitorParameters(self, uGain, uDecimation = 4):
+        self.Acquisitor.setup(uDecimation=uDecimation, uGain=uGain)
 
     #   converting ratio from combobox string to float ratio and passing it to plotter
     #   uRatio: str - text acquired from combobox
@@ -288,12 +285,13 @@ class ProgramRunner:
     #   uFrequency: int - frequency
     #   uDecimation: int - chosen decimation
     #   uSamples: int - how many samples to collect before closing 
+    #   uGain: string - type of acq gain (HV/LV)
     
-    def fastFullRun(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+    def fastFullRun(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
         #Setups
         self.FastGenerator.setup(uChannelNumber=GEN_DEFAULT_CHANNEL, uWaveform=uWaveForm, uFrequency=uFrequency, uAmplitude=uAmplitude)
         self.FastGenerator.setSCPIsettings()
-        self.Acquisitor.setup(uDecimation=uDecimation)
+        self.Acquisitor.setup(uDecimation=uDecimation, uGain=uGain)
         self.Acquisitor.setSCPIsettings()
         tempLoopsRetVal = self.processNumberOfSamples(uSamples)
         loops = tempLoopsRetVal[0]
@@ -317,4 +315,4 @@ class ProgramRunner:
             self.Acquisitor.reset()
             self.saveDataToCSV(dataV=buffer)
         self.FastGenerator.stopGenerating()
-        print("done :D") #TODO some visual change or popup
+        print("saving done") #TODO some visual change or popup

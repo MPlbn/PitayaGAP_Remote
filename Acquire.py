@@ -9,22 +9,24 @@ class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
         self.decimation = 4
+        self.gain = ACQ_DEFAULT_GAIN
 
     #   resets acquisition
     def reset(self):
         self.RP_S.tx_txt('ACQ:RST')
 
     #   acquisition settings
-    def setup(self, uDecimation):
+    def setup(self, uDecimation, uGain):
         self.decimation = uDecimation
+        self.gain = uGain
 
     #   sends the settings to SCPI
     def setSCPIsettings(self):
         self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
         self.RP_S.tx_txt(f'ACQ:DATA:Units {ACQ_UNITS}')
         self.RP_S.tx_txt(f'ACQ:DATA:FORMAT {ACQ_DATA_FORMAT}')
-        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_VOLTAGE_CHANNEL}:GAIN {ACQ_GAIN}')
-        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_CURRENT_CHANNEL}:GAIN {ACQ_GAIN}')
+        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_VOLTAGE_CHANNEL}:GAIN {self.gain}')
+        self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_CURRENT_CHANNEL}:GAIN {self.gain}')
 
     #   starts acquisition
     def start(self):

@@ -34,7 +34,7 @@ ACQ_VOLTAGE_CHANNEL = 2
 ACQ_CURRENT_CHANNEL = 1
 ACQ_UNITS = "VOLTS"
 ACQ_DATA_FORMAT = "ASCII"
-ACQ_GAIN = "HV" #change to ["LV"] in case of low voltage acquisition
+ACQ_DEFAULT_GAIN = "HV" #change to ["LV"] in case of low voltage acquisition
 
 F_ACQ_SAMPLE_SIZE: int = 16384
 F_ACQ_DEFAULT_DEC: int = 1
@@ -73,6 +73,7 @@ GUI_MIN_INTERVAL: int = 5
 GUI_COMBOBOX_VALUES = ("normal", "stepping")
 GUI_DIR_COMBOBOX_VALUES = ("anodic", "kathodic")
 GUI_RATIO_COMBOBOX_VALUES = ("1/1", "1/10", "1/100", "1/250", "1/500")
+GUI_GAIN_COMBOBOX_VALUES = ("HV", "LV")
 GUI_DISABLED = ["disabled"]
 GUI_ENABLED = ["!disabled"]
 GUI_INCREMENT_STEP = 1
