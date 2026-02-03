@@ -28,7 +28,7 @@ LAST_MODE: int = 8
 
 RED_PITAYA_IP = 'rp-f0ba38.local'
 
-ACQ_SAMPLE_SIZE: int = 10 #Recommended to not go more than 100 as it starts to loose time and goes above 42ms per step; Also PLOT_MAX_DATA_SIZE would need to go up, which is taxing on PC that runs the whole program
+ACQ_SAMPLE_SIZE: int = 1 #Recommended to not go more than 100 as it starts to loose time and goes above 42ms per step; Also PLOT_MAX_DATA_SIZE would need to go up, which is taxing on PC that runs the whole program
 ACQ_BUFFER_SIZE: int = 16384
 ACQ_VOLTAGE_CHANNEL = 2
 ACQ_CURRENT_CHANNEL = 1

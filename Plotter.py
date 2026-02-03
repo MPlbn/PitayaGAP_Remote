@@ -70,7 +70,6 @@ class AcqPlotter(Plotter):
         self.ratio = uRatio
 
     def processData(self, uNewDataI, uNewDataV):
-        print(uNewDataI[0]*PLOT_DEFAULT_RATIO)
         if(self.isRunning):
             if(len(self.dataI) >= PLOT_MAX_DATA_SIZE):
                 self.dataI = self.dataI[ACQ_SAMPLE_SIZE:]
