@@ -528,7 +528,7 @@ class GUI:
 class fastGUI:
     def __init__(self):
         self.root = (ttk.Window(themename="superhero", size=F_GUI_DEFAULT_WINDOW_SIZE))
-        self.PR = ProgramRunner.ProgramRunner()
+        self.PR = ProgramRunner.FastProgramRunner()
         self.waveForm = F_GEN_DEFAULT_WAVEFORM
         self.decimation = F_ACQ_DEFAULT_DEC
         self.gain = ACQ_DEFAULT_GAIN
@@ -724,7 +724,7 @@ class fastGUI:
 
         if(not errorFlag):
             self.errorLabel.configure(text = "")
-            self.PR.fastFullRun(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempGain)
+            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempGain)
         else:
             self.errorLabel.configure(text = errorText)
             

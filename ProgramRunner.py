@@ -14,7 +14,10 @@ import Generate
 import Acquire
 import Plotter
 import FileManager
+import CMDManager
+import WaveCreator
 from constants import *
+from commands import *
 
 
 #TODO Stop resets lock/unlock
@@ -270,6 +273,23 @@ class ProgramRunner:
         self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
 
+
+class FastProgramRunner:
+    def __init__(self, uIP = 'rp-f0ba38.local'):
+        self.ip = uIP
+        self.FileManager = FileManager.FileManager()
+        self.CMDManager = CMDManager.CMDManager(self.ip)
+        self.WaveCreator = WaveCreator.WaveCreator()
+
+    def connect(self) -> bool:
+        if (self.CMDManager.connectToPitaya() is not None):
+            return True
+        else:
+            return False
+        
+    def disconnect(self):
+        self.CMDManager.disconnectFromPitaya()
+
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
     def processNumberOfSamples(self, uSamplesNumber):
@@ -277,6 +297,8 @@ class ProgramRunner:
         leftoverSamples = uSamplesNumber - (ACQ_BUFFER_SIZE * loopNumber)
         return [loopNumber, leftoverSamples]
 
+    def processWaveForm(self, uWaveForm):
+        self.WaveCreator.create(uWaveForm)
 
     #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
@@ -285,33 +307,60 @@ class ProgramRunner:
     #   uDecimation: int - chosen decimation
     #   uSamples: int - how many samples to collect before closing 
     #   uGain: string - type of acq gain (HV/LV)
-    
-    def fastFullRun(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
-        #Setups
-        self.FastGenerator.setup(uChannelNumber=GEN_DEFAULT_CHANNEL, uWaveform=uWaveForm, uFrequency=uFrequency, uAmplitude=uAmplitude)
-        self.FastGenerator.setSCPIsettings()
-        self.Acquisitor.setup(uDecimation=uDecimation, uGain=uGain)
-        self.Acquisitor.setSCPIsettings()
+
+    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
+        #Setups - this will be done differently
+
         tempLoopsRetVal = self.processNumberOfSamples(uSamples)
         loops = tempLoopsRetVal[0]
         leftoverSamples = tempLoopsRetVal[1]
-        self.FileManager.createFile()
+        self.processWaveForm(uWaveForm)
 
-        #Run generator
-        self.FastGenerator.startGenerating()
-        #Start acquisition
-        self.Acquisitor.start()
-        time.sleep(0.1)
-        buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
-        #Stop acquisition
-        self.Acquisitor.stop()
-        self.Acquisitor.reset()   
-        self.saveDataToCSV(dataV=buffer)
-        for i in range (0,loops):
-            self.Acquisitor.start()
-            buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
-            self.Acquisitor.stop()
-            self.Acquisitor.reset()
-            self.saveDataToCSV(dataV=buffer)
-        self.FastGenerator.stopGenerating()
-        print("saving done") #TODO some visual change or popup
+        #Saving the config
+        #sth sth    
+
+    def startRoutine(self):
+        pass
+
+        #self.FileManager.createFile()
+        # #Run generator
+        # self.FastGenerator.startGenerating()
+        # #Start acquisition
+        # self.Acquisitor.start()
+        # time.sleep(0.1)
+        # buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
+        # #Stop acquisition
+        # self.Acquisitor.stop()
+        # self.Acquisitor.reset()   
+        # self.saveDataToCSV(dataV=buffer)
+        # for i in range (0,loops):
+        #     self.Acquisitor.start()
+        #     buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
+        #     self.Acquisitor.stop()
+        #     self.Acquisitor.reset()
+        #     self.saveDataToCSV(dataV=buffer)
+        # self.FastGenerator.stopGenerating()
+        # print("saving done") #TODO some visual change or popup
+    
+    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
+        isConnected = self.connect()
+        if(not isConnected):
+            print('Error, cannot connect...')
+            for i in range(0,10):
+                print(f' [{i}]Trying to connect to {self.ip} ...')
+                isConnected = self.connect()
+                if(isConnected):
+                    break
+                else:
+                    time.sleep(2)
+        if(not isConnected):
+            self.exit()
+        
+        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain)
+        self.startRoutine()
+        ##blahblah, save and stuff
+
+        self.disconnect()
+
+    def exit(self):
+        pass
