@@ -28,6 +28,9 @@ class CMDManager:
         self.stdout.channel.recv_exit_status()
         return self.stdout, self.stderr
     
+    def executeLocalCommand(self, uCommand):
+        pass
+
     def startListening(self):
         self.outputContent = ""
         self.errorContent = ""

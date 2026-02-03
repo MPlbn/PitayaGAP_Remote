@@ -1,0 +1,12 @@
+from constants import *
+
+CMD_START_SCPI_SERVER = ""
+CMD_STOP_SCPI_SERVER = ""
+
+CMD_START_STREAMING_SERVER = "streaming-server"
+CMD_STOP_STREAMING_SERVER = ""
+CMD_LOAD_STREAMING_FPGA = "overlay.sh stream_app"
+CMD_UPLOAD_CONFIG = f'{CONFIG_PATH} -c -s F -f .\configs\config_dac.json'
+CMD_UPLOAD_WAVEFORM = ""
+CMD_START_STREAMING_DAC = ""
+CMD_START_STREAMING_ADC = ""

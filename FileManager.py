@@ -1,9 +1,25 @@
 import numpy as np
 from datetime import datetime
 import csv
+from scipy.io import wavfile
+import struct
+from abc import ABC, abstractmethod
 from constants import *
+import os
 
-class FileManager:
+class FileManager(ABC):
+    def __init__(self):
+        pass
+
+    @abstractmethod
+    def generatePath():
+        pass
+
+    @abstractmethod
+    def saveToFile():
+        pass
+
+class CSVFileManager(FileManager):
     def __init__(self):
         self.pathPrefix: str = "DATA"
         self.pathPostfix: str = ".csv"
@@ -32,11 +48,28 @@ class FileManager:
                     writer.writerow([uIData[i], uVData[i]])
 
 
-### IS THE LOADING EVEN NEEDED? WHAT FOR? SKIP FOR NOW
-    #   loading
-    # def load(self, uPath):
-    #     with open(uPath, 'r', newline='') as csvFile:
-    #         reader = csv.reader(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
-    #         tempGenData = next(reader)
-    #         tempAcqData = next(reader)
-    #         return tempGenData, tempAcqData
+class WAVFileManager(FileManager):
+    def __init__(self):
+        self.pathPrefix: str = "arb_custom_"
+        self.pathPostfix: str = ".wav"
+        self.currentPath: str = ""
+    
+    def generatePath(self, uWaveform):
+        return str(self.pathPrefix + str(uWaveform) + self.pathPostfix)
+
+    def getCurrentPath(self):
+        return self.currentPath
+
+    def saveToFile(self, uWaveform, uWFValues, uSampleRate):
+        self.currentPath = self.generatePath(uWaveform)
+        wavfile.write(self.currentPath, uSampleRate, uWFValues)
+
+    def openFile(self, uPath):
+        samplingRate, data = wavfile.read(uPath)
+        return data
+
+    def deleteFile(self, uPath):
+        if(os.path.exists(uPath)):
+            os.remove(uPath)
+        else:
+            print(f'The file: {uPath} does not exist.')

@@ -19,9 +19,6 @@ import WaveCreator
 from constants import *
 from commands import *
 
-
-#TODO Stop resets lock/unlock
-
 #   class responsible for work routine of a program
 
 class ProgramRunner:
@@ -35,7 +32,7 @@ class ProgramRunner:
         self.dataBuffer = [] #not used for now
         self.AcqPlotter = Plotter.AcqPlotter()
         self.GenPlotter = Plotter.GenPlotter()
-        self.FileManager = FileManager.FileManager()
+        self.FileManager = FileManager.CSVFileManager()
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -277,7 +274,7 @@ class ProgramRunner:
 class FastProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.ip = uIP
-        self.FileManager = FileManager.FileManager()
+        self.FileManager = FileManager.WAVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
 
@@ -293,12 +290,17 @@ class FastProgramRunner:
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
     def processNumberOfSamples(self, uSamplesNumber):
-        loopNumber = int(uSamplesNumber / ACQ_BUFFER_SIZE)
-        leftoverSamples = uSamplesNumber - (ACQ_BUFFER_SIZE * loopNumber)
+        loopNumber = int(uSamplesNumber / WF_SAMPLES_IN_PERIOD)
+        leftoverSamples = uSamplesNumber - (WF_SAMPLES_IN_PERIOD * loopNumber)
         return [loopNumber, leftoverSamples]
 
     def processWaveForm(self, uWaveForm):
-        self.WaveCreator.create(uWaveForm)
+        waveFormValues = self.WaveCreator.create(uWaveForm)
+        self.FileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
+
+
+    def setConfig(self, uAmplitude, uFrequency, uDecimation, uGain, uLoops, uLeftoverSamples):
+        pass
 
     #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
@@ -311,15 +313,20 @@ class FastProgramRunner:
     def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
         #Setups - this will be done differently
 
+        #this may not be needed
         tempLoopsRetVal = self.processNumberOfSamples(uSamples)
         loops = tempLoopsRetVal[0]
         leftoverSamples = tempLoopsRetVal[1]
+        #config part
+        self.setConfig(uAmplitude, uFrequency, uDecimation, uGain, loops, leftoverSamples)
+        #waveform part
         self.processWaveForm(uWaveForm)
 
         #Saving the config
         #sth sth    
 
     def startRoutine(self):
+        #first try the generation process
         pass
 
         #self.FileManager.createFile()
