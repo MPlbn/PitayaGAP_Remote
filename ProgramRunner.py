@@ -289,6 +289,9 @@ class FastProgramRunner:
     def disconnect(self):
         self.CMDManager.disconnectFromPitaya()
 
+    def runStreamingServer(self):
+        stdout, stderr = self.CMDManager.executeCommand(CMD_LOAD_STREAMING_FPGA)
+
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
     def processNumberOfSamples(self, uSamplesNumber):
@@ -312,7 +315,17 @@ class FastProgramRunner:
 
         self.JSONFileManager.saveToFile(configData)
 
-
+    #TODO
+    def pushConfig(self):
+        pass
+    
+    #TODO   
+    def runGeneration(self):
+        pass
+    
+    #TODO
+    def runAcquisition(self):
+        pass
 
     #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
@@ -329,37 +342,18 @@ class FastProgramRunner:
         tempLoopsRetVal = self.processNumberOfSamples(uSamples)
         loops = tempLoopsRetVal[0]
         leftoverSamples = tempLoopsRetVal[1]
-        #config part
+
         self.setConfig(uAmplitude, uFrequency, uDecimation)
-        #waveform part
         self.processWaveForm(uWaveForm)
 
-        #Saving the config
-        #sth sth    
+        #load fpga, start server, push the config command
+        self.runStreamingServer()
+        self.pushConfig()
 
+    #TODO
     def startRoutine(self):
-        #first try the generation process
-        pass
+        self.runGeneration()
 
-        #self.FileManager.createFile()
-        # #Run generator
-        # self.FastGenerator.startGenerating()
-        # #Start acquisition
-        # self.Acquisitor.start()
-        # time.sleep(0.1)
-        # buffer = np.array(self.Acquisitor.getBuff(leftoverSamples))
-        # #Stop acquisition
-        # self.Acquisitor.stop()
-        # self.Acquisitor.reset()   
-        # self.saveDataToCSV(dataV=buffer)
-        # for i in range (0,loops):
-        #     self.Acquisitor.start()
-        #     buffer = np.array(self.Acquisitor.getBuff(ACQ_BUFFER_SIZE))
-        #     self.Acquisitor.stop()
-        #     self.Acquisitor.reset()
-        #     self.saveDataToCSV(dataV=buffer)
-        # self.FastGenerator.stopGenerating()
-        # print("saving done") #TODO some visual change or popup
     
     def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
         isConnected = self.connect()

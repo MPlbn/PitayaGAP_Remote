@@ -5,7 +5,7 @@ CMD_STOP_SCPI_SERVER = ""
 
 CMD_START_STREAMING_SERVER = "streaming-server"
 CMD_STOP_STREAMING_SERVER = ""
-CMD_LOAD_STREAMING_FPGA = "overlay.sh stream_app"
+CMD_LOAD_STREAMING_FPGA = "echo TEST && /opt/redpitaya/sbin/overlay.sh stream_app"
 CMD_UPLOAD_CONFIG = ''
 CMD_UPLOAD_WAVEFORM = ""
 CMD_START_STREAMING_DAC = ""
