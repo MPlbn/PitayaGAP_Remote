@@ -27,7 +27,17 @@ FIRST_MODE: int = 1
 LAST_MODE: int = 8
 
 RED_PITAYA_IP = 'rp-f0ba38.local'
-CONFIG_PATH = ''
+CONFIG_PATH = './streaming_app/GAPconfig.json'
+
+CONFIG_ACQ = "adc_streaming"
+CONFIG_DEC = "adc_decimation"
+CONFIG_ACQ_CH1 = "channel_state_1"
+CONFIG_ACQ_CH2 = "channel_state_2" 
+
+CONFIG_GEN = "dac_streaming"
+CONFIG_GEN_AMP1 = "channel_gain_1"
+CONFIG_GEN_AMP2 = "channel_gain_2"
+CONFIG_GEN_RATE = "dac_rate"
 
 WF_NUM_BITS = 16
 WF_SAMPLE_RATE = 44100

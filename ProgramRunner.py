@@ -16,6 +16,7 @@ import Plotter
 import FileManager
 import CMDManager
 import WaveCreator
+import json
 from constants import *
 from commands import *
 
@@ -275,6 +276,7 @@ class FastProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.ip = uIP
         self.FileManager = FileManager.WAVFileManager()
+        self.JSONFileManager = FileManager.JSONFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
 
@@ -299,8 +301,18 @@ class FastProgramRunner:
         self.FileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
 
 
-    def setConfig(self, uAmplitude, uFrequency, uDecimation, uGain, uLoops, uLeftoverSamples):
-        pass
+    def setConfig(self, uAmplitude, uFrequency, uDecimation):
+        configData = self.JSONFileManager.getFileValue()
+        # changing the values
+        configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = "ON"
+        configData[CONFIG_ACQ][CONFIG_ACQ_CH2] = "ON"
+        configData[CONFIG_ACQ][CONFIG_DEC] = uDecimation
+        configData[CONFIG_GEN][CONFIG_GEN_AMP1] = f'X{uAmplitude}' #need to be as V, not mV
+        configData[CONFIG_GEN][CONFIG_GEN_RATE] = uFrequency
+
+        self.JSONFileManager.saveToFile(configData)
+
+
 
     #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
@@ -310,7 +322,7 @@ class FastProgramRunner:
     #   uSamples: int - how many samples to collect before closing 
     #   uGain: string - type of acq gain (HV/LV)
 
-    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
+    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
         #Setups - this will be done differently
 
         #this may not be needed
@@ -318,7 +330,7 @@ class FastProgramRunner:
         loops = tempLoopsRetVal[0]
         leftoverSamples = tempLoopsRetVal[1]
         #config part
-        self.setConfig(uAmplitude, uFrequency, uDecimation, uGain, loops, leftoverSamples)
+        self.setConfig(uAmplitude, uFrequency, uDecimation)
         #waveform part
         self.processWaveForm(uWaveForm)
 
@@ -363,7 +375,7 @@ class FastProgramRunner:
         if(not isConnected):
             self.exit()
         
-        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain)
+        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation)
         self.startRoutine()
         ##blahblah, save and stuff
 

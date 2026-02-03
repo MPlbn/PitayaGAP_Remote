@@ -2,24 +2,11 @@ import numpy as np
 from datetime import datetime
 import csv
 from scipy.io import wavfile
-import struct
-from abc import ABC, abstractmethod
 from constants import *
 import os
+import json
 
-class FileManager(ABC):
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def generatePath():
-        pass
-
-    @abstractmethod
-    def saveToFile():
-        pass
-
-class CSVFileManager(FileManager):
+class CSVFileManager():
     def __init__(self):
         self.pathPrefix: str = "DATA"
         self.pathPostfix: str = ".csv"
@@ -48,9 +35,9 @@ class CSVFileManager(FileManager):
                     writer.writerow([uIData[i], uVData[i]])
 
 
-class WAVFileManager(FileManager):
+class WAVFileManager():
     def __init__(self):
-        self.pathPrefix: str = "arb_custom_"
+        self.pathPrefix: str = "streaming_app/arb_custom_"
         self.pathPostfix: str = ".wav"
         self.currentPath: str = ""
     
@@ -73,3 +60,23 @@ class WAVFileManager(FileManager):
             os.remove(uPath)
         else:
             print(f'The file: {uPath} does not exist.')
+
+class JSONFileManager():
+    def __init__(self):
+        self.path = CONFIG_PATH
+
+    def getFileValue(self):
+        data = []
+        try:
+            with open(self.path, 'r') as jsonFile:
+                data = json.load(jsonFile)
+        except IOError:
+            print(f'Could not open the file {CONFIG_PATH}')
+        return data
+
+    def saveToFile(self, uJSONdata):
+        try:
+            with open(self.path, 'w') as jsonFile:
+                json.dump(uJSONdata, jsonFile, indent=4)
+        except IOError:
+            print(f'Could not open the file {CONFIG_PATH}')
