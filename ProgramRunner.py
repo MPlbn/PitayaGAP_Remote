@@ -340,7 +340,7 @@ class FastProgramRunner:
      
     def runGeneration(self):
         command = CMD_START_STREAMING_DAC
-        command[5] += self.WAVFileManager.getCurrentPath()
+        command[5] = self.WAVFileManager.getCurrentPath()
         self.CMDManager.executeLocalCommand(command)
 
     def stopStreaming(self):
@@ -379,8 +379,7 @@ class FastProgramRunner:
         self.runStreamingServer()
         self.pushConfig()
 
-    
-    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+    def startupRoutine(self):
         isConnected = self.connect()
         if(not isConnected):
             print('Error, cannot connect...')
@@ -391,14 +390,13 @@ class FastProgramRunner:
                     break
                 else:
                     time.sleep(2)
-        if(not isConnected):
-            self.exit()
+        return isConnected
         
-        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples)
+
+    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+
+        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation)
         self.runGeneration()
-        ##blahblah, save and stuff
-
-        #self.disconnect()
-
-    def exit(self):
-        pass
+        self.runAcquisition(uSamples)
+        self.stopStreaming()
+    

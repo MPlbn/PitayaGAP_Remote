@@ -531,6 +531,7 @@ class fastGUI:
         self.PR = ProgramRunner.FastProgramRunner()
         self.waveForm = F_GEN_DEFAULT_WAVEFORM
         self.decimation = F_ACQ_DEFAULT_DEC
+        self.isConnectedPitaya = False
         #self.gain = ACQ_DEFAULT_GAIN
 
     #   VALIDATION FUNCTIONS
@@ -570,6 +571,7 @@ class fastGUI:
     #   Initialization of GUI elements
 
     def initGUI(self):
+
         ##style configuration
         self.style = ttk.Style()
         self.style.configure('TButton', font=("Segoe UI", 20))
@@ -629,6 +631,10 @@ class fastGUI:
         self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
+        #connect to Pitaya
+        self.isConnectedPitaya = self.PR.startupRoutine()
+        return self.isConnectedPitaya
+
     #   Setup of GUI elements and start of main loop
 
     def startGUI(self):
@@ -669,6 +675,8 @@ class fastGUI:
     #   Close ProgramRunner and GUI
 
     def stopGUI(self):
+        if self.isConnectedPitaya:
+            self.PR.disconnect()
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
 
