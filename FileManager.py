@@ -37,7 +37,7 @@ class CSVFileManager():
 
 class WAVFileManager():
     def __init__(self):
-        self.pathPrefix: str = "streaming_app/arb_custom_"
+        self.pathPrefix: str = "./streaming_app/arb_custom_"
         self.pathPostfix: str = ".wav"
         self.currentPath: str = ""
     

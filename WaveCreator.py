@@ -15,6 +15,7 @@ class WaveCreator:
     def getSampleRate(self) -> int:
         return self.sampleRate
 
+    #it will probably need uamp also
     def create(self, uWaveForm):
         t = np.linspace(0, 1, self.periods*self.samplesInPeriod)*2*np.pi
         arbitraryWaveform = []

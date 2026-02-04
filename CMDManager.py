@@ -2,6 +2,7 @@ import paramiko
 import numpy as np
 import threading
 import select
+import subprocess
 
 class CMDManager:
     def __init__(self, uIP, uUsername='root', uPassword='root'):
@@ -29,7 +30,7 @@ class CMDManager:
         return self.stdout, self.stderr
     
     def executeLocalCommand(self, uCommand):
-        pass
+        subprocess.run(uCommand)
 
     def startListening(self):
         self.outputContent = ""

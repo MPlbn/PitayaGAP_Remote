@@ -3,10 +3,9 @@ from constants import *
 CMD_START_SCPI_SERVER = ""
 CMD_STOP_SCPI_SERVER = ""
 
-CMD_START_STREAMING_SERVER = "streaming-server"
+CMD_START_STREAMING_SERVER = "echo STREAMINGSERVER && /opt/redpitaya/bin/streaming-server -b"
 CMD_STOP_STREAMING_SERVER = ""
-CMD_LOAD_STREAMING_FPGA = "echo TEST && /opt/redpitaya/sbin/overlay.sh stream_app"
-CMD_UPLOAD_CONFIG = ''
-CMD_UPLOAD_WAVEFORM = ""
-CMD_START_STREAMING_DAC = ""
+CMD_LOAD_STREAMING_FPGA = "echo OVERLAY && /opt/redpitaya/sbin/overlay.sh stream_app"
+CMD_UPLOAD_CONFIG = ['./streaming_app/rpsa_client', '-c', '-s', 'F', '-f', './streaming_app/GAPconfig.json'] #add .exe for windows
+CMD_START_STREAMING_DAC = ['./streaming_app/rpsa_client', '-o', '-f', 'wav', '-d', '', '-r', '100'] #add .exe for windows
 CMD_START_STREAMING_ADC = ""

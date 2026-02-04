@@ -24,7 +24,7 @@
         "channel_gain_1": "X1",
         "channel_gain_2": "X1",
         "dac_pass_mode": "DAC_NET",
-        "dac_rate": 1000,
+        "dac_rate": 10000,
         "file_sd": "",
         "file_type_sd": "WAV",
         "repeat": "DAC_REP_ON",

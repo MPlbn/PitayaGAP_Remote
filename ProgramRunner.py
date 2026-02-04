@@ -275,7 +275,7 @@ class ProgramRunner:
 class FastProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.ip = uIP
-        self.FileManager = FileManager.WAVFileManager()
+        self.WAVFileManager = FileManager.WAVFileManager()
         self.JSONFileManager = FileManager.JSONFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
@@ -291,6 +291,8 @@ class FastProgramRunner:
 
     def runStreamingServer(self):
         stdout, stderr = self.CMDManager.executeCommand(CMD_LOAD_STREAMING_FPGA)
+        time.sleep(1)
+        stodut, stderr = self.CMDManager.executeCommand(CMD_START_STREAMING_SERVER)
 
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
@@ -301,7 +303,7 @@ class FastProgramRunner:
 
     def processWaveForm(self, uWaveForm):
         waveFormValues = self.WaveCreator.create(uWaveForm)
-        self.FileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
+        self.WAVFileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
 
 
     def setConfig(self, uAmplitude, uFrequency, uDecimation):
@@ -310,18 +312,19 @@ class FastProgramRunner:
         configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = "ON"
         configData[CONFIG_ACQ][CONFIG_ACQ_CH2] = "ON"
         configData[CONFIG_ACQ][CONFIG_DEC] = uDecimation
-        configData[CONFIG_GEN][CONFIG_GEN_AMP1] = f'X{uAmplitude}' #need to be as V, not mV
+        configData[CONFIG_GEN][CONFIG_GEN_AMP1] = f'X{uAmplitude}' #need to be as V, not mV CAN BE ONLY X1/X5!!!!
         configData[CONFIG_GEN][CONFIG_GEN_RATE] = uFrequency
 
         self.JSONFileManager.saveToFile(configData)
 
-    #TODO
     def pushConfig(self):
+        self.CMDManager.executeLocalCommand(CMD_UPLOAD_CONFIG)
         pass
-    
-    #TODO   
+     
     def runGeneration(self):
-        pass
+        command = CMD_START_STREAMING_DAC
+        command[5] += self.WAVFileManager.getCurrentPath()
+        self.CMDManager.executeLocalCommand(command)
     
     #TODO
     def runAcquisition(self):
@@ -369,7 +372,7 @@ class FastProgramRunner:
         if(not isConnected):
             self.exit()
         
-        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation)
+        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples)
         self.startRoutine()
         ##blahblah, save and stuff
 
