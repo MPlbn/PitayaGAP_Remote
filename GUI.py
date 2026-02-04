@@ -534,6 +534,7 @@ class fastGUI:
         self.isConnectedPitaya = False
         self.stateCH1 = F_ACQ_DEFAULT_STATE
         self.stateCH2 = F_ACQ_DEFAULT_STATE
+        self.fileType = F_ACQ_DEFAULT_FILETYPE
         #self.gain = ACQ_DEFAULT_GAIN
 
     #   VALIDATION FUNCTIONS
@@ -573,6 +574,8 @@ class fastGUI:
     def stateCH2ComboboxCallback(self, value):
         self.stateCH2 = str(self.stateCH2CB.get())
 
+    def fileTypeComboboxCallback(self, value):
+        self.fileType = str(self.fileTypeCB.get())
 
     # def gainComboboxCallback(self, value):
     #     self.gain = str(self.gainCB.get())
@@ -609,12 +612,14 @@ class fastGUI:
         self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
         self.stateCH1CB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.stateCH2CB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
+        self.fileTypeCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         #self.gainCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
 
         self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
         self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
         self.stateCH1Label = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='channel 1 state')
         self.stateCH2Label = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='channel 2 state')
+        self.fileTypeLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='data save file format')
         #self.gainLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Gain mode')
 
         #buttons frame
@@ -642,6 +647,10 @@ class fastGUI:
         self.stateCH2CB['values'] = F_GUI_STATE_COMBOBOX_VALUES
         self.stateCH2CB.set(F_GUI_STATE_COMBOBOX_VALUES[0])
         self.stateCH2CB.bind('<<ComboboxSelected>>', self.stateCH2ComboboxCallback)
+        
+        self.fileTypeCB['values'] = F_GUI_FILETYPE_COMBOBOX_VALUES
+        self.fileTypeCB.set(F_GUI_FILETYPE_COMBOBOX_VALUES[0])
+        self.fileTypeCB.bind('<<ComboboxSelected>>', self.fileTypeComboboxCallback)
 
         # self.gainCB['values'] = GUI_GAIN_COMBOBOX_VALUES
         # self.gainCB.set(ACQ_DEFAULT_GAIN)
@@ -678,13 +687,15 @@ class fastGUI:
         self.samplesEntry.grid(row=1, column=1, padx=10, pady=10)
         self.stateCH1CB.grid(row=2, column=1, padx=10, pady=10)
         self.stateCH2CB.grid(row=3, column=1, padx=10, pady=10)
-        #self.gainCB.grid(row=4, column=1, padx=10, pady=10)
+        self.fileTypeCB.grid(row=4, column=1, padx=10, pady=10)
+        #self.gainCB.grid(row=5, column=1, padx=10, pady=10)
 
         self.decLabel.grid(row=0, column=0, padx=10, pady=10)
         self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
         self.stateCH1Label.grid(row=2, column=0, padx=10, pady=10)
         self.stateCH2Label.grid(row=3, column=0, padx=10, pady=10)
-        #self.gainLabel.grid(row=4, column=0, padx=10, pady=10)
+        self.fileTypeLabel.grid(row=5, column=0, padx=10, pady=10)
+        #self.gainLabel.grid(row=5, column=0, padx=10, pady=10)
 
         #Buttons frame placement
         self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
@@ -714,6 +725,7 @@ class fastGUI:
         tempDec = self.decimation
         tempStateCH1 = self.stateCH1
         tempStateCH2 = self.stateCH2
+        tempFileType = self.fileType
         #tempGain = self.gain
         
         tempAmp = self.ampEntry.get()
@@ -759,7 +771,7 @@ class fastGUI:
 
         if(not errorFlag):
             self.errorLabel.configure(text = "")
-            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2)
+            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
         else:
             self.errorLabel.configure(text = errorText)
             

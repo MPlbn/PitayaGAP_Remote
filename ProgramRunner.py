@@ -357,8 +357,9 @@ class FastProgramRunner:
             self.CMDManager.executeCommand(f'{CMD_STOP_STREAMING_SERVER}+{pid}')
 
     
-    def runAcquisition(self, uSamples):
+    def runAcquisition(self, uSamples, uFileType):
         command = CMD_START_STREAMING_ADC
+        command[3] = str(uFileType)
         command[7] = str(uSamples) 
         self.CMDManager.executeLocalCommand(command)
 
@@ -392,11 +393,14 @@ class FastProgramRunner:
                     time.sleep(2)
         return isConnected
         
+    def cleanup(self):
+        self.WAVFileManager.cleanup()
 
-    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2):
+    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
 
         self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
-        self.runAcquisition(uSamples)
+        self.runAcquisition(uSamples, uFileType)
         self.stopStreaming()
+        self.cleanup()
     

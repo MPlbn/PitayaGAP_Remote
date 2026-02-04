@@ -55,11 +55,11 @@ class WAVFileManager():
         samplingRate, data = wavfile.read(uPath)
         return data
 
-    def deleteFile(self, uPath):
-        if(os.path.exists(uPath)):
-            os.remove(uPath)
+    def cleanup(self):
+        if(os.path.exists(self.currentPath)):
+            os.remove(self.currentPath)
         else:
-            print(f'The file: {uPath} does not exist.')
+            print(f'The file: {self.currentPath} does not exist.')
 
 class JSONFileManager():
     def __init__(self):
