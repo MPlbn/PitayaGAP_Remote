@@ -3,12 +3,14 @@ import numpy as np
 import threading
 import select
 import subprocess
+import time
 
 class CMDManager:
     def __init__(self, uIP, uUsername='root', uPassword='root'):
         self.ip = uIP
         self.username = uUsername
         self.password = uPassword
+        self.currentOutputContent = ""
         self.client = None
 
     def connectToPitaya(self, use_key=False):
@@ -27,7 +29,7 @@ class CMDManager:
         self.stdin, self.stdout, self.stderr = self.client.exec_command(uCommand)
         self.startListening()
         self.stdout.channel.recv_exit_status()
-        return self.stdout, self.stderr
+        return self.stdout, self.stderr, True
     
     def executeLocalCommand(self, uCommand):
         subprocess.run(uCommand)
@@ -38,6 +40,9 @@ class CMDManager:
         self.listenerThread = threading.Thread(target=self.listener)
         self.listenerThread.start()
 
+    def getOutput(self):
+        return self.currentOutputContent
+
     def listener(self):
         while True:
             isReadyToRead, _, _ = select.select([self.stdout.channel, self.stderr.channel], [], [], 0.1)
@@ -47,6 +52,7 @@ class CMDManager:
                 if stream == self.stdout.channel and stream.recv_ready():
                     outputContent = stream.recv(1024).decode('utf-8')
                     print("STDOUT LISTENER:", outputContent, end='', flush=True)
+                    self.currentOutputContent = outputContent
                 elif (stream == self.stderr.channel and stream.recv_stderr_ready()):
                     errorContent = stream.recv_stderr(1024).decode('utf-8')
                     print("STDERR LISTENER:", errorContent, end='', flush=True)

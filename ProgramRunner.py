@@ -16,7 +16,7 @@ import Plotter
 import FileManager
 import CMDManager
 import WaveCreator
-import json
+import psutil
 from constants import *
 from commands import *
 
@@ -33,7 +33,25 @@ class ProgramRunner:
         self.dataBuffer = [] #not used for now
         self.AcqPlotter = Plotter.AcqPlotter()
         self.GenPlotter = Plotter.GenPlotter()
-        self.FileManager = FileManager.CSVFileManager()
+        self.CSVFileManager = FileManager.CSVFileManager()
+        self.CMDManager = CMDManager.CMDManager(uIP)
+
+
+    def connect(self):
+        if (self.CMDManager.connectToPitaya() is not None):
+            return True
+        else:
+            return False
+
+    def disconnect(self):
+        self.CMDManager.disconnectFromPitaya()
+
+    #TODO
+    def startSCPIServer(self):
+        pass
+
+    def stopSCPIServer(self):
+        pass
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -130,7 +148,7 @@ class ProgramRunner:
     #   dataI: np.array() - Filled with value of the current
     #   dataV: np.array() - Filled with value of the voltages
     def saveDataToCSV(self, dataI = [], dataV = []):
-            self.FileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True)
+            self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True)
 
     #   resets the current voltage value to the set starting voltage value
     def resetGenerator(self):
@@ -218,7 +236,7 @@ class ProgramRunner:
                 self.ContGenerator.stopGen(StopType.STOP_KEEP)
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
-                self.FileManager.createFile()
+                self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqPlotter.getData())
                 self.ContGenerator.startGen()
                 self.AcqPlotter.start()
@@ -229,7 +247,7 @@ class ProgramRunner:
                 self.ContGenerator.stopGen(StopType.STOP_KEEP)
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
-                self.FileManager.createFile()
+                self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqPlotter.getData())
                 self.ContGenerator.startGen()
                 self.AcqPlotter.start()
@@ -290,9 +308,9 @@ class FastProgramRunner:
         self.CMDManager.disconnectFromPitaya()
 
     def runStreamingServer(self):
-        stdout, stderr = self.CMDManager.executeCommand(CMD_LOAD_STREAMING_FPGA)
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_STREAMING_FPGA)
         time.sleep(1)
-        stodut, stderr = self.CMDManager.executeCommand(CMD_START_STREAMING_SERVER)
+        stodut, stderr, status = self.CMDManager.executeCommand(CMD_START_STREAMING_SERVER)
 
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
@@ -318,12 +336,26 @@ class FastProgramRunner:
 
     def pushConfig(self):
         self.CMDManager.executeLocalCommand(CMD_UPLOAD_CONFIG)
-        pass
+        
      
     def runGeneration(self):
         command = CMD_START_STREAMING_DAC
         command[5] += self.WAVFileManager.getCurrentPath()
         self.CMDManager.executeLocalCommand(command)
+
+    def stopStreaming(self):
+        #kill the process on PC
+        processName = PROC_NAME
+        for process in psutil.process_iter():
+            if(process.name() == processName):
+                process.kill() 
+        #kill the process on pitaya
+        self.CMDManager.executeCommand(CMD_LIST_PROCESS)
+        output = self.CMDManager.getOutput()
+        pids = [int(line.split()[0]) for line in output.strip().splitlines()]
+        for pid in pids:
+            self.CMDManager.executeCommand(f'{CMD_STOP_STREAMING_SERVER}+{pid}')
+
     
     def runAcquisition(self, uSamples):
         command = CMD_START_STREAMING_ADC
@@ -338,14 +370,8 @@ class FastProgramRunner:
     #   uSamples: int - how many samples to collect before closing 
     #   uGain: string - type of acq gain (HV/LV)
 
-    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation):
         #Setups - this will be done differently
-
-        #this may not be needed
-        tempLoopsRetVal = self.processNumberOfSamples(uSamples)
-        loops = tempLoopsRetVal[0]
-        leftoverSamples = tempLoopsRetVal[1]
-
         self.setConfig(uFrequency, uDecimation)
         self.processWaveForm(uWaveForm, uAmplitude)
 

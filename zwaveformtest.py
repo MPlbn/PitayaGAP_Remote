@@ -10,7 +10,7 @@ FManager = FileManager.WAVFileManager()
 amplitude = 1
 frequency = 1000
 waveform = WF_SINE
-path = "dataLogs/data_file_10.42.0.63_2026-02-04_13-19-25.wav"
+path = ""
 
 
 #y_Values = WCreator.create(waveform)
