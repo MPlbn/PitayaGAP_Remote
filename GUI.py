@@ -531,7 +531,7 @@ class fastGUI:
         self.PR = ProgramRunner.FastProgramRunner()
         self.waveForm = F_GEN_DEFAULT_WAVEFORM
         self.decimation = F_ACQ_DEFAULT_DEC
-        self.gain = ACQ_DEFAULT_GAIN
+        #self.gain = ACQ_DEFAULT_GAIN
 
     #   VALIDATION FUNCTIONS
 
@@ -564,8 +564,8 @@ class fastGUI:
     def decComboboxCallback(self, value):
         self.decimation = int(self.decCB.get())
 
-    def gainComboboxCallback(self, value):
-        self.gain = str(self.gainCB.get())
+    # def gainComboboxCallback(self, value):
+    #     self.gain = str(self.gainCB.get())
 
     #   Initialization of GUI elements
 
@@ -589,18 +589,18 @@ class fastGUI:
         self.freqEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
 
         self.waveFormLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Waveform type')
-        self.ampLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Amplitude')
-        self.freqLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Frequency')
+        self.ampLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Amplitude [mV]')
+        self.freqLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Frequency [Hz]')
 
         #acqSettings frame
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
         self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
-        self.gainCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
+        #self.gainCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
 
         self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
         self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
-        self.gainLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Gain mode')
+        #self.gainLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Gain mode')
 
         #buttons frame
         self.buttonsFrame = ttk.Frame(self.root)
@@ -620,9 +620,9 @@ class fastGUI:
         self.decCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
         self.decCB.bind('<<ComboboxSelected>>', self.decComboboxCallback)
 
-        self.gainCB['values'] = GUI_GAIN_COMBOBOX_VALUES
-        self.gainCB.set(ACQ_DEFAULT_GAIN)
-        self.gainCB.bind('<<ComboboxSelected>>', self.gainComboboxCallback)
+        # self.gainCB['values'] = GUI_GAIN_COMBOBOX_VALUES
+        # self.gainCB.set(ACQ_DEFAULT_GAIN)
+        # self.gainCB.bind('<<ComboboxSelected>>', self.gainComboboxCallback)
 
         #setting other values
         self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
@@ -649,11 +649,11 @@ class fastGUI:
         self.acqSettingsFrame.pack(anchor=W, padx=10, pady=10)
         self.decCB.grid(row=0, column=1, padx=10, pady=10)
         self.samplesEntry.grid(row=1, column=1, padx=10, pady=10)
-        self.gainCB.grid(row=2, column=1, padx=10, pady=10)
+        #self.gainCB.grid(row=2, column=1, padx=10, pady=10)
 
         self.decLabel.grid(row=0, column=0, padx=10, pady=10)
         self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
-        self.gainLabel.grid(row=2, column=0, padx=10, pady=10)
+        #self.gainLabel.grid(row=2, column=0, padx=10, pady=10)
 
         #Buttons frame placement
         self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
@@ -679,7 +679,7 @@ class fastGUI:
         errorText = ""
         tempWaveForm = self.waveForm
         tempDec = self.decimation
-        tempGain = self.gain
+        #tempGain = self.gain
         
         tempAmp = self.ampEntry.get()
         if(tempAmp == ""):
@@ -724,7 +724,7 @@ class fastGUI:
 
         if(not errorFlag):
             self.errorLabel.configure(text = "")
-            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempGain)
+            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples)
         else:
             self.errorLabel.configure(text = errorText)
             

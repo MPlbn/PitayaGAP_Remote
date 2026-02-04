@@ -10,7 +10,7 @@
         "channel_attenuator_2": "A_1_1",
         "channel_attenuator_3": "A_1_1",
         "channel_attenuator_4": "A_1_1",
-        "channel_state_1": "ON",
+        "channel_state_1": "OFF",
         "channel_state_2": "ON",
         "channel_state_3": "OFF",
         "channel_state_4": "OFF",

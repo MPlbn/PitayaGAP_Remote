@@ -83,8 +83,8 @@ F_GEN_DEFAULT_AMPLITUDE: float = 1000
 
 F_GEN_AMP_UP_LIMIT: float = 1000
 F_GEN_AMP_DOWN_LIMIT: float = -1000
-F_GEN_FREQ_UP_LIMIT: int = 1000000 #temp, maybe more?
-F_GEN_FREQ_DOWN_LIMIT: int = 1
+F_GEN_FREQ_UP_LIMIT: int = 125000000 #temp, maybe more?
+F_GEN_FREQ_DOWN_LIMIT: int = 10000
 F_ACQ_SAMPLES_UP_LIMIT: int = 1000000 #temp, maybe more/less?
 F_ACQ_SAMPLES_DOWN_LIMIT: int = 1
 

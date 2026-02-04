@@ -16,20 +16,21 @@ class WaveCreator:
         return self.sampleRate
 
     #it will probably need uamp also
-    def create(self, uWaveForm):
+    def create(self, uWaveForm, uAmplitude):
         t = np.linspace(0, 1, self.periods*self.samplesInPeriod)*2*np.pi
         arbitraryWaveform = []
+        maxVal = self.maximumValue*uAmplitude
 
         match uWaveForm:
             case "Sine":
-                arbitraryWaveform = np.sin(self.periods*t)*self.maximumValue
+                arbitraryWaveform = np.sin(self.periods*t)*maxVal
             case "Square":
-                arbitraryWaveform = signal.square(self.periods*t)*self.maximumValue
+                arbitraryWaveform = signal.square(self.periods*t)*maxVal
             case "Triangle":
-                arbitraryWaveform = signal.sawtooth(self.periods*t, width=0.5)*self.maximumValue
+                arbitraryWaveform = signal.sawtooth(self.periods*t, width=0.5)*maxVal
             case "Ramp up":
-                arbitraryWaveform = signal.sawtooth(self.periods*t)*self.maximumValue
+                arbitraryWaveform = signal.sawtooth(self.periods*t)*maxVal
             case "Ramp down":
-                arbitraryWaveform = signal.sawtooth(self.periods*t, width=0)*self.maximumValue
+                arbitraryWaveform = signal.sawtooth(self.periods*t, width=0)*maxVal
         
         return np.int16(arbitraryWaveform)

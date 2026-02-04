@@ -301,18 +301,17 @@ class FastProgramRunner:
         leftoverSamples = uSamplesNumber - (WF_SAMPLES_IN_PERIOD * loopNumber)
         return [loopNumber, leftoverSamples]
 
-    def processWaveForm(self, uWaveForm):
-        waveFormValues = self.WaveCreator.create(uWaveForm)
+    def processWaveForm(self, uWaveForm, uAmplitude):
+        waveFormValues = self.WaveCreator.create(uWaveForm, uAmplitude)
         self.WAVFileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
 
 
-    def setConfig(self, uAmplitude, uFrequency, uDecimation):
+    def setConfig(self, uFrequency, uDecimation):
         configData = self.JSONFileManager.getFileValue()
         # changing the values
-        configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = "ON"
+        configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = "OFF" #TODO
         configData[CONFIG_ACQ][CONFIG_ACQ_CH2] = "ON"
         configData[CONFIG_ACQ][CONFIG_DEC] = uDecimation
-        configData[CONFIG_GEN][CONFIG_GEN_AMP1] = f'X{uAmplitude}' #need to be as V, not mV CAN BE ONLY X1/X5!!!!
         configData[CONFIG_GEN][CONFIG_GEN_RATE] = uFrequency
 
         self.JSONFileManager.saveToFile(configData)
@@ -326,9 +325,10 @@ class FastProgramRunner:
         command[5] += self.WAVFileManager.getCurrentPath()
         self.CMDManager.executeLocalCommand(command)
     
-    #TODO
-    def runAcquisition(self):
-        pass
+    def runAcquisition(self, uSamples):
+        command = CMD_START_STREAMING_ADC
+        command[7] = str(uSamples) 
+        self.CMDManager.executeLocalCommand(command)
 
     #   Running full run for fast samples
     #   uWaveForm: string - type of waveform
@@ -346,19 +346,15 @@ class FastProgramRunner:
         loops = tempLoopsRetVal[0]
         leftoverSamples = tempLoopsRetVal[1]
 
-        self.setConfig(uAmplitude, uFrequency, uDecimation)
-        self.processWaveForm(uWaveForm)
+        self.setConfig(uFrequency, uDecimation)
+        self.processWaveForm(uWaveForm, uAmplitude)
 
         #load fpga, start server, push the config command
         self.runStreamingServer()
         self.pushConfig()
 
-    #TODO
-    def startRoutine(self):
-        self.runGeneration()
-
     
-    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uGain):
+    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
         isConnected = self.connect()
         if(not isConnected):
             print('Error, cannot connect...')
@@ -373,10 +369,10 @@ class FastProgramRunner:
             self.exit()
         
         self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples)
-        self.startRoutine()
+        self.runGeneration()
         ##blahblah, save and stuff
 
-        self.disconnect()
+        #self.disconnect()
 
     def exit(self):
         pass
