@@ -324,11 +324,11 @@ class FastProgramRunner:
         self.WAVFileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
 
 
-    def setConfig(self, uFrequency, uDecimation):
+    def setConfig(self, uFrequency, uDecimation, uCH1, uCH2):
         configData = self.JSONFileManager.getFileValue()
         # changing the values
-        configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = "OFF" #TODO
-        configData[CONFIG_ACQ][CONFIG_ACQ_CH2] = "ON"
+        configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = uCH1
+        configData[CONFIG_ACQ][CONFIG_ACQ_CH2] = uCH2
         configData[CONFIG_ACQ][CONFIG_DEC] = uDecimation
         configData[CONFIG_GEN][CONFIG_GEN_RATE] = uFrequency
 
@@ -370,9 +370,9 @@ class FastProgramRunner:
     #   uSamples: int - how many samples to collect before closing 
     #   uGain: string - type of acq gain (HV/LV)
 
-    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation):
+    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2):
         #Setups - this will be done differently
-        self.setConfig(uFrequency, uDecimation)
+        self.setConfig(uFrequency, uDecimation, uCH1, uCH2)
         self.processWaveForm(uWaveForm, uAmplitude)
 
         #load fpga, start server, push the config command
@@ -393,9 +393,9 @@ class FastProgramRunner:
         return isConnected
         
 
-    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples):
+    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2):
 
-        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation)
+        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
         self.runAcquisition(uSamples)
         self.stopStreaming()

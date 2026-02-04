@@ -532,6 +532,8 @@ class fastGUI:
         self.waveForm = F_GEN_DEFAULT_WAVEFORM
         self.decimation = F_ACQ_DEFAULT_DEC
         self.isConnectedPitaya = False
+        self.stateCH1 = F_ACQ_DEFAULT_STATE
+        self.stateCH2 = F_ACQ_DEFAULT_STATE
         #self.gain = ACQ_DEFAULT_GAIN
 
     #   VALIDATION FUNCTIONS
@@ -564,6 +566,13 @@ class fastGUI:
 
     def decComboboxCallback(self, value):
         self.decimation = int(self.decCB.get())
+
+    def stateCH1ComboboxCallback(self, value):
+        self.stateCH1 = str(self.stateCH1CB.get())
+
+    def stateCH2ComboboxCallback(self, value):
+        self.stateCH2 = str(self.stateCH2CB.get())
+
 
     # def gainComboboxCallback(self, value):
     #     self.gain = str(self.gainCB.get())
@@ -598,10 +607,14 @@ class fastGUI:
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
         self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
+        self.stateCH1CB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
+        self.stateCH2CB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         #self.gainCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
 
         self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
         self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
+        self.stateCH1Label = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='channel 1 state')
+        self.stateCH2Label = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='channel 2 state')
         #self.gainLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Gain mode')
 
         #buttons frame
@@ -655,11 +668,15 @@ class fastGUI:
         self.acqSettingsFrame.pack(anchor=W, padx=10, pady=10)
         self.decCB.grid(row=0, column=1, padx=10, pady=10)
         self.samplesEntry.grid(row=1, column=1, padx=10, pady=10)
-        #self.gainCB.grid(row=2, column=1, padx=10, pady=10)
+        self.stateCH1CB.grid(row=2, column=1, padx=10, pady=10)
+        self.stateCH2CB.grid(row=3, column=1, padx=10, pady=10)
+        #self.gainCB.grid(row=4, column=1, padx=10, pady=10)
 
         self.decLabel.grid(row=0, column=0, padx=10, pady=10)
         self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
-        #self.gainLabel.grid(row=2, column=0, padx=10, pady=10)
+        self.stateCH1Label.grid(row=2, column=0, padx=10, pady=10)
+        self.stateCH2Label.grid(row=3, column=0, padx=10, pady=10)
+        #self.gainLabel.grid(row=4, column=0, padx=10, pady=10)
 
         #Buttons frame placement
         self.buttonsFrame.pack(side=RIGHT, anchor=E, padx=30, pady=30)
@@ -687,6 +704,8 @@ class fastGUI:
         errorText = ""
         tempWaveForm = self.waveForm
         tempDec = self.decimation
+        tempStateCH1 = self.stateCH1
+        tempStateCH2 = self.stateCH2
         #tempGain = self.gain
         
         tempAmp = self.ampEntry.get()
@@ -732,7 +751,7 @@ class fastGUI:
 
         if(not errorFlag):
             self.errorLabel.configure(text = "")
-            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples)
+            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2)
         else:
             self.errorLabel.configure(text = errorText)
             
