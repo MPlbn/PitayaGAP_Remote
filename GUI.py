@@ -635,6 +635,14 @@ class fastGUI:
         self.decCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
         self.decCB.bind('<<ComboboxSelected>>', self.decComboboxCallback)
 
+        self.stateCH1CB['values'] = F_GUI_STATE_COMBOBOX_VALUES
+        self.stateCH1CB.set(F_GUI_STATE_COMBOBOX_VALUES[0])
+        self.stateCH1CB.bind('<<ComboboxSelected>>', self.stateCH1ComboboxCallback)
+
+        self.stateCH2CB['values'] = F_GUI_STATE_COMBOBOX_VALUES
+        self.stateCH2CB.set(F_GUI_STATE_COMBOBOX_VALUES[0])
+        self.stateCH2CB.bind('<<ComboboxSelected>>', self.stateCH2ComboboxCallback)
+
         # self.gainCB['values'] = GUI_GAIN_COMBOBOX_VALUES
         # self.gainCB.set(ACQ_DEFAULT_GAIN)
         # self.gainCB.bind('<<ComboboxSelected>>', self.gainComboboxCallback)
