@@ -34,6 +34,7 @@ class GUI:
         pass
 
     def startGeneratingPress(self):
+        self.setRangesPress()
         match self.genMode:
             case "normal":
                 self.PR.changeMode(ProgramMode.CONT_START)
