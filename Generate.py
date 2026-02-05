@@ -30,8 +30,6 @@ class Generator:
         self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
 
 
-#BUG weird behaviour after swapping Generator modes, cannot replicate easily
-
 class ContGenerator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)

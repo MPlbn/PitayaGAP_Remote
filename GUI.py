@@ -26,8 +26,12 @@ class GUI:
         self.direction = "anodic"
         self.ratio = "1/1"
         self.gain = ACQ_DEFAULT_GAIN
+        self.isConnectedPitaya: bool = False
 
     #   Start button handling function
+
+    def disable_event(self):
+        pass
 
     def startGeneratingPress(self):
         match self.genMode:
@@ -289,6 +293,8 @@ class GUI:
 
     def stopGUI(self):
         self.PR.exit()
+        if self.isConnectedPitaya:
+            self.PR.disconnect()
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
 
@@ -456,6 +462,11 @@ class GUI:
         self.root.bind('f', self.enterFullscreenKey)
         self.root.bind('<Escape>', self.exitFullscreenKey)
 
+        self.root.protocol("WM_DELETE_WINDOW", self.disable_event)
+
+        self.isConnectedPitaya = self.PR.startupRoutine()
+        return self.isConnectedPitaya
+
     #   Setup of GUI elements and start of main loop
 
     def startGUI(self):
@@ -538,6 +549,9 @@ class fastGUI:
         #self.gain = ACQ_DEFAULT_GAIN
 
     #   VALIDATION FUNCTIONS
+
+    def disable_event(self):
+        pass
 
     def validateInt(self, uEntryValue) -> bool:
         if(uEntryValue == ""):
@@ -661,6 +675,7 @@ class fastGUI:
         self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
+        self.root.protocol("WM_DELETE_WINDOW", self.disable_event)
         #connect to Pitaya
         self.isConnectedPitaya = self.PR.startupRoutine()
         return self.isConnectedPitaya
@@ -694,7 +709,7 @@ class fastGUI:
         self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
         self.stateCH1Label.grid(row=2, column=0, padx=10, pady=10)
         self.stateCH2Label.grid(row=3, column=0, padx=10, pady=10)
-        self.fileTypeLabel.grid(row=5, column=0, padx=10, pady=10)
+        self.fileTypeLabel.grid(row=4, column=0, padx=10, pady=10)
         #self.gainLabel.grid(row=5, column=0, padx=10, pady=10)
 
         #Buttons frame placement
@@ -719,6 +734,7 @@ class fastGUI:
     # Run button handling
 
     def run(self):
+        self.runBtn.state(GUI_DISABLED)
         errorFlag = False   
         errorText = ""
         tempWaveForm = self.waveForm
@@ -774,6 +790,8 @@ class fastGUI:
             self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
         else:
             self.errorLabel.configure(text = errorText)
+
+        self.runBtn.state(GUI_ENABLED)
             
 
 class startupGUI:
@@ -788,6 +806,9 @@ class startupGUI:
         subprocess.Popen([sys.executable, 'runRealTime.py'])
         sys.exit()
     
+    def disable_event(self):
+        pass
+
     def exit(self):
         sys.exit() #TODO doesn't stop terminal run
 
@@ -805,6 +826,8 @@ class startupGUI:
         #close button
         self.closeFrame = ttk.Frame(self.root)
         self.exitBtn = ttk.Button(self.closeFrame, text='EXIT', bootstyle=(DANGER,OUTLINE), command=self.exit)
+
+        self.root.protocol("WM_DELETE_WINDOW", self.disable_event)
 
     def startGUI(self):
         self.buttonsFrame.pack(side=TOP, anchor=N, padx=30, pady=30)

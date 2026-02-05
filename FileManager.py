@@ -40,6 +40,7 @@ class WAVFileManager():
         self.pathPrefix: str = "./streaming_app/arb_custom_"
         self.pathPostfix: str = ".wav"
         self.currentPath: str = ""
+        self.zeroWavePath: str = "./streaming_app/zero_wave.wav"
     
     def generatePath(self, uWaveform):
         return str(self.pathPrefix + str(uWaveform) + self.pathPostfix)
@@ -47,9 +48,15 @@ class WAVFileManager():
     def getCurrentPath(self):
         return self.currentPath
 
+    def getZeroWavePath(self):
+        return self.zeroWavePath
+
     def saveToFile(self, uWaveform, uWFValues, uSampleRate):
         self.currentPath = self.generatePath(uWaveform)
         wavfile.write(self.currentPath, uSampleRate, uWFValues)
+
+    def saveZeroWave(self, UValues, uSampleRate):
+        wavfile.write(self.zeroWavePath, uSampleRate, UValues)
 
     def openFile(self, uPath):
         samplingRate, data = wavfile.read(uPath)
@@ -60,6 +67,11 @@ class WAVFileManager():
             os.remove(self.currentPath)
         else:
             print(f'The file: {self.currentPath} does not exist.')
+
+        if(os.path.exists(self.zeroWavePath)):
+            os.remove(self.zeroWavePath)
+        else:
+            print(f'The file: {self.zeroWavePath} does not exist.')        
 
 class JSONFileManager():
     def __init__(self):

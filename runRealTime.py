@@ -5,6 +5,10 @@ import GUI
 gui = GUI.GUI()
 
 #starting GUI and work routines
-gui.initGUI()
-gui.startGUI()
+isConnected = gui.initGUI()
+if(isConnected):
+    gui.startGUI()
+else:
+    print("cannot connect to redpitaya")
+    gui.stopGUI()
 

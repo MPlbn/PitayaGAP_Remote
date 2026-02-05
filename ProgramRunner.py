@@ -26,16 +26,22 @@ class ProgramRunner:
     def __init__(self, uIP = 'rp-f0ba38.local'):
         self.IP = uIP
         self.PROGRAM_MODE = ProgramMode.IDLE
-        self.ContGenerator = Generate.ContGenerator(self.IP)
-        self.FastGenerator = Generate.Generator(self.IP)
-        self.Acquisitor = Acquire.Acquisitor(self.IP)
+        self.ContGenerator = None
+        self.FastGenerator = None
+        self.Acquisitor = None
         self.isRunningContinous = False
         self.dataBuffer = [] #not used for now
+        self.isRunningContinous = False
         self.AcqPlotter = Plotter.AcqPlotter()
         self.GenPlotter = Plotter.GenPlotter()
         self.CSVFileManager = FileManager.CSVFileManager()
-        self.CMDManager = CMDManager.CMDManager(uIP)
+        self.CMDManager = CMDManager.CMDManager(self.IP)
 
+    def initialize(self):
+        self.ContGenerator = Generate.ContGenerator(self.IP)
+        self.FastGenerator = Generate.Generator(self.IP)
+        self.Acquisitor = Acquire.Acquisitor(self.IP)
+        
 
     def connect(self):
         if (self.CMDManager.connectToPitaya() is not None):
@@ -46,12 +52,38 @@ class ProgramRunner:
     def disconnect(self):
         self.CMDManager.disconnectFromPitaya()
 
-    #TODO
+    def startupRoutine(self):
+        isConnected = self.connect()
+        if(not isConnected):
+            print('Error, cannot connect...')
+            for i in range(0,10):
+                print(f' [{i}]Trying to connect to {self.IP} ...')
+                isConnected = self.connect()
+                if(isConnected):
+                    break
+                else:
+                    time.sleep(2)
+        if(isConnected):
+            self.startSCPIServer()
+            self.disconnect()
+            self.initialize()
+        return isConnected
+        
+
     def startSCPIServer(self):
-        pass
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
+        time.sleep(1)
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_STOP_NGINX)
+        time.sleep(1)
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_SCPI_SERVER)
+        time.sleep(1)
 
     def stopSCPIServer(self):
-        pass
+        self.CMDManager.executeCommand(CMD_LIST_PROCESS_SCPI)
+        output = self.CMDManager.getOutput()
+        pids = [int(line.split()[0]) for line in output.strip().splitlines()]
+        for pid in pids:
+            self.CMDManager.executeCommand(f'{CMD_STOP_PROCESS}+{pid}')
 
     #   passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -288,6 +320,9 @@ class ProgramRunner:
     def exit(self):
         self.changeMode(ProgramMode.GEN_STOP)
         scpi.scpi(self.IP).close()
+        isConnected = self.connect()
+        self.stopSCPIServer()
+        self.disconnect()
 
 
 class FastProgramRunner:
@@ -354,7 +389,7 @@ class FastProgramRunner:
         output = self.CMDManager.getOutput()
         pids = [int(line.split()[0]) for line in output.strip().splitlines()]
         for pid in pids:
-            self.CMDManager.executeCommand(f'{CMD_STOP_STREAMING_SERVER}+{pid}')
+            self.CMDManager.executeCommand(f'{CMD_STOP_PROCESS}+{pid}')
 
     
     def runAcquisition(self, uSamples, uFileType):
@@ -394,7 +429,21 @@ class FastProgramRunner:
         return isConnected
         
     def cleanup(self):
+        self.outputFix()
         self.WAVFileManager.cleanup()
+
+    def runCleanupGeneration(self):
+        waveformValues = self.WaveCreator.createZero()
+        self.WAVFileManager.saveZeroWave(waveformValues, self.WaveCreator.getSampleRate())
+        command = CMD_START_STREAMING_DAC
+        command[5] = self.WAVFileManager.getZeroWavePath()   
+        command[7] = "1"
+        self.CMDManager.executeLocalCommand(command)     
+
+    def outputFix(self):
+        self.runStreamingServer()
+        self.runCleanupGeneration()
+        self.stopStreaming()
 
     def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
 
@@ -403,4 +452,3 @@ class FastProgramRunner:
         self.runAcquisition(uSamples, uFileType)
         self.stopStreaming()
         self.cleanup()
-    

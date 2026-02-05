@@ -34,3 +34,7 @@ class WaveCreator:
                 arbitraryWaveform = signal.sawtooth(self.periods*t, width=0)*maxVal
         
         return np.int16(arbitraryWaveform)
+    
+    def createZero(self):
+        waveform = np.zeros(self.samplesInPeriod)
+        return np.int16(waveform)
