@@ -112,11 +112,11 @@ class ContGenerator:
             self.voltageValue = uBase
         self.limit = uLimit
 
-    def createSteps(self, uNumOfSteps):
+    def createSteps(self, uNumOfSteps):    
         fullSize = self.limit - self.base
         stepSize = fullSize / uNumOfSteps
         self.steppingRanges = []
-        stepValue = 0.0
+        stepValue = self.base
         for _ in range(0, uNumOfSteps):
             stepValue += stepSize
             self.steppingRanges.append(stepValue)

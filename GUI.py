@@ -811,7 +811,7 @@ class startupGUI:
         pass
 
     def exit(self):
-        sys.exit() #TODO doesn't stop terminal run
+        sys.exit()
 
     def initGUI(self):
         ###style configuration
