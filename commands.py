@@ -8,19 +8,19 @@ CMD_START_STREAMING_SERVER = "echo STREAMINGSERVER && /opt/redpitaya/bin/streami
 CMD_STOP_PROCESS = "kill "
 CMD_LOAD_STREAMING_FPGA = "echo OVERLAY && /opt/redpitaya/sbin/overlay.sh stream_app"
 CMD_UPLOAD_CONFIG = [
-    './streaming_app/rpsa_client', 
+    './streaming_app/rpsa_client.exe', 
     '-c', 
     '-s', 'F', 
     '-f', './streaming_app/GAPconfig.json'] #add .exe for windows
 CMD_START_STREAMING_DAC = [
-    './streaming_app/rpsa_client', 
+    './streaming_app/rpsa_client.exe', 
     '-o', 
     '-f', 'wav', 
     '-d', '', 
     '-r', 'inf'
     ] #add .exe for windows
 CMD_START_STREAMING_ADC = [
-    './streaming_app/rpsa_client', 
+    './streaming_app/rpsa_client.exe', 
     '-s', 
     '-f', 'csv', 
     '-d', './dataLogs', 

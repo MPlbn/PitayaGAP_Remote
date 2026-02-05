@@ -27,7 +27,7 @@ FIRST_MODE: int = 1
 LAST_MODE: int = 8
 
 RED_PITAYA_IP = 'rp-f0ba38.local'
-PROC_NAME = 'rpsa_client' #add .exe for windows
+PROC_NAME = 'rpsa_client.exe' #add .exe for windows
 CONFIG_PATH = './streaming_app/GAPconfig.json'
 
 CONFIG_ACQ = "adc_streaming"
