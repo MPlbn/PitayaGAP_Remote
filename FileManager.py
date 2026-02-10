@@ -5,6 +5,7 @@ from scipy.io import wavfile
 from constants import *
 import os
 import json
+from pathlib import Path
 
 class CSVFileManager():
     def __init__(self):
@@ -34,8 +35,18 @@ class CSVFileManager():
                 for i in range(0, len(uVData)):
                     writer.writerow([uIData[i], uVData[i]])
 
-    def loadData(self, uPath):
-        pass
+    def loadFastData(self, uPath):
+        data = np.loadtxt(uPath, delimiter=',') #check delimiter
+        return [data[:, 1], data[:, 2]] 
+
+    def getPaths(self):
+        filePathList = [str(p) for p in Path("dataLogs").glob("*.csv")]
+        return filePathList
+    
+    def getNewestPath(self):
+        filePathList = list(Path("dataLogs").glob("*.csv"))
+        filePath = max(filePathList, key=lambda p: p.stat().st_mtime) if filePathList else None
+        return filePath
 
 class WAVFileManager():
     def __init__(self):

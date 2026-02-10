@@ -452,21 +452,9 @@ class FastProgramRunner:
         self.runCleanupGeneration()
         self.stopStreaming()
 
-    #TODO
-    def getNewestFilePath(self):
-        pass
-
-    #TODO
-    def processCSVData(self, uData):
-        pass
-        return []
-
     def showPlot(self, uPath):
-        data = self.CSVFileManager.loadData(uPath)
-        data = self.processCSVData(data)
+        data = self.CSVFileManager.loadFastData(uPath)
         self.Plotter.plot(data)
-
-
 
     def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
 
@@ -475,4 +463,4 @@ class FastProgramRunner:
         self.runAcquisition(uSamples, uFileType)
         self.stopStreaming()
         self.cleanup()
-        self.showPlot(self.getNewestFilePath()) #TODO get path to new file
+        self.showPlot(self.CSVFileManager.getNewestPath())

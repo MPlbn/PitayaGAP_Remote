@@ -127,8 +127,12 @@ class FAcqPlotter(Plotter):
     def __init__(self):
         pass
 
-    #TODO
     def plot(uData):
         dataV = uData[0]
         dataI = uData[1]
+        plt.figure()
         plt.plot(dataV, dataI)
+        plt.xlabel("U (V)")
+        plt.ylabel("I (A)")
+        plt.grid(True)
+        plt.show()
