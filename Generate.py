@@ -6,7 +6,7 @@ class Generator:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
         self.channelNumber = GEN_DEFAULT_CHANNEL
-        self.frequency = F_GEN_DEFAULT_FREQ
+        self.frequency = F_GEN_DEFAULT_DACRATE
         self.amplitude = F_GEN_DEFAULT_AMPLITUDE
         self.waveform = F_GEN_DEFAULT_WAVEFORM
         

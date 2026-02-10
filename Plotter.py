@@ -122,3 +122,13 @@ class GenPlotter(Plotter):
             self.isRunning = True
             self.updatePlot()
             self.isRunning = False
+
+class FAcqPlotter(Plotter):
+    def __init__(self):
+        pass
+
+    #TODO
+    def plot(uData):
+        dataV = uData[0]
+        dataI = uData[1]
+        plt.plot(dataV, dataI)

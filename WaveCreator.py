@@ -8,7 +8,8 @@ class WaveCreator:
         self.numberOfBits = WF_NUM_BITS
         self.sampleRate = WF_SAMPLE_RATE
         self.periods = WF_DEFAULT_PERIODS
-        self.samplesInPeriod = WF_SAMPLES_IN_PERIOD
+        self.samplesInPeriod = 0
+        self.fullSize = WF_FULL_SIZE
         self.maximumValue = 2**(self.numberOfBits-1)-1
         self.minimumValue = -2**(self.numberOfBits-1)
 
@@ -16,10 +17,16 @@ class WaveCreator:
         return self.sampleRate
 
     #it will probably need uamp also
-    def create(self, uWaveForm, uAmplitude):
-        t = np.linspace(0, 1, self.periods*self.samplesInPeriod)*2*np.pi
+    def create(self, uWaveForm, uAmplitude, uFrequency):
+
+        t = np.linspace(0, 1, self.fullSize)*2*np.pi
         arbitraryWaveform = []
         maxVal = self.maximumValue*uAmplitude
+
+        if(uFrequency < 10):
+            self.periods = uFrequency
+        else:
+            self.periods = 10
 
         match uWaveForm:
             case "Sine":
@@ -37,4 +44,8 @@ class WaveCreator:
     
     def createZero(self):
         waveform = np.zeros(self.samplesInPeriod)
+        return np.int16(waveform)
+    
+    def createStepping(self, uBase, uHighPointsList):
+        waveform = 0
         return np.int16(waveform)

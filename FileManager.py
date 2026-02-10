@@ -34,6 +34,8 @@ class CSVFileManager():
                 for i in range(0, len(uVData)):
                     writer.writerow([uIData[i], uVData[i]])
 
+    def loadData(self, uPath):
+        pass
 
 class WAVFileManager():
     def __init__(self):

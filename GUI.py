@@ -581,8 +581,9 @@ class fastGUI:
         self.waveForm = str(self.waveFormCB.get())
 
     def samplesPerSecCallback(self, value):
-        samplesPerSec = int(self.samplesPerSecCB.get())
-        self.decimation = 0
+        samplesPerSec = str(self.samplesPerSecCB.get())
+        self.decimation = F_ACQ_DEC_DICT[samplesPerSec]
+        print(self.decimation)
 
     def stateCH1ComboboxCallback(self, value):
         self.stateCH1 = str(self.stateCH1CB.get())
@@ -674,7 +675,7 @@ class fastGUI:
 
         #setting other values
         self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
-        self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
+        self.freqEntry.insert(0, str(F_GEN_DEFAULT_DACRATE))
         self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
         self.root.protocol("WM_DELETE_WINDOW", self.disable_event)
@@ -762,8 +763,8 @@ class fastGUI:
 
         tempFreq = self.freqEntry.get()
         if(tempFreq == ""):
-            tempFreq = F_GEN_DEFAULT_FREQ
-            self.freqEntry.insert(str(F_GEN_DEFAULT_FREQ))
+            tempFreq = F_GEN_DEFAULT_DACRATE
+            self.freqEntry.insert(str(F_GEN_DEFAULT_DACRATE))
         else:
             tempFreq = int(tempFreq)
 

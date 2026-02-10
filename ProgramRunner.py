@@ -330,8 +330,10 @@ class FastProgramRunner:
         self.ip = uIP
         self.WAVFileManager = FileManager.WAVFileManager()
         self.JSONFileManager = FileManager.JSONFileManager()
+        self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
+        self.Plotter = Plotter.FAcqPlotter()
 
     def connect(self) -> bool:
         if (self.CMDManager.connectToPitaya() is not None):
@@ -350,22 +352,27 @@ class FastProgramRunner:
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
     def processNumberOfSamples(self, uSamplesNumber):
-        loopNumber = int(uSamplesNumber / WF_SAMPLES_IN_PERIOD)
-        leftoverSamples = uSamplesNumber - (WF_SAMPLES_IN_PERIOD * loopNumber)
+        loopNumber = int(uSamplesNumber / WF_FULL_SIZE)
+        leftoverSamples = uSamplesNumber - (WF_FULL_SIZE * loopNumber)
         return [loopNumber, leftoverSamples]
 
-    def processWaveForm(self, uWaveForm, uAmplitude):
-        waveFormValues = self.WaveCreator.create(uWaveForm, uAmplitude)
+    def processWaveForm(self, uWaveForm, uAmplitude, uFrequency):
+        waveFormValues = self.WaveCreator.create(uWaveForm, uAmplitude, uFrequency)
         self.WAVFileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
+        if(uFrequency < 10):
+            dacRate = F_GEN_DEFAULT_DACRATE
+        else:
+            dacRate = uFrequency * 1000
+        return dacRate
 
 
-    def setConfig(self, uFrequency, uDecimation, uCH1, uCH2):
+    def setConfig(self, uDacRate, uDecimation, uCH1, uCH2):
         configData = self.JSONFileManager.getFileValue()
         # changing the values
         configData[CONFIG_ACQ][CONFIG_ACQ_CH1] = uCH1
         configData[CONFIG_ACQ][CONFIG_ACQ_CH2] = uCH2
         configData[CONFIG_ACQ][CONFIG_DEC] = uDecimation
-        configData[CONFIG_GEN][CONFIG_GEN_RATE] = uFrequency
+        configData[CONFIG_GEN][CONFIG_GEN_RATE] = uDacRate
 
         self.JSONFileManager.saveToFile(configData)
 
@@ -408,8 +415,8 @@ class FastProgramRunner:
 
     def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2):
         #Setups - this will be done differently
-        self.setConfig(uFrequency, uDecimation, uCH1, uCH2)
-        self.processWaveForm(uWaveForm, uAmplitude)
+        dacRate = self.processWaveForm(uWaveForm, uAmplitude, uFrequency)
+        self.setConfig(dacRate,uDecimation, uCH1, uCH2)
 
         #load fpga, start server, push the config command
         self.runStreamingServer()
@@ -445,6 +452,22 @@ class FastProgramRunner:
         self.runCleanupGeneration()
         self.stopStreaming()
 
+    #TODO
+    def getNewestFilePath(self):
+        pass
+
+    #TODO
+    def processCSVData(self, uData):
+        pass
+        return []
+
+    def showPlot(self, uPath):
+        data = self.CSVFileManager.loadData(uPath)
+        data = self.processCSVData(data)
+        self.Plotter.plot(data)
+
+
+
     def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
 
         self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2)
@@ -452,3 +475,4 @@ class FastProgramRunner:
         self.runAcquisition(uSamples, uFileType)
         self.stopStreaming()
         self.cleanup()
+        self.showPlot(self.getNewestFilePath()) #TODO get path to new file
