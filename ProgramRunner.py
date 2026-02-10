@@ -23,8 +23,9 @@ from commands import *
 #   class responsible for work routine of a program
 
 class ProgramRunner:
-    def __init__(self, uIP = 'rp-f0ba38.local'):
+    def __init__(self, uIP = RED_PITAYA_IP):
         self.IP = uIP
+        self.SCPI_IP = 'rp-f0ba38.local'
         self.PROGRAM_MODE = ProgramMode.IDLE
         self.ContGenerator = None
         self.FastGenerator = None
@@ -38,9 +39,9 @@ class ProgramRunner:
         self.CMDManager = CMDManager.CMDManager(self.IP)
 
     def initialize(self):
-        self.ContGenerator = Generate.ContGenerator(self.IP)
-        self.FastGenerator = Generate.Generator(self.IP)
-        self.Acquisitor = Acquire.Acquisitor(self.IP)
+        self.ContGenerator = Generate.ContGenerator(self.SCPI_IP)
+        self.FastGenerator = Generate.Generator(self.SCPI_IP)
+        self.Acquisitor = Acquire.Acquisitor(self.SCPI_IP)
         
 
     def connect(self):

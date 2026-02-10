@@ -26,7 +26,7 @@ class StopType(Enum):
 FIRST_MODE: int = 1
 LAST_MODE: int = 8
 
-RED_PITAYA_IP = 'rp-f0ba38.local'
+RED_PITAYA_IP = '169.254.49.194' #rp-f0ba38.local'
 PROC_NAME = 'rpsa_client' #add .exe for windows
 CONFIG_PATH = './streaming_app/GAPconfig.json'
 
