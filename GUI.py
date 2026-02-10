@@ -580,8 +580,9 @@ class fastGUI:
     def waveFormComboboxCallback(self, value):
         self.waveForm = str(self.waveFormCB.get())
 
-    def decComboboxCallback(self, value):
-        self.decimation = int(self.decCB.get())
+    def samplesPerSecCallback(self, value):
+        samplesPerSec = int(self.samplesPerSecCB.get())
+        self.decimation = 0
 
     def stateCH1ComboboxCallback(self, value):
         self.stateCH1 = str(self.stateCH1CB.get())
@@ -623,14 +624,14 @@ class fastGUI:
 
         #acqSettings frame
         self.acqSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Acquisitor')
-        self.decCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
+        self.samplesPerSecCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.samplesEntry = ttk.Entry(self.acqSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
         self.stateCH1CB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.stateCH2CB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         self.fileTypeCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
         #self.gainCB = ttk.Combobox(self.acqSettingsFrame, bootstyle=INFO, state=READONLY)
 
-        self.decLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Decimation')
+        self.samplesPerSecLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Samples per second')
         self.samplesLabel = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='Number of samples to collect')
         self.stateCH1Label = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='channel 1 state')
         self.stateCH2Label = ttk.Label(self.acqSettingsFrame, bootstyle=INFO, text='channel 2 state')
@@ -651,9 +652,9 @@ class fastGUI:
         self.waveFormCB.set(F_GUI_WF_COMBOBOX_VALUES[0])
         self.waveFormCB.bind('<<ComboboxSelected>>', self.waveFormComboboxCallback)
 
-        self.decCB['values'] = F_GUI_DEC_COMBOBOX_VALUES
-        self.decCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
-        self.decCB.bind('<<ComboboxSelected>>', self.decComboboxCallback)
+        self.samplesPerSecCB['values'] = F_GUI_DEC_COMBOBOX_VALUES
+        self.samplesPerSecCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
+        self.samplesPerSecCB.bind('<<ComboboxSelected>>', self.samplesPerSecCallback)
 
         self.stateCH1CB['values'] = F_GUI_STATE_COMBOBOX_VALUES
         self.stateCH1CB.set(F_GUI_STATE_COMBOBOX_VALUES[0])
@@ -699,14 +700,14 @@ class fastGUI:
 
         #acq settings
         self.acqSettingsFrame.pack(anchor=W, padx=10, pady=10)
-        self.decCB.grid(row=0, column=1, padx=10, pady=10)
+        self.samplesPerSecCB.grid(row=0, column=1, padx=10, pady=10)
         self.samplesEntry.grid(row=1, column=1, padx=10, pady=10)
         self.stateCH1CB.grid(row=2, column=1, padx=10, pady=10)
         self.stateCH2CB.grid(row=3, column=1, padx=10, pady=10)
         self.fileTypeCB.grid(row=4, column=1, padx=10, pady=10)
         #self.gainCB.grid(row=5, column=1, padx=10, pady=10)
 
-        self.decLabel.grid(row=0, column=0, padx=10, pady=10)
+        self.samplesPerSecLabel.grid(row=0, column=0, padx=10, pady=10)
         self.samplesLabel.grid(row=1, column=0, padx=10, pady=10)
         self.stateCH1Label.grid(row=2, column=0, padx=10, pady=10)
         self.stateCH2Label.grid(row=3, column=0, padx=10, pady=10)
