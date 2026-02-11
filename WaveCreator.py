@@ -17,33 +17,54 @@ class WaveCreator:
         return self.sampleRate
 
     #it will probably need uamp also
-    def create(self, uWaveForm, uAmplitude, uFrequency):
+    def create(self, uWaveForm, uHighestVal, uLowestVal, uStartingVal, uFrequency):
 
         t = np.linspace(0, 1, self.fullSize)*2*np.pi
         arbitraryWaveform = []
-        maxVal = self.maximumValue*uAmplitude
+        maxVal = self.maximumValue*uHighestVal
+        minVal = self.minimumValue*uLowestVal
+        minVal *= -1
 
         if(uFrequency < 10):
             self.periods = uFrequency
         else:
             self.periods = 10
+        
+        startNorm = 2*(uStartingVal - uLowestVal)/(uHighestVal - uLowestVal) - 1
 
         match uWaveForm:
             case "Sine":
-                arbitraryWaveform = np.sin(self.periods*t)*maxVal
+                shift = np.arcsin(startNorm)
+                arbitraryWaveform = np.sin(self.periods*t + shift)
+            
             case "Square":
-                arbitraryWaveform = signal.square(self.periods*t)*maxVal
+                if(startNorm > 0):
+                    shift = 0
+                else:
+                    shift = np.pi
+                arbitraryWaveform = signal.square(self.periods*t + shift)
+            
             case "Triangle":
-                arbitraryWaveform = signal.sawtooth(self.periods*t, width=0.5)*maxVal
+                shift = 0.25 + 0.25*startNorm
+                arbitraryWaveform = signal.sawtooth(self.periods*t + shift*2*np.pi, width=0.5)
+            
             case "Ramp up":
-                arbitraryWaveform = signal.sawtooth(self.periods*t)*maxVal
+                shift = (startNorm + 1)/2
+                arbitraryWaveform = signal.sawtooth(self.periods*t + shift*2*np.pi)
+            
             case "Ramp down":
-                arbitraryWaveform = signal.sawtooth(self.periods*t, width=0)*maxVal
+                shift = (1 - (startNorm + 1)/2)
+                arbitraryWaveform = signal.sawtooth(self.periods*t + shift*2*np.pi, width=0)
         
+        arbitraryWaveform = (arbitraryWaveform + 1)/2
+        arbitraryWaveform = arbitraryWaveform * (maxVal - minVal) + minVal
+
+        #return arbitraryWaveform
         return np.int16(arbitraryWaveform)
     
     def createZero(self):
-        waveform = np.zeros(self.samplesInPeriod)
+        t = np.linspace(0, 1, self.fullSize)*2*np.pi
+        waveform = np.array(self.samplesInPeriod*t)
         return np.int16(waveform)
     
     def createStepping(self, uBase, uHighPointsList):

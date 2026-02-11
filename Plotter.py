@@ -123,7 +123,7 @@ class GenPlotter(Plotter):
             self.updatePlot()
             self.isRunning = False
 
-class FAcqPlotter(Plotter):
+class FAcqPlotter():
     def __init__(self):
         pass
 

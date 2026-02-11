@@ -327,7 +327,7 @@ class ProgramRunner:
 
 
 class FastProgramRunner:
-    def __init__(self, uIP = 'rp-f0ba38.local'):
+    def __init__(self, uIP = RED_PITAYA_IP):
         self.ip = uIP
         self.WAVFileManager = FileManager.WAVFileManager()
         self.JSONFileManager = FileManager.JSONFileManager()
@@ -349,6 +349,7 @@ class FastProgramRunner:
         stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_STREAMING_FPGA)
         time.sleep(1)
         stodut, stderr, status = self.CMDManager.executeCommand(CMD_START_STREAMING_SERVER)
+        time.sleep(1)
 
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
@@ -357,14 +358,14 @@ class FastProgramRunner:
         leftoverSamples = uSamplesNumber - (WF_FULL_SIZE * loopNumber)
         return [loopNumber, leftoverSamples]
 
-    def processWaveForm(self, uWaveForm, uAmplitude, uFrequency):
-        waveFormValues = self.WaveCreator.create(uWaveForm, uAmplitude, uFrequency)
+    def processWaveForm(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency):
+        waveFormValues = self.WaveCreator.create(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency)
         self.WAVFileManager.saveToFile(uWaveForm, waveFormValues, self.WaveCreator.getSampleRate())
         if(uFrequency < 10):
             dacRate = F_GEN_DEFAULT_DACRATE
         else:
             dacRate = uFrequency * 1000
-        return dacRate
+        return dacRate 
 
 
     def setConfig(self, uDacRate, uDecimation, uCH1, uCH2):
@@ -378,12 +379,13 @@ class FastProgramRunner:
         self.JSONFileManager.saveToFile(configData)
 
     def pushConfig(self):
-        self.CMDManager.executeLocalCommand(CMD_UPLOAD_CONFIG)
+        self.CMDManager.executeLocalCommand(CMD_UPLOAD_CONFIG())
         
      
     def runGeneration(self):
-        command = CMD_START_STREAMING_DAC
-        command[5] = self.WAVFileManager.getCurrentPath()
+        command = CMD_START_STREAMING_DAC()
+        command[7] = self.WAVFileManager.getCurrentPath()
+        print(command)
         self.CMDManager.executeLocalCommand(command)
 
     def stopStreaming(self):
@@ -401,9 +403,9 @@ class FastProgramRunner:
 
     
     def runAcquisition(self, uSamples, uFileType):
-        command = CMD_START_STREAMING_ADC
-        command[3] = str(uFileType)
-        command[7] = str(uSamples) 
+        command = CMD_START_STREAMING_ADC()
+        command[5] = str(uFileType)
+        command[9] = str(uSamples) 
         self.CMDManager.executeLocalCommand(command)
 
     #   Running full run for fast samples
@@ -414,13 +416,10 @@ class FastProgramRunner:
     #   uSamples: int - how many samples to collect before closing 
     #   uGain: string - type of acq gain (HV/LV)
 
-    def setup(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2):
+    def setup(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uCH1, uCH2):
         #Setups - this will be done differently
-        dacRate = self.processWaveForm(uWaveForm, uAmplitude, uFrequency)
+        dacRate = self.processWaveForm(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency)
         self.setConfig(dacRate,uDecimation, uCH1, uCH2)
-
-        #load fpga, start server, push the config command
-        self.runStreamingServer()
         self.pushConfig()
 
     def startupRoutine(self):
@@ -438,30 +437,26 @@ class FastProgramRunner:
         
     def cleanup(self):
         self.outputFix()
-        self.WAVFileManager.cleanup()
+        #self.WAVFileManager.cleanup()
 
     def runCleanupGeneration(self):
         waveformValues = self.WaveCreator.createZero()
         self.WAVFileManager.saveZeroWave(waveformValues, self.WaveCreator.getSampleRate())
-        command = CMD_START_STREAMING_DAC
-        command[5] = self.WAVFileManager.getZeroWavePath()   
-        command[7] = "1"
+        command = CMD_START_STREAMING_DAC()
+        command[7] = self.WAVFileManager.getZeroWavePath()   
+        command[9] = "1"
         self.CMDManager.executeLocalCommand(command)     
 
     def outputFix(self):
-        self.runStreamingServer()
         self.runCleanupGeneration()
-        self.stopStreaming()
 
     def showPlot(self, uPath):
         data = self.CSVFileManager.loadFastData(uPath)
         self.Plotter.plot(data)
 
-    def run(self, uWaveForm, uAmplitude, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
-
-        self.setup(uWaveForm, uAmplitude, uFrequency, uDecimation, uCH1, uCH2)
+    def run(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
+        self.setup(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
-        self.stopStreaming()
         self.cleanup()
-        self.showPlot(self.CSVFileManager.getNewestPath())
+        #self.showPlot(self.CSVFileManager.getNewestPath())

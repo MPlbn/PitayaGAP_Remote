@@ -1,6 +1,6 @@
 {
     "adc_streaming": {
-        "adc_decimation": 256,
+        "adc_decimation": 65536,
         "adc_pass_mode": "NET",
         "channel_ac_dc_1": "DC",
         "channel_ac_dc_2": "DC",
@@ -27,7 +27,7 @@
         "dac_rate": 10000,
         "file_sd": "",
         "file_type_sd": "WAV",
-        "repeat": "DAC_REP_OFF",
+        "repeat": "DAC_REP_INF",
         "repeatCount": 0
     },
     "memory_manager": {

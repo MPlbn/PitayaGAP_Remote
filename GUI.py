@@ -598,7 +598,7 @@ class fastGUI:
     #     self.gain = str(self.gainCB.get())
 
     #   Initialization of GUI elements
-
+    # TODO lPoint, hPoint, sPoint
     def initGUI(self):
 
         ##style configuration
@@ -616,11 +616,17 @@ class fastGUI:
         #genSettings frame
         self.genSettingsFrame = ttk.Labelframe(self.settingsFrame, bootstyle=INFO, text='Generator')
         self.waveFormCB = ttk.Combobox(self.genSettingsFrame, bootstyle=INFO, state=READONLY)
-        self.ampEntry = ttk.Entry(self.genSettingsFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        #self.ampEntry = ttk.Entry(self.genSettingsFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.hPointEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.lPointEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.sPointEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
         self.freqEntry = ttk.Entry(self.genSettingsFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
 
         self.waveFormLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Waveform type')
-        self.ampLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Amplitude [mV]')
+        #self.ampLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Amplitude [mV]')
+        self.hPointLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='High value [mV]')
+        self.lPointLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Low value [mV]')
+        self.sPointLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Starting value [mV]')
         self.freqLabel = ttk.Label(self.genSettingsFrame, bootstyle=INFO, text='Frequency [Hz]')
 
         #acqSettings frame
@@ -674,7 +680,10 @@ class fastGUI:
         # self.gainCB.bind('<<ComboboxSelected>>', self.gainComboboxCallback)
 
         #setting other values
-        self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
+        #self.ampEntry.insert(0, str(F_GEN_DEFAULT_AMPLITUDE))
+        self.hPointEntry.insert(0, str(F_GEN_DEFAULT_HPOINT))
+        self.lPointEntry.insert(0, str(F_GEN_DEFAULT_LPOINT))
+        self.sPointEntry.insert(0, str(F_GEN_DEFAULT_SPOINT))
         self.freqEntry.insert(0, str(F_GEN_DEFAULT_DACRATE))
         self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
@@ -684,20 +693,24 @@ class fastGUI:
         return self.isConnectedPitaya
 
     #   Setup of GUI elements and start of main loop
-
     def startGUI(self):
+        self.PR.runStreamingServer()
         #settings frame placement
         self.settingsFrame.pack(side=LEFT, anchor=W, padx=30, pady=30)
 
         #gen settings
         self.genSettingsFrame.pack(anchor=W, padx=10, pady=10)
         self.waveFormCB.grid(row=0, column=1, padx=10, pady=10)
-        self.ampEntry.grid(row=1, column=1, padx=10, pady=10)
-        self.freqEntry.grid(row=2, column=1, padx=10, pady=10)
+        self.hPointEntry.grid(row=1, column=1, padx=10, pady=10)
+        self.lPointEntry.grid(row=2, column=1, padx=10, pady=10)
+        self.sPointEntry.grid(row=3, column=1, padx=10, pady=10)
+        self.freqEntry.grid(row=4, column=1, padx=10, pady=10)
 
         self.waveFormLabel.grid(row=0, column=0, padx=10, pady=10)
-        self.ampLabel.grid(row=1, column=0, padx=10, pady=10)
-        self.freqLabel.grid(row=2, column=0, padx=10, pady=10)
+        self.hPointLabel.grid(row=1, column=0, padx=10, pady=10)
+        self.lPointLabel.grid(row=2, column=0, padx=10, pady=10)
+        self.sPointLabel.grid(row=3, column=0, padx=10, pady=10)
+        self.freqLabel.grid(row=4, column=0, padx=10, pady=10)
 
         #acq settings
         self.acqSettingsFrame.pack(anchor=W, padx=10, pady=10)
@@ -729,8 +742,10 @@ class fastGUI:
     #   Close ProgramRunner and GUI
 
     def stopGUI(self):
-        if self.isConnectedPitaya:
-            self.PR.disconnect()
+        if not self.isConnectedPitaya:
+            self.PR.connect()
+        self.PR.stopStreaming()
+        self.PR.disconnect()
         subprocess.Popen([sys.executable, 'runVolGen.py'])
         sys.exit()
 
@@ -746,20 +761,47 @@ class fastGUI:
         tempStateCH2 = self.stateCH2
         tempFileType = self.fileType
         #tempGain = self.gain
-        
-        tempAmp = self.ampEntry.get()
-        if(tempAmp == ""):
-            tempAmp = F_GEN_DEFAULT_AMPLITUDE
-            self.ampEntry.insert(str(F_GEN_DEFAULT_AMPLITUDE))
+        tempHPoint = self.hPointEntry.get()
+        if(tempHPoint == ""):
+            tempHPoint = F_GEN_DEFAULT_HPOINT
         else:
-            tempAmp = float(tempAmp)
-
-        if(tempAmp <= F_GEN_AMP_UP_LIMIT and tempAmp >= F_GEN_AMP_DOWN_LIMIT):
+            tempHPoint = float(tempHPoint)
+        
+        if(tempHPoint >= F_GEN_RANGE_DOWN_LIMIT and tempHPoint <= F_GEN_RANGE_UP_LIMIT):
             pass
         else:
             errorFlag = True
-            errorText += f'Invalid field: Amplitude: Amplitude is out of range. The value must be between {F_GEN_AMP_UP_LIMIT} and {F_GEN_AMP_DOWN_LIMIT}\n'
+            errorText += f'Invalid field: High Value: voltage value is out of range. The value must be between {F_GEN_RANGE_UP_LIMIT} and {F_GEN_RANGE_DOWN_LIMIT}\n'
 
+        tempLPoint = self.lPointEntry.get()
+        if(tempLPoint == ""):
+            tempLPoint = F_GEN_DEFAULT_LPOINT
+        else:
+            tempLPoint = float(tempLPoint)
+
+        if(tempLPoint >= F_GEN_RANGE_DOWN_LIMIT and tempLPoint <= F_GEN_RANGE_UP_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Low Value: voltage value is out of range. The value must be between {F_GEN_RANGE_UP_LIMIT} and {F_GEN_RANGE_DOWN_LIMIT}\n'
+
+        #check and possibly swap Hpoint with Lpoint
+        if(tempLPoint > tempHPoint):
+            valueHolder = tempLPoint
+            tempLPoint = tempHPoint
+            tempHPoint = valueHolder 
+        
+        tempSPoint = self.sPointEntry.get()
+        if(tempSPoint == ""):
+            tempSPoint = F_GEN_DEFAULT_SPOINT
+        else:
+            tempSPoint = float(tempSPoint)
+
+        if(tempSPoint >= tempLPoint and tempSPoint <= tempHPoint):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Starting Value: voltage value is out of range. The value must be between set High Value and Low Value\n'
 
         tempFreq = self.freqEntry.get()
         if(tempFreq == ""):
@@ -790,7 +832,10 @@ class fastGUI:
 
         if(not errorFlag):
             self.errorLabel.configure(text = "")
-            self.PR.run(tempWaveForm, tempAmp/MV_TO_V_VALUE, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
+            tempHPoint /= MV_TO_V_VALUE
+            tempLPoint /= MV_TO_V_VALUE
+            tempSPoint /= MV_TO_V_VALUE
+            self.PR.run(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
         else:
             self.errorLabel.configure(text = errorText)
 
