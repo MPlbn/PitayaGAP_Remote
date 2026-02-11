@@ -127,7 +127,7 @@ class FAcqPlotter():
     def __init__(self):
         pass
 
-    def plot(uData):
+    def plot(self, uData):
         dataV = uData[0]
         dataI = uData[1]
         plt.figure()

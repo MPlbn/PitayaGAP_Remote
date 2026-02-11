@@ -437,7 +437,7 @@ class FastProgramRunner:
         
     def cleanup(self):
         self.outputFix()
-        #self.WAVFileManager.cleanup()
+        self.WAVFileManager.cleanup()
 
     def runCleanupGeneration(self):
         waveformValues = self.WaveCreator.createZero()
@@ -459,4 +459,4 @@ class FastProgramRunner:
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
         self.cleanup()
-        #self.showPlot(self.CSVFileManager.getNewestPath())
+        self.showPlot(self.CSVFileManager.getNewestPath())
