@@ -1,5 +1,5 @@
-IFACE = "enx00e04c680253"
-IP = "169.254.49.1/16"
+IFACE="enx00e04c680253"
+IP="169.254.49.1/16"
 
 echo "Fixing redpitaya network on $IFACE..."
 

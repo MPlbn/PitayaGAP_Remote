@@ -660,7 +660,7 @@ class fastGUI:
         self.waveFormCB.bind('<<ComboboxSelected>>', self.waveFormComboboxCallback)
 
         self.samplesPerSecCB['values'] = F_GUI_DEC_COMBOBOX_VALUES
-        self.samplesPerSecCB.set(F_GUI_DEC_COMBOBOX_VALUES[0])
+        self.samplesPerSecCB.set(F_GUI_DEC_COMBOBOX_VALUES[-1])
         self.samplesPerSecCB.bind('<<ComboboxSelected>>', self.samplesPerSecCallback)
 
         self.stateCH1CB['values'] = F_GUI_STATE_COMBOBOX_VALUES
@@ -684,7 +684,7 @@ class fastGUI:
         self.hPointEntry.insert(0, str(F_GEN_DEFAULT_HPOINT))
         self.lPointEntry.insert(0, str(F_GEN_DEFAULT_LPOINT))
         self.sPointEntry.insert(0, str(F_GEN_DEFAULT_SPOINT))
-        self.freqEntry.insert(0, str(F_GEN_DEFAULT_DACRATE))
+        self.freqEntry.insert(0, str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.insert(0, str(F_ACQ_DEFAULT_SAMPLES))
 
         self.root.protocol("WM_DELETE_WINDOW", self.disable_event)
@@ -805,8 +805,8 @@ class fastGUI:
 
         tempFreq = self.freqEntry.get()
         if(tempFreq == ""):
-            tempFreq = F_GEN_DEFAULT_DACRATE
-            self.freqEntry.insert(str(F_GEN_DEFAULT_DACRATE))
+            tempFreq = F_GEN_DEFAULT_FREQ
+            self.freqEntry.insert(str(F_GEN_DEFAULT_FREQ))
         else:
             tempFreq = int(tempFreq)
 

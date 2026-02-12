@@ -1,0 +1,32 @@
+======================================================================
+====   Data transfer report  2026-02-12 11:22:47 =====================
+======================================================================
+
+
+Current ADC speed:	1907
+
+
+Lost data due to file write buffer overflow:	0
+Loss of data due to lack of memory:	0
+
+Total amount of data transferred:
+	-131072b 
+	-128kb 
+	-0Mb 
+
+The total amount of data transmitted on: Channel 1
+	-32768 Samples
+	-65536b 
+	-64kb 
+	-0Mb 
+	Lost data on: Channel 1
+	- FPGA:	0 Samples
+
+The total amount of data transmitted on: Channel 2
+	-32768 Samples
+	-65536b 
+	-64kb 
+	-0Mb 
+	Lost data on: Channel 2
+	- FPGA:	0 Samples
+
