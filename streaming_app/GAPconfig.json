@@ -1,6 +1,6 @@
 {
     "adc_streaming": {
-        "adc_decimation": 65536,
+        "adc_decimation": 1,
         "adc_pass_mode": "NET",
         "channel_ac_dc_1": "DC",
         "channel_ac_dc_2": "DC",

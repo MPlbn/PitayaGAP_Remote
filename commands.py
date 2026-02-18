@@ -2,6 +2,7 @@ from constants import *
 
 CMD_LOAD_SCPI_FPGA = "echo STANDARD OVERLAY && /opt/redpitaya/sbin/overlay.sh v0.94"
 CMD_STOP_NGINX = "echo STOPING NGINX && systemctl stop redpitaya_nginx"
+CMD_START_NGINX = "echo STOPING NGINX && systemctl start redpitaya_nginx"
 CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &"
 
 CMD_START_STREAMING_SERVER = "echo STREAMINGSERVER && /opt/redpitaya/bin/streaming-server -b"

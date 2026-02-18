@@ -25,10 +25,10 @@ from commands import *
 class ProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
         self.IP = uIP
-        self.SCPI_IP = 'rp-f0ba38.local'
+        self.SCPI_IP = RED_PITAYA_IP
         self.PROGRAM_MODE = ProgramMode.IDLE
         self.ContGenerator = None
-        self.FastGenerator = None
+        #self.FastGenerator = None
         self.Acquisitor = None
         self.isRunningContinous = False
         self.dataBuffer = [] #not used for now
@@ -40,7 +40,7 @@ class ProgramRunner:
 
     def initialize(self):
         self.ContGenerator = Generate.ContGenerator(self.SCPI_IP)
-        self.FastGenerator = Generate.Generator(self.SCPI_IP)
+        #self.FastGenerator = Generate.Generator(self.SCPI_IP)
         self.Acquisitor = Acquire.Acquisitor(self.SCPI_IP)
         
 
@@ -74,8 +74,8 @@ class ProgramRunner:
     def startSCPIServer(self):
         stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
         time.sleep(1)
-        stdout, stderr, status = self.CMDManager.executeCommand(CMD_STOP_NGINX)
-        time.sleep(1)
+        # stdout, stderr, status = self.CMDManager.executeCommand(CMD_STOP_NGINX)
+        # time.sleep(1)
         stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_SCPI_SERVER)
         time.sleep(1)
 
@@ -208,7 +208,7 @@ class ProgramRunner:
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
-                self.AcqPlotter.start()
+                #self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.ContGenerator.applyDirection()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE) 
@@ -220,7 +220,7 @@ class ProgramRunner:
                 if(self.ContGenerator.getPause()):
                     self.ContGenerator.unpause()
                 
-                self.AcqPlotter.stop()
+                #self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.changeMode(ProgramMode.IDLE)
 
@@ -229,14 +229,14 @@ class ProgramRunner:
 
                 self.ContGenerator.workRoutine()
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
-                self.Acquisitor.reset()
-                self.Acquisitor.setSCPIsettings()
-                self.Acquisitor.start()
-                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
-                Vbuffer = np.array(buffer[0])
-                Ibuffer = np.array(buffer[1])
-                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
-                self.Acquisitor.stop()
+                #self.Acquisitor.reset()
+                #self.Acquisitor.setSCPIsettings()
+                #self.Acquisitor.start()
+                #buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                #Vbuffer = np.array(buffer[0])
+                #Ibuffer = np.array(buffer[1])
+                #self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                #self.Acquisitor.stop()
                 
                 #Time check
                 tStopTime = time.time()
@@ -255,14 +255,14 @@ class ProgramRunner:
             
             case ProgramMode.PRE_WORK_ROUTINE:
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
-                self.Acquisitor.reset()
-                self.Acquisitor.setSCPIsettings()
-                self.Acquisitor.start()
-                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
-                Vbuffer = np.array(buffer[0])
-                Ibuffer = np.array(buffer[1])
-                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
-                self.Acquisitor.stop()
+                #self.Acquisitor.reset()
+                #self.Acquisitor.setSCPIsettings()
+                #self.Acquisitor.start()
+                #buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                #Vbuffer = np.array(buffer[0])
+                #Ibuffer = np.array(buffer[1])
+                #self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                #self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
@@ -346,6 +346,24 @@ class ProgramRunner:
         generateCommand = self.CMDManager.createGenerateCommand(TEST_CMD_GENERATE, 0)
         self.CMDManager.executeCommand(generateCommand)
 
+    def generateStuff(self):
+        voltage = 0
+        step = 0.10
+        hBound = 1
+        lBound = -1
+        self.ContGenerator.reset()
+        self.ContGenerator.startGen()
+        for i in range(100):
+            start = time.time()
+            self.ContGenerator.changeVolt(voltage)
+            if(voltage + step > hBound or voltage + step < lBound):
+                step *= -1
+            voltage += step
+            end = time.time()
+            elapsed = end-start
+            print(f'step time: {elapsed} ms')
+            time.sleep(0.010)
+        self.ContGenerator.stopGen(StopType.STOP_RESET)
 
 class FastProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
