@@ -13,11 +13,11 @@ lVal = -0.5
 startVal = 0.6
 frequency = 1
 waveform = WF_TRI
-path = "./streaming_app/arb_custom_Triangle.wav"
+path = "./streaming_app/arb_custom_DC.wav"
 
 
-y_Values = WCreator.create(waveform, hVal, lVal, startVal, frequency)
-FManager.saveToFile(waveform, y_Values, WCreator.getSampleRate())
+#y_Values = WCreator.create(waveform, hVal, lVal, startVal, frequency)
+#FManager.saveToFile(waveform, y_Values, WCreator.getSampleRate())
 #data = FManager.openFile(path)
 fs, data = wavfile.read(path)
 print("Sample rate:", fs)

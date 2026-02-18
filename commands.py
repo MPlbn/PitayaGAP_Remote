@@ -1,6 +1,6 @@
 from constants import *
 
-CMD_LOAD_SCPI_FPGA = "echo SCPI OVERLAY && /opt/redpitaya/sbin/overlay.sh v0.94"
+CMD_LOAD_SCPI_FPGA = "echo STANDARD OVERLAY && /opt/redpitaya/sbin/overlay.sh v0.94"
 CMD_STOP_NGINX = "echo STOPING NGINX && systemctl stop redpitaya_nginx"
 CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &"
 
@@ -22,7 +22,7 @@ CCMD_START_STREAMING_DAC = [
     '-h', f'{RED_PITAYA_IP}',
     '-f', 'wav', 
     '-d', '', 
-    '-r', 'inf',
+    '-r', 'inf', #tochange
     '-v'
     ] #add .exe for windows
 def CMD_START_STREAMING_DAC():
@@ -43,3 +43,6 @@ def CMD_START_STREAMING_ADC():
 
 CMD_LIST_PROCESS = "pgrep -af streaming-server"
 CMD_LIST_PROCESS_SCPI = "pgrep -af scpi-server"
+
+# ==================== TEST GENERATE FUNCTIONS ====================
+TEST_CMD_GENERATE = "/opt/redpitaya/bin/generate 1 "

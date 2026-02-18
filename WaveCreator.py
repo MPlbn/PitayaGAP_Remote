@@ -66,6 +66,18 @@ class WaveCreator:
         t = np.linspace(0, 1, self.fullSize)*2*np.pi
         waveform = np.array(self.samplesInPeriod*t)
         return np.int16(waveform)
+
+    def createDC(self, voltVal):
+        t = np.linspace(1, 1, self.fullSize)
+        if(voltVal >= 0):
+            voltVal = voltVal*self.maximumValue
+            waveform = np.array(voltVal*t)
+        else:
+            voltVal = voltVal*-1*self.minimumValue
+            waveform = np.array(voltVal*t)
+
+        np.append(waveform, voltVal)
+        return np.int16(waveform)
     
     def createStepping(self, uBase, uHighPointsList):
         waveform = 0

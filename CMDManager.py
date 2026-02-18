@@ -58,3 +58,8 @@ class CMDManager:
                     print("STDERR LISTENER:", errorContent, end='', flush=True)
             if (self.stdout.channel.exit_status_ready()):
                 break
+
+    # ============== TEST ==============
+    def createGenerateCommand(self,uCommand, uVoltage, uFreq = 1):
+        command = uCommand + f'{uVoltage} {uFreq} dc'
+        return command

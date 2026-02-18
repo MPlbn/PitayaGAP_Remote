@@ -326,6 +326,27 @@ class ProgramRunner:
         self.disconnect()
 
 
+    # =================== TEST GENERATION FUNCTIONS ===================
+    def TEST_START_CMD(self):
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
+        time.sleep(1)
+
+    def TEST_CMD_GENERATION(self):
+        voltage = 0
+        step = 0.10
+        hBound = 1
+        lBound = -1
+        for i in range(10):
+            time.sleep(1)
+            generateCommand = self.CMDManager.createGenerateCommand(TEST_CMD_GENERATE, voltage)
+            self.CMDManager.executeCommand(generateCommand)
+            if(voltage + step > hBound or voltage + step < lBound):
+                step *= -1
+            voltage += step
+        generateCommand = self.CMDManager.createGenerateCommand(TEST_CMD_GENERATE, 0)
+        self.CMDManager.executeCommand(generateCommand)
+
+
 class FastProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
         self.ip = uIP
@@ -460,3 +481,48 @@ class FastProgramRunner:
         self.runAcquisition(uSamples, uFileType)
         self.cleanup()
         self.showPlot(self.CSVFileManager.getNewestPath())
+
+# ==================== TEST ====================
+    def testSetup(self):
+        #Setups - this will be done differently
+        self.setConfig(F_GEN_DEFAULT_DACRATE, F_ACQ_DEFAULT_DEC, F_ACQ_DEFAULT_STATE, F_ACQ_DEFAULT_STATE)
+        self.pushConfig() 
+
+    def generateWaveForm(self, uVoltage):
+        waveform = self.WaveCreator.createDC(uVoltage)
+        self.WAVFileManager.saveToFile('DC', waveform, self.WaveCreator.getSampleRate())
+
+    def TESTrunGeneration(self, command):
+        command[7] = self.WAVFileManager.getCurrentPath()
+        print(command)
+        self.CMDManager.executeLocalCommand(command)
+
+    def TEST_STREAMING_GENERATION(self):
+        voltage = 0.5
+        step = 0.10
+        hBound = 1.0
+        lBound = -1.0
+        self.testSetup()
+        command = [
+    './streaming_app/rpsa_client', 
+    '-o',
+    '-h', f'{RED_PITAYA_IP}',
+    '-f', 'wav', 
+    '-d', '', #tochange
+    'r', 'inf',
+    '-v'
+    ]
+
+        # for i in range(10):
+            # start = time.time()
+            # self.generateWaveForm(voltage)
+            # self.runGeneration()
+            # if(voltage + step > hBound or voltage + step < lBound):
+                # step *= -1
+            # voltage += step
+            # end = time.time()
+            # elapsed = end-start
+            # print(f'step time: {elapsed} ms')
+        self.generateWaveForm(voltage)
+        self.TESTrunGeneration(command.copy())
+        time.sleep(10)
