@@ -346,14 +346,22 @@ class ProgramRunner:
         generateCommand = self.CMDManager.createGenerateCommand(TEST_CMD_GENERATE, 0)
         self.CMDManager.executeCommand(generateCommand)
 
-    def generateStuff(self):
+    def doStuff(self):
+        self.Plotter = Plotter.FAcqPlotter()
         voltage = 0
         step = 0.10
         hBound = 1
         lBound = -1
+        finBuff = []
         self.ContGenerator.reset()
+        self.Acquisitor.reset()
         self.ContGenerator.startGen()
-        for i in range(100):
+        self.Acquisitor.start()
+        time.sleep(0.01)
+        for i in range(500):
+            self.Acquisitor.setTrig()
+            time.sleep(0.01)
+            finBuff.append(self.Acquisitor.AcqRoutine()) 
             start = time.time()
             self.ContGenerator.changeVolt(voltage)
             if(voltage + step > hBound or voltage + step < lBound):
@@ -362,8 +370,23 @@ class ProgramRunner:
             end = time.time()
             elapsed = end-start
             print(f'step time: {elapsed} ms')
-            time.sleep(0.010)
+        self.Acquisitor.stop()
         self.ContGenerator.stopGen(StopType.STOP_RESET)
+        self.Acquisitor.reset()
+        finBuff = self.Acquisitor.processData(finBuff.copy())
+        #print(type(finBuff[0]))
+        self.Plotter.testPlot(finBuff)
+    def doStuffAcq(self):
+        #finBuff = []
+        self.Acquisitor.start()
+        self.Acquisitor.run()
+        #finBuff.append(self.Acquisitor.AcqRoutine())
+        finBuff = self.Acquisitor.AcqRoutineFull()
+        return self.Acquisitor.processDataFull(finBuff)
+        #return finBuff
+
+        
+    
 
 class FastProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):

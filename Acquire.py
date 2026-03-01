@@ -8,7 +8,7 @@ from constants import *
 class Acquisitor:
     def __init__(self, uIP):
         self.RP_S = scpi.scpi(uIP)
-        self.decimation = 4
+        self.decimation = 1
         self.gain = ACQ_DEFAULT_GAIN
 
     #   resets acquisition
@@ -62,3 +62,26 @@ class Acquisitor:
         #Return Voltage and Current in a list
         retList = [retListVoltage, retListCurrent]
         return retList
+    
+    ## =========== TEST ============ ##
+    def setTrig(self):
+        self.RP_S.tx_txt('ACQ:TRig:CH2 NOW')
+
+    def AcqRoutine(self):
+        self.RP_S.tx_txt('ACQ:SOUR2:DATA:LATest:N? 1')
+        retVal = self.RP_S.rx_txt()
+        return retVal
+    def AcqRoutineFull(self):
+        self.RP_S.tx_txt('ACQ:SOUR2:DATA?')
+        return self.RP_S.rx_txt()
+    
+    def processData(self, uBuffer):
+        retList = []
+        for element in uBuffer:
+            element = element.strip("{}")
+            retList.append(float(element))
+        return retList
+    
+    def processDataFull(self, uBuffer):
+        uBuffer = uBuffer.strip('{}\n\r').replace("  ", "").split(',')
+        return list(map(float, uBuffer))

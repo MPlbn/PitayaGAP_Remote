@@ -136,3 +136,8 @@ class FAcqPlotter():
         plt.ylabel("I (A)")
         plt.grid(True)
         plt.show()
+    ## ========= TEST ========== ##
+    def testPlot(self, uData):
+        plt.grid(True)
+        plt.plot(uData)
+        plt.show()
