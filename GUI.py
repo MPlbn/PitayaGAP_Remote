@@ -16,8 +16,8 @@ from constants import *
 
 class GUI:
     def __init__(self):
-        self.PR = ProgramRunner.ProgramRunner()
         self.root = ttk.Window(themename="superhero", size=GUI_DEFAULT_WINDOW_SIZE)
+        self.PR = ProgramRunner.ProgramRunner()
         self.interval: int = GUI_DEFAULT_INTERVAL
         self.thread = thread.Thread(target=self.threadTask)
         self.thread.daemon = True
@@ -139,25 +139,25 @@ class GUI:
 
         if(tempStep > GEN_MAX_STEP):
             tempStep = GEN_MAX_STEP
-            self.stepEntry.delete(0, ttk.END)
+            self.stepEntry.delete(0, END)
             self.stepEntry.insert(0, str(GEN_MAX_STEP))
             tempMessage += f"Error: Step value cannot be higher than {GEN_MAX_STEP}\n"
 
         if(tempStep <= 0):
             tempStep = GEN_DEFAULT_STEP
-            self.stepEntry.delete(0, ttk.END)
+            self.stepEntry.delete(0, END)
             self.stepEntry.insert(0, str(GEN_DEFAULT_STEP))
             tempMessage += "Error: Step value cannot be 0 or lower\n"
         
         if(tempTime > GUI_MAX_INTERVAL):
             tempTime = GUI_MAX_INTERVAL
-            self.intervalEntry.delete(0, ttk.END)
+            self.intervalEntry.delete(0, END)
             self.intervalEntry.insert(0, str(GUI_MAX_INTERVAL))
             tempMessage += f"Error: Interval cannot be higher than {GUI_MAX_INTERVAL}ms\n"
 
         if(tempTime < GUI_MIN_INTERVAL):
             tempTime = GUI_MIN_INTERVAL
-            self.intervalEntry.delete(0, ttk.END)
+            self.intervalEntry.delete(0, END)
             self.intervalEntry.insert(0, str(GUI_MIN_INTERVAL))
             tempMessage += f"Error: Interval cannot be lower than {GUI_MIN_INTERVAL}ms\n"
 
@@ -174,40 +174,40 @@ class GUI:
                     temp = tempLRange
                     tempHRange = tempLRange
                     tempLRange = temp
-                    self.hRangeEntry.delete(0, ttk.END)
-                    self.lRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.delete(0, END)
+                    self.lRangeEntry.delete(0, END)
                     self.hRangeEntry.insert(0, f'{tempHRange}')
                     self.lRangeEntry.insert(0, f'{tempLRange}')
 
                 if(tempHRange > GEN_MAX_RANGE):
                     tempHRange = GEN_MAX_RANGE
-                    self.hRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.delete(0, END)
                     self.hRangeEntry.insert(0, str(GEN_MAX_RANGE))
                     tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
 
                 if(tempHRange < GEN_MIN_RANGE):
                     tempHRange = GEN_MIN_RANGE
-                    self.hRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.delete(0, END)
                     self.hRangeEntry.insert(0, str(GEN_MIN_RANGE))
                     tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"
 
                 if(tempLRange > GEN_MAX_RANGE):
                     tempLRange = GEN_MAX_RANGE
-                    self.lRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.delete(0, END)
                     self.lRangeEntry.insert(0, str(GEN_MAX_RANGE))
                     tempMessage += f"Error: Range cannot be higher than {GEN_MAX_RANGE}\n"
 
                 if(tempLRange < GEN_MIN_RANGE):
                     tempLRange = GEN_MIN_RANGE
-                    self.lRangeEntry.delete(0, ttk.END)
+                    self.lRangeEntry.delete(0, END)
                     self.lRangeEntry.insert(0, str(GEN_MIN_RANGE))
                     tempMessage += f"Error: Range cannot be lower than {GEN_MIN_RANGE}\n"    
 
                 if(tempHRange == tempLRange):
                     tempHRange = GEN_DEFAULT_HRANGE
                     tempLRange = GEN_DEFAULT_LRANGE
-                    self.hRangeEntry.delete(0, ttk.END)
-                    self.lRangeEntry.delete(0, ttk.END)
+                    self.hRangeEntry.delete(0, END)
+                    self.lRangeEntry.delete(0, END)
                     self.hRangeEntry.insert(0, str(GEN_DEFAULT_HRANGE))
                     self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
                     tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
@@ -221,25 +221,25 @@ class GUI:
 
                 if(tempLimit > GEN_MAX_RANGE):
                     tempLimit = GEN_MAX_RANGE
-                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.delete(0, END)
                     self.baseEntry.insert(0, str(GEN_MIN_RANGE))
                     tempMessage += f"Error: Upper limit cannot be higher than {GEN_MAX_RANGE}"
 
                 if(tempLimit < GEN_MIN_RANGE):
                     tempLimit = GEN_MIN_RANGE
-                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.delete(0, END)
                     self.maxRangeEntry.insert(0, str(GEN_MIN_RANGE))
                     tempMessage += f"Error: Upper limit cannot be lower than {GEN_MIN_RANGE}"
 
                 if(tempBase > GEN_MAX_RANGE):
                     tempBase = GEN_MAX_RANGE
-                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.delete(0, END)
                     self.baseEntry.insert(0, str(GEN_MAX_RANGE))
                     tempMessage += f"Error: Base voltage cannot be higher than {GEN_MAX_RANGE}"
                 
                 if(tempBase < GEN_MIN_RANGE):
                     tempBase = GEN_MIN_RANGE
-                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.delete(0, END)
                     self.baseEntry.insert(0, str(GEN_MIN_RANGE))
                     tempMessage += f"Error: Base voltage cannot be lower than {GEN_MIN_RANGE}"
 
@@ -247,21 +247,21 @@ class GUI:
                     tempBase = GEN_DEFAULT_VOLTAGE
                     tempLimit = GEN_MAX_RANGE
 
-                    self.baseEntry.delete(0, ttk.END)
+                    self.baseEntry.delete(0, END)
                     self.baseEntry.insert(0, str(GEN_DEFAULT_VOLTAGE))
-                    self.maxRangeEntry.delete(0, ttk.END)
+                    self.maxRangeEntry.delete(0, END)
                     self.maxRangeEntry.insert(0, str(GEN_MAX_RANGE))
                     tempMessage += f"Error: Base voltage and upper limit cannot be tha same - resetting values"
 
                 if(tempNumOfSteps < 2):
                     tempNumOfSteps = 2
-                    self.numOfStepsEntry.delete(0, ttk.END)
+                    self.numOfStepsEntry.delete(0, END)
                     self.numOfStepsEntry.insert(0, str(2))
                     tempMessage += f"Error: Number of steps cannot be lower than 2"
 
                 if(tempNumOfSteps > 30):
                     tempNumOfSteps = 30
-                    self.numOfStepsEntry.delete(0, ttk.END)
+                    self.numOfStepsEntry.delete(0, END)
                     self.numOfStepsEntry.insert(0, str(30))
                     tempMessage += f"Error: Number of steps cannot be higher than 30"
 

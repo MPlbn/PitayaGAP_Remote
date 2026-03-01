@@ -27,6 +27,7 @@ class Acquisitor:
         self.RP_S.tx_txt(f'ACQ:DATA:FORMAT {ACQ_DATA_FORMAT}')
         self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_VOLTAGE_CHANNEL}:GAIN {self.gain}')
         self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_CURRENT_CHANNEL}:GAIN {self.gain}')
+        self.RP_S.tx_txt(f'ACQ:AVG ON')
 
     #   starts acquisition
     def start(self):
@@ -68,11 +69,11 @@ class Acquisitor:
         self.RP_S.tx_txt('ACQ:TRig:CH2 NOW')
 
     def AcqRoutine(self):
-        self.RP_S.tx_txt('ACQ:SOUR2:DATA:LATest:N? 1')
+        self.RP_S.tx_txt('ACQ:SOUR2:DATA:TRig? 0,POST_TRIG')
         retVal = self.RP_S.rx_txt()
         return retVal
     def AcqRoutineFull(self):
-        self.RP_S.tx_txt('ACQ:SOUR2:DATA?')
+        self.RP_S.tx_txt('ACQ:SOUR2:DATA:LATest:N? 500')
         return self.RP_S.rx_txt()
     
     def processData(self, uBuffer):
@@ -84,4 +85,7 @@ class Acquisitor:
     
     def processDataFull(self, uBuffer):
         uBuffer = uBuffer.strip('{}\n\r').replace("  ", "").split(',')
-        return list(map(float, uBuffer))
+        uBuffer = list(map(float, uBuffer))
+        return uBuffer
+        #retVal = sum(uBuffer) / len(uBuffer)
+        #return [retVal]

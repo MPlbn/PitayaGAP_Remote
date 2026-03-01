@@ -21,19 +21,33 @@ time.sleep(1)
 
 
 PR.initialize()
-# data = []
-# plotter = Plotter.FAcqPlotter()
-# PR.Acquisitor.reset()
-# PR.Acquisitor.setSCPIsettings()
-# for i in range(5):
-#     start = time.time()
-#     data += PR.doStuffAcq()
-#     end = time.time()
-#     elapsed = end-start
-#     print(f'step time: {elapsed} ms')
-# PR.Acquisitor.stop()
-# #data = PR.Acquisitor.processDataFull(data)
-# plotter.testPlot(data)
+data = []
+plotter = Plotter.FAcqPlotter()
 
-PR.doStuff()
+voltage = 0
+step = 0.5
+hBound = 1
+lBound = -1
+finBuff = []
+PR.ContGenerator.reset()
+PR.Acquisitor.reset()
+PR.Acquisitor.setSCPIsettings()
+PR.ContGenerator.startGen()
+for i in range(5):
+    PR.ContGenerator.changeVolt(voltage)
+    if(voltage + step > hBound or voltage + step < lBound):
+        step *= -1
+    voltage += step
+    start = time.time()
+    time.sleep(0.01)
+    data += PR.doStuffAcq()
+    end = time.time()
+    elapsed = end-start
+    print(f'step time: {elapsed} s')
+PR.Acquisitor.stop()
+PR.ContGenerator.stopGen(StopType.STOP_RESET)
+#data = PR.Acquisitor.processDataFull(data)
+plotter.testPlot(data)
+
+#PR.doStuff()
 PR.disconnect()

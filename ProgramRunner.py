@@ -40,7 +40,7 @@ class ProgramRunner:
 
     def initialize(self):
         self.ContGenerator = Generate.ContGenerator(self.SCPI_IP)
-        #self.FastGenerator = Generate.Generator(self.SCPI_IP)
+        # self.FastGenerator = Generate.Generator(self.SCPI_IP)
         self.Acquisitor = Acquire.Acquisitor(self.SCPI_IP)
         
 
@@ -208,7 +208,7 @@ class ProgramRunner:
                 self.ContGenerator.reset()
                 self.ContGenerator.setup()
                 self.ContGenerator.startGen()
-                #self.AcqPlotter.start()
+                self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.ContGenerator.applyDirection()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE) 
@@ -220,7 +220,7 @@ class ProgramRunner:
                 if(self.ContGenerator.getPause()):
                     self.ContGenerator.unpause()
                 
-                #self.AcqPlotter.stop()
+                self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.changeMode(ProgramMode.IDLE)
 
@@ -229,14 +229,14 @@ class ProgramRunner:
 
                 self.ContGenerator.workRoutine()
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
-                #self.Acquisitor.reset()
-                #self.Acquisitor.setSCPIsettings()
-                #self.Acquisitor.start()
-                #buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
-                #Vbuffer = np.array(buffer[0])
-                #Ibuffer = np.array(buffer[1])
-                #self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
-                #self.Acquisitor.stop()
+                self.Acquisitor.reset()
+                self.Acquisitor.setSCPIsettings()
+                self.Acquisitor.start()
+                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                Vbuffer = np.array(buffer[0])
+                Ibuffer = np.array(buffer[1])
+                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                self.Acquisitor.stop()
                 
                 #Time check
                 tStopTime = time.time()
@@ -255,14 +255,14 @@ class ProgramRunner:
             
             case ProgramMode.PRE_WORK_ROUTINE:
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
-                #self.Acquisitor.reset()
-                #self.Acquisitor.setSCPIsettings()
-                #self.Acquisitor.start()
-                #buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
-                #Vbuffer = np.array(buffer[0])
-                #Ibuffer = np.array(buffer[1])
-                #self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
-                #self.Acquisitor.stop()
+                self.Acquisitor.reset()
+                self.Acquisitor.setSCPIsettings()
+                self.Acquisitor.start()
+                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                Vbuffer = np.array(buffer[0])
+                Ibuffer = np.array(buffer[1])
+                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
@@ -358,7 +358,7 @@ class ProgramRunner:
         self.ContGenerator.startGen()
         self.Acquisitor.start()
         time.sleep(0.01)
-        for i in range(500):
+        for i in range(200):
             self.Acquisitor.setTrig()
             time.sleep(0.01)
             finBuff.append(self.Acquisitor.AcqRoutine()) 
@@ -373,15 +373,17 @@ class ProgramRunner:
         self.Acquisitor.stop()
         self.ContGenerator.stopGen(StopType.STOP_RESET)
         self.Acquisitor.reset()
+        #print(finBuff)
         finBuff = self.Acquisitor.processData(finBuff.copy())
-        #print(type(finBuff[0]))
+        print(type(finBuff[0]))
         self.Plotter.testPlot(finBuff)
     def doStuffAcq(self):
         #finBuff = []
         self.Acquisitor.start()
-        self.Acquisitor.run()
+        self.Acquisitor.setTrig()
         #finBuff.append(self.Acquisitor.AcqRoutine())
         finBuff = self.Acquisitor.AcqRoutineFull()
+        self.Acquisitor.stop()
         return self.Acquisitor.processDataFull(finBuff)
         #return finBuff
 
