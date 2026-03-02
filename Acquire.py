@@ -50,7 +50,9 @@ class Acquisitor:
     def getBuff(self, uSampleSize) -> list:
         #Acquire Voltage values
         self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_VOLTAGE_CHANNEL}:DATA:LATest:N? {uSampleSize}')
-        buffer_stringVoltage = self.RP_S.rx_txt()
+        tStartTime = time.time()
+        buffer_stringVoltage = self.RP_S.rx_txt() #this takes all the time in the world, but why? TODO
+        tStopTime = time.time()
         buffer_stringVoltage = buffer_stringVoltage.strip('{}\n\r').replace("  ", "").split(',')
         retListVoltage = list(map(float, buffer_stringVoltage))
 
@@ -62,6 +64,10 @@ class Acquisitor:
 
         #Return Voltage and Current in a list
         retList = [retListVoltage, retListCurrent]
+
+        tElapsed = (tStopTime - tStartTime) * 1000
+        print(f'Elapsed time: {tElapsed} ms')        
+        
         return retList
     
     ## =========== TEST ============ ##
@@ -72,9 +78,16 @@ class Acquisitor:
         self.RP_S.tx_txt('ACQ:SOUR2:DATA:TRig? 0,POST_TRIG')
         retVal = self.RP_S.rx_txt()
         return retVal
-    def AcqRoutineFull(self):
-        self.RP_S.tx_txt('ACQ:SOUR2:DATA:LATest:N? 500')
-        return self.RP_S.rx_txt()
+    def AcqRoutineFull(self): 
+        self.RP_S.tx_txt('ACQ:SOUR2:DATA?')
+
+        tStartTime = time.time()
+        retVal = self.RP_S.rx_txt() #It's still 40ms -> bad not really able to do it faster
+        tStopTime = time.time()
+
+        tElapsed = (tStopTime - tStartTime) * 1000
+        print(f'Elapsed time: {tElapsed} ms') 
+        return retVal
     
     def processData(self, uBuffer):
         retList = []

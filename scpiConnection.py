@@ -38,12 +38,8 @@ for i in range(5):
     if(voltage + step > hBound or voltage + step < lBound):
         step *= -1
     voltage += step
-    start = time.time()
     time.sleep(0.01)
     data += PR.doStuffAcq()
-    end = time.time()
-    elapsed = end-start
-    print(f'step time: {elapsed} s')
 PR.Acquisitor.stop()
 PR.ContGenerator.stopGen(StopType.STOP_RESET)
 #data = PR.Acquisitor.processDataFull(data)

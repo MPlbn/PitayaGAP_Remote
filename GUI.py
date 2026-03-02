@@ -283,7 +283,7 @@ class GUI:
         while True:
             self.PR.run()
             self.root.after(0, self.updateFun)
-            time.sleep(self.interval/1000)
+            time.sleep(self.interval/10000)
 
     #   Update gui elements function
 

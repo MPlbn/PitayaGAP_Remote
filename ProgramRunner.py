@@ -225,23 +225,23 @@ class ProgramRunner:
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.GEN_WORK_ROUTINE:
-                tStartTime = time.time()
 
                 self.ContGenerator.workRoutine()
                 self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
                 self.Acquisitor.reset()
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
-                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
+                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE) #this takes the most time
+                # tStartTime = time.time()
+                # tStopTime = time.time()
+                # tElapsed = (tStopTime - tStartTime) * 1000
+                # print(f'Elapsed time: {tElapsed} ms')
                 Vbuffer = np.array(buffer[0])
                 Ibuffer = np.array(buffer[1])
                 self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
                 self.Acquisitor.stop()
                 
                 #Time check
-                tStopTime = time.time()
-                tElapsed = (tStopTime - tStartTime) * 1000
-                print(f'Elapsed time: {tElapsed} ms')
                 
             case ProgramMode.STEPPING_START:
                 self.ContGenerator.changeMode(GeneratorMode.STEPPING)
