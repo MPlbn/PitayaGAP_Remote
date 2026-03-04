@@ -38,15 +38,15 @@ int main(){
             std::cout << "Client disconnected\n";
             break;
         }
-        std::cout << "Received: " << cmd << "\n";
-
+        
         if (cmd == 'X'){
-            float value = 10.59f;
-            send(client, &value, sizeof(value), 0);
+            std::cout << "Received: " << cmd << "\n";
         }
         else if (cmd == 'S'){
             float value = 12.5987f;
-            send(client, &value, sizeof(value), 0);
+            float value2 = 10.59f;
+            float buffer[2] = {value, value2};
+            send(client, buffer, sizeof(buffer), 0);
         }
     }
 
