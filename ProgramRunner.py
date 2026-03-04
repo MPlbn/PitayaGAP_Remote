@@ -232,16 +232,11 @@ class ProgramRunner:
                 self.Acquisitor.setSCPIsettings()
                 self.Acquisitor.start()
                 buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE) #this takes the most time
-                # tStartTime = time.time()
-                # tStopTime = time.time()
-                # tElapsed = (tStopTime - tStartTime) * 1000
-                # print(f'Elapsed time: {tElapsed} ms')
                 Vbuffer = np.array(buffer[0])
                 Ibuffer = np.array(buffer[1])
                 self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
                 self.Acquisitor.stop()
                 
-                #Time check
                 
             case ProgramMode.STEPPING_START:
                 self.ContGenerator.changeMode(GeneratorMode.STEPPING)
@@ -286,6 +281,7 @@ class ProgramRunner:
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.changeMode(ProgramMode.IDLE)
+
 
             
             

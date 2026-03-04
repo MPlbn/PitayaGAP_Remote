@@ -281,9 +281,13 @@ class GUI:
 
     def threadTask(self):
         while True:
+            tStartTime = time.time()
             self.PR.run()
             self.root.after(0, self.updateFun)
-            time.sleep(self.interval/10000)
+            tStopTime = time.time()
+            tElapsed = (tStopTime - tStartTime) * 1000
+            print(f'Elapsed time: {tElapsed} ms')
+            time.sleep(self.interval/1000)
 
     #   Update gui elements function
 
