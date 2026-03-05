@@ -22,6 +22,8 @@ from commands import *
 
 #   class responsible for work routine of a program
 
+#TODO Check BIN instead of ASCII and RAW instead of VOLT
+
 class ProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
         self.IP = uIP

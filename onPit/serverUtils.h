@@ -12,6 +12,18 @@ namespace PitayaServerUtils{
     constexpr int CH_1 = 1;
     constexpr int CH_2 = 2;
 
+    bool resetGen(int uClient);
+    bool startGen(int uClient);
+    bool stopGen(int uClient);
+    bool setGenSettings(int uClient);
+
+    bool resetAcq(int uClient);
+    bool startAcq(int uClient);
+    bool stopAcq(int uClient);
+    bool setAcqSettings(int Client);
+
+    bool sendPleaseKindlyRepeatTheLastData(int uClient);
+    bool sendReady(int uClient);
     bool recieveNewVoltage(int uClient, float& uValueHolder);
     bool changeVoltage(float uNewVoltage);
     bool acquireVoltage(int uChannel, float& uValueHolder);

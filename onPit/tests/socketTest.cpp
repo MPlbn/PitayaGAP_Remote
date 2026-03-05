@@ -43,10 +43,18 @@ int main(){
             std::cout << "Received: " << cmd << "\n";
         }
         else if (cmd == 'S'){
-            float value = 12.5987f;
-            float value2 = 10.59f;
-            float buffer[2] = {value, value2};
-            send(client, buffer, sizeof(buffer), 0);
+            char buffer = 'R';
+            send(client, &buffer, 1, 0);
+
+            float recievedVal;
+            recv(client, &recievedVal, sizeof(recievedVal), 0);
+            std::cout << "Recieved float: " << recievedVal << "\n";
+
+            float sendList[2];
+            sendList[0] = recievedVal + 1.5f;
+            sendList[1] = recievedVal - 1.0f;
+            send(client, &sendList, sizeof(sendList), 0);
+            
         }
     }
 
