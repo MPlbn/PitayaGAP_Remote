@@ -15,6 +15,8 @@ namespace PitayaServerUtils{
     constexpr rp_channel_t outputChannel = RP_CH_1;
     constexpr rp_channel_t inputChannels[2] = {RP_CH_1, RP_CH_2};
 
+    bool isNegative = false;
+
     bool sendNextValue(int uClient){ //unused
         return false;
     }
@@ -71,10 +73,12 @@ namespace PitayaServerUtils{
     bool setGenSettings(float uStartVolVal, int uFreq){
         rp_waveform_t wfType;
         if(uStartVolVal < 0){
-            wfType = RP_DC_NEG;
+            isNegative = true;
+            wfType = RP_WAVEFORM_DC_NEG;
         }
         else{
-            wfType = RP_DC;
+            isNegative = false;
+            wfType = RP_WAVEFORM_DC;
         }
 
         rp_GenWaveform(outputChannel, wfType);
@@ -190,6 +194,18 @@ namespace PitayaServerUtils{
     }
 
     bool changeVoltage(float uNewVoltage){
+        if(isNegative){
+            if(uNewVoltage >= 0){
+                isNegative = false;
+                rp_GenWaveform(outputChannel, RP_WAVEFORM_DC);
+            }
+        }
+        else{
+            if(uNewVoltage < 0){
+                isNegative = true;
+                rp_GenWaveform(outputChannel, RP_WAVEFORM_DC_NEG);
+            }
+        }
         rp_GenAmp(outputChannel, uNewVoltage);
         return true;
     }
