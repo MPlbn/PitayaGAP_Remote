@@ -62,7 +62,7 @@ namespace PitayaServerUtils{
 
     bool initialize(){
         return processPitayaErrorcode(
-            rp_Init();
+            rp_Init()
         );
     }
 
@@ -157,7 +157,7 @@ namespace PitayaServerUtils{
 
     bool stopGen(){
         return processPitayaErrorcode(
-            rp_GenOutDisable(outputChannel);
+            rp_GenOutDisable(outputChannel)
         );
     }
 
@@ -173,11 +173,11 @@ namespace PitayaServerUtils{
         }
 
         if(!processPitayaErrorcode(
-            rp_GenWaveform(RP_CH_1, wfType);
+            rp_GenWaveform(RP_CH_1, wfType)
         )) return false;
 
         if(!processPitayaErrorcode(
-            rp_genFreq(RP_CH_1, uFreq)
+            rp_GenFreq(RP_CH_1, uFreq)
         )) return false;
 
         if(!processPitayaErrorcode(
@@ -298,7 +298,7 @@ namespace PitayaServerUtils{
         if(!processPitayaErrorcode(
             rp_AcqGetLatestDataV(uChannel, &size, buffer)
         )) return false;
-        
+
         hValue = buffer[0];
 
         return true;
