@@ -19,6 +19,18 @@ namespace PitayaServerUtils{
         return false;
     }
 
+    bool send_all(int sock, void* buffer, size_t length){
+        size_t total = 0;
+        while(total < length){
+            ssize_t n = send(sock, (const char*)buffer + total, length - total, 0);
+            if(n <= 0){
+                return false;
+            }
+            total += n;
+        }
+        return true;
+    }
+
     bool recv_all(int sock, void* buffer, size_t length){
         size_t total = 0;
         while (total < length){
@@ -94,8 +106,8 @@ namespace PitayaServerUtils{
     }
 
     bool receiveAcqSettings(int uClient, rp_acq_decimation_t& hDec, rp_pinState_t& hGain){
-        int dec;
-        bool gain;
+        uint32_t dec;
+        uint8_t gain;
 
         if(!recv_all(uClient, &dec, sizeof(dec))){
             return false;
@@ -105,7 +117,33 @@ namespace PitayaServerUtils{
             return false;
         }
 
-        //perform the transformation and assign the values
+        switch(dec){
+            case 1: 
+            case 2: 
+            case 4: 
+            case 8: 
+            case 16:
+            case 32: 
+            case 64: 
+            case 128: 
+            case 256:
+            case 512: 
+            case 1024: 
+            case 2048: 
+            case 4096:
+            case 8192: 
+            case 16384: 
+            case 32768: 
+            case 65536:
+                hDec = static_cast<rp_acq_decimation_t>(dec);
+                break;
+            default:
+                return false;
+        }
+        rp_pinState_t convGain = gain ? RP_HIGH : RP_LOW;
+
+        hDec = convDec;
+        hGain = convGain;
 
         return true;
     }
@@ -125,7 +163,7 @@ namespace PitayaServerUtils{
     bool sendPleaseKindlyRepeatTheLastData(int uClient){
 
         char repeatCommand = 'E';
-        int sent = send(uClient, &repeatCommand, 1, 0);
+        int sent = send_all(uClient, &repeatCommand, 1);
         if(sent <= 0){
             return false;
         }
@@ -134,7 +172,7 @@ namespace PitayaServerUtils{
 
     bool sendReady(int uClient){
         char readyCommand = 'R';
-        int sent = send(uClient, &readyCommand, 1, 0);
+        int sent = send_all(uClient, &readyCommand, 1);
         if(sent <= 0){
             return false;
         }
@@ -157,17 +195,17 @@ namespace PitayaServerUtils{
     }
 
     bool acquireVoltage(rp_channel_t uChannel, float& hValue){
-        float value[1];
+        float buffer[1];
         uint32_t size = 1;
 
-        rp_AcqGetLatestDataV(uChannel, &size, value);
-        hValue = value[0];
+        rp_AcqGetLatestDataV(uChannel, &size, buffer);
+        hValue = buffer[0];
 
         return true;
     }
 
     bool sendVoltageValue(int uClient, float* uBuffer){
-        int sent = send(uClient, uBuffer, sizeof(float) * 2 , 0);  
+        int sent = send_all(uClient, uBuffer, sizeof(float) * 2);  
         
         if(sent <= 0){
             return false;

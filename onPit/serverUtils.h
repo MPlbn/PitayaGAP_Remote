@@ -15,7 +15,8 @@ namespace PitayaServerUtils{
     constexpr int CH_2 = 2;
 
     bool sendNextValue(int uClient);
-    bool recv_all(int sock, void* buffer, size_t length)
+    bool send_all(int sock, void* buffer, size_t length);
+    bool recv_all(int sock, void* buffer, size_t length);
 
     bool resetGen();
     bool startGen();
