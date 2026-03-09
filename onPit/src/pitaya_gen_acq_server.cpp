@@ -16,6 +16,9 @@ int main(){
     int client = accept(server, nullptr, nullptr);
     std::cout << "Client connected!\n";
 
+    PitayaServerUtils::initialize();
+    std::cout << "Redpitaya API initialized!\n";
+
     // ========== main server loop ==========
     while(true){
         char cmd;
@@ -26,27 +29,99 @@ int main(){
         }
 
         if(cmd == PitayaServerUtils::SETUP_COMMAND){
-            int freq;
+            int32_t freq;
             float voltageValue;
             rp_acq_decimation_t dec;
             rp_pinState_t gain;
-
-            if(!PitayaServerUtils::receiveGenSettings(client, voltageValue, freq)){
-                std::cout << "Error recieving the generator setup values\n";
+            
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
                 break;
-            }
-            if(!PitayaServerUtils::receiveAcqSettings(client, dec, gain)){
-                std::cout << "Error recieving the acquisitor setup values\n";
+            } 
+
+            if(!PitayaServerUtils::receiveSettings(client, voltageValue, freq, dec, gain)){
+                std::cout << "Error recieving setup values\n";
                 break;
             }
             if(!PitayaServerUtils::setGenSettings(voltageValue, freq)){
                 std::cout << "Error setting generator settings\n";
                 break;
             }
+            std::cout << "I'm here!\n";
             if(!PitayaServerUtils::setAcqSettings(dec, gain)){
                 std::cout << "Error setting acquisitor settings\n";
                 break;
             }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }              
+        }
+
+        else if(cmd == PitayaServerUtils::START_GEN_COMMAND){
+            if(!PitayaServerUtils::startGen()){ 
+                std::cout << "Error starting the generator";
+                break;
+            }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }            
+        }
+
+        else if(cmd == PitayaServerUtils::START_ACQ_COMMAND){
+            if(!PitayaServerUtils::startAcq()){
+                std::cout << "Error starting the acquisition";
+                break;
+            }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }            
+        }
+
+        else if(cmd == PitayaServerUtils::RESET_GEN_COMMAND){
+            if(!PitayaServerUtils::resetGen()){
+                std::cout << "Error reseting generator";
+                break;
+            }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }            
+        }
+
+        else if(cmd == PitayaServerUtils::RESET_ACQ_COMMAND){
+            if(!PitayaServerUtils::resetAcq()){
+                std::cout << "Error reseting acquisition";
+                break;
+            }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }            
+        }
+
+        else if(cmd == PitayaServerUtils::STOP_GEN_COMMAND){
+            if(PitayaServerUtils::stopGen()){
+                std::cout << "Error stopping generator";
+                break;
+            }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }            
+        }
+
+        else if(cmd == PitayaServerUtils::STOP_ACQ_COMMAND){
+            if(PitayaServerUtils::stopAcq()){
+                std::cout << "Error stopping acquisition";
+                break;
+            }
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            }            
         }
 
         else if(cmd == PitayaServerUtils::GEN_COMMAND){ //CMD FOR CHANGE VOLT
@@ -55,7 +130,7 @@ int main(){
                 break;
             }
             float newVoltageValue;
-            if(!PitayaServerUtils::receiveNewVoltage(client ,newVoltageValue)){
+            if(!PitayaServerUtils::receiveNewVoltage(client, newVoltageValue)){
                 std::cout << "Error recieving new voltage\n";
                 break;
             }

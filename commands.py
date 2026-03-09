@@ -5,7 +5,7 @@ CMD_STOP_NGINX = "echo STOPING NGINX && systemctl stop redpitaya_nginx"
 CMD_START_NGINX = "echo STOPING NGINX && systemctl start redpitaya_nginx"
 CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &"
 
-CMD_START_CUSTOM_SERVER = "echo START CUSTOM SERVER && /root/RedPitaya/gen-acq-server/pitaya_gen_acq_server"
+CMD_START_CUSTOM_SERVER = "echo START CUSTOM SERVER && nohup /root/RedPitaya/gen-acq-server/custom_server &"
 
 CMD_START_STREAMING_SERVER = "echo STREAMINGSERVER && /opt/redpitaya/bin/streaming-server -b"
 CMD_STOP_PROCESS = "kill "
@@ -46,6 +46,22 @@ def CMD_START_STREAMING_ADC():
 
 CMD_LIST_PROCESS = "pgrep -af streaming-server"
 CMD_LIST_PROCESS_SCPI = "pgrep -af scpi-server"
+
+
+SETUP_COMMAND = b'A'
+  
+GEN_COMMAND = b'B'
+START_GEN_COMMAND = b'C'
+RESET_GEN_COMMAND = b'D'
+STOP_GEN_COMMAND = b'E'
+  
+ACQ_COMMAND = b'F'
+START_ACQ_COMMAND = b'G'
+RESET_ACQ_COMMAND = b'H'
+STOP_ACQ_COMMAND = b'I'
+CLOSE_COMMAND = b'Z'
+
+RESPONSE_READY = b'R'
 
 # ==================== TEST GENERATE FUNCTIONS ====================
 TEST_CMD_GENERATE = "/opt/redpitaya/bin/generate 1 "
