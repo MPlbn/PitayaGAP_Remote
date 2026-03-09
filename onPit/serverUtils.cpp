@@ -1,3 +1,6 @@
+#ifndef SERVERUTILS_H
+#define SERVERUTILS_H
+
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
@@ -21,7 +24,7 @@ namespace PitayaServerUtils{
         return false;
     }
 
-    bool send_all(int sock, void* buffer, size_t length){
+    bool send_all(int sock, const void* buffer, size_t length){
         size_t total = 0;
         while(total < length){
             ssize_t n = send(sock, (const char*)buffer + total, length - total, 0);
@@ -145,8 +148,6 @@ namespace PitayaServerUtils{
                 return false;
         }
         rp_pinState_t convGain = gain ? RP_HIGH : RP_LOW;
-
-        hDec = convDec;
         hGain = convGain;
 
         return true;
@@ -164,15 +165,15 @@ namespace PitayaServerUtils{
         return true;
     }
     
-    bool sendPleaseKindlyRepeatTheLastData(int uClient){
+    // bool sendPleaseKindlyRepeatTheLastData(int uClient){
 
-        char repeatCommand = 'E';
-        int sent = send_all(uClient, &repeatCommand, 1);
-        if(sent <= 0){
-            return false;
-        }
-        return true;
-    }
+    //     char repeatCommand = 'E';
+    //     int sent = send_all(uClient, &repeatCommand, 1);
+    //     if(sent <= 0){
+    //         return false;
+    //     }
+    //     return true;
+    // }
 
     bool sendReady(int uClient){
         char readyCommand = 'R';
@@ -230,3 +231,5 @@ namespace PitayaServerUtils{
         return true;
     }
 }
+
+#endif
