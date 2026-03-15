@@ -1,6 +1,7 @@
 from constants import *
 from commands import *
 import CMDManager
+import Plotter
 import time
 import socket
 import struct
@@ -32,7 +33,7 @@ freq:int = 1000
 amp:float = 0.0
 
 dec:int = 1
-gain = 0
+gain = 1
 
 sock.sendall(RESET_GEN_COMMAND)
 response = sock.recv(1)
@@ -58,10 +59,25 @@ response = sock.recv(1)
 if(response == RESPONSE_READY):
     print("gen started!")
 
+sock.sendall(RESET_ACQ_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("acq reset!")
+
+sock.sendall(START_ACQ_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("acq started!")
+
 voltageValue = GEN_DEFAULT_VOLTAGE
 step = GEN_DEFAULT_STEP
 highRange = GEN_MAX_RANGE
 lowRange = GEN_MIN_RANGE
+
+plotter = Plotter.FAcqPlotter()
+testValueX = []
+testValueY = []
+
 
 for _ in range(50):
     if(voltageValue + step > highRange):
@@ -81,5 +97,23 @@ for _ in range(50):
     packet = struct.pack('<f', sendValue)
     sock.sendall(packet)
     time.sleep(0.1)
+
+    sock.sendall(ACQ_COMMAND)
+    buffer = sock.recv(4)
+    values = struct.unpack("<h h", buffer)
+    testValueX.append(values[1])
+
+
+max_val = 32768
+scale = 0.05
+for value in testValueX:
+    testValueY.append((value*scale)/max_val)
+
+
+plotter.testPlot(testValueY)
+
+sock.sendall(STOP_GEN_COMMAND)
+sock.sendall(STOP_ACQ_COMMAND)
+
 sock.sendall(CLOSE_COMMAND)
 sock.close()

@@ -44,6 +44,8 @@ namespace PitayaServerUtils{
 
     bool resetAcq();
     bool startAcq();
+    bool triggerAcq();
+    bool isBufferFilled();
     bool stopAcq();
     bool setAcqSettings(rp_acq_decimation_t uDec, rp_pinState_t uGain);
 
@@ -51,6 +53,6 @@ namespace PitayaServerUtils{
     bool sendReady(int uClient);
     bool receiveNewVoltage(int uClient, float& hValue);
     bool changeVoltage(float uNewVoltage);
-    bool acquireVoltage(rp_channel_t uChannel, float& hValue);
-    bool sendVoltageValue(int uClient, float* uBuffer);
+    bool acquireVoltage(rp_channel_t uChannel, int16_t& hValue);
+    bool sendVoltageValue(int uClient, int16_t* uBuffer);
 }

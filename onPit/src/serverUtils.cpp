@@ -218,6 +218,17 @@ namespace PitayaServerUtils{
         );
     }
 
+    bool isBufferFilled(){
+        bool fillState = false;
+        while(!fillState){
+            if(!processPitayaErrorcode(
+                rp_AcqGetBufferFillState(&fillState),
+                "rp_AcqGetBufferFillState()"
+            )) return false;
+        }
+        return true;
+    }
+
     bool stopAcq(){
         return processPitayaErrorcode(
             rp_AcqStop(),
@@ -250,7 +261,6 @@ namespace PitayaServerUtils{
             rp_AcqSetDecimation(uDec),
             "rp_AcqSetDecimation()"
         )) return false;
-
 
         return true;
     }
@@ -313,13 +323,15 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool acquireVoltage(rp_channel_t uChannel, float& hValue){
-        float buffer[1];
+    bool acquireVoltage(rp_channel_t uChannel, int16_t& hValue){
+        int16_t buffer[1];
         uint32_t size = 1;
 
+
+
         if(!processPitayaErrorcode(
-            rp_AcqGetLatestDataV(uChannel, &size, buffer),
-            "rp_AcqGetLatestDataV()"
+            rp_AcqGetLatestDataRaw(uChannel, &size, buffer),
+            "rp_AcqGetLatestDataRaw()"
         )) return false;
 
         hValue = buffer[0];
@@ -327,8 +339,8 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool sendVoltageValue(int uClient, float* uBuffer){
-        int sent = send_all(uClient, uBuffer, sizeof(float) * 2);  
+    bool sendVoltageValue(int uClient, int16_t* uBuffer){
+        int sent = send_all(uClient, uBuffer, sizeof(int16_t) * 2);  
         
         if(sent <= 0){
             return false;
