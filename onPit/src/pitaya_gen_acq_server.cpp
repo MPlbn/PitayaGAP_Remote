@@ -47,7 +47,6 @@ int main(){
                 std::cout << "Error setting generator settings\n";
                 break;
             }
-            std::cout << "I'm here!\n";
             if(!PitayaServerUtils::setAcqSettings(dec, gain)){
                 std::cout << "Error setting acquisitor settings\n";
                 break;

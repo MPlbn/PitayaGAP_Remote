@@ -20,6 +20,7 @@ def transformToFloat(value:str) -> float:
 # cmdMan.executeCommand(CMD_LOAD_SCPI_FPGA)
 # cmdMan.executeCommand(CMD_START_CUSTOM_SERVER)
 # cmdMan.disconnectFromPitaya()
+
 for _ in range(5):
     try:
         sock = socket.create_connection((RED_PITAYA_IP,5000))
@@ -33,11 +34,16 @@ amp:float = 0.0
 dec:int = 1
 gain = 0
 
+sock.sendall(RESET_GEN_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("Reset Ready")
+
 
 sock.sendall(SETUP_COMMAND)
 response = sock.recv(1)
 if(response == RESPONSE_READY):
-    print("READY!")
+    print("ready to send setup values!")
 
 packet = struct.pack('<f i i B', amp, freq, dec, gain)
 
@@ -45,27 +51,35 @@ sock.sendall(packet)
 
 response = sock.recv(1)
 if(response == RESPONSE_READY):
-    print("READY!")
+    print("setup done!")
 
-# while(True):
-#     userInput = input("Provide float value or write 'C' to finish the program").lower()
+sock.sendall(START_GEN_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("gen started!")
 
-#     if(userInput == 'c'):
-#         break
-#     else:
-#         value:float = transformToFloat(userInput)
-#         if(value is None):
-#             value = 0.10
-        
-#         sock.sendall(GEN_COMMAND)
-#         response = sock.recv(1)
-        
-#         if(response == RESPONSE_READY):
-#             print("READY!")
-#             sock.sendall(struct.pack('f', value))
-#         else:
-#             print("ERROR: PITAYA NOT READY")
-#             break
-time.sleep(2)
+voltageValue = GEN_DEFAULT_VOLTAGE
+step = GEN_DEFAULT_STEP
+highRange = GEN_MAX_RANGE
+lowRange = GEN_MIN_RANGE
+
+for _ in range(50):
+    if(voltageValue + step > highRange):
+        if(step > 0):
+            step *= -1.0
+    if(voltageValue + step < lowRange):
+        if(step < 0):
+            step *= -1.0 
+    voltageValue += step
+    
+    sock.sendall(GEN_COMMAND)
+    response = sock.recv(1)
+    if(response == RESPONSE_READY):
+        print("value change initiated")
+
+    sendValue = voltageValue/1000
+    packet = struct.pack('<f', sendValue)
+    sock.sendall(packet)
+    time.sleep(0.1)
 sock.sendall(CLOSE_COMMAND)
 sock.close()

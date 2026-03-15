@@ -22,7 +22,7 @@ namespace PitayaServerUtils{
 
     bool isNegative = false;
 
-    bool processPitayaErrorcode(int errorcode){
+    bool processPitayaErrorcode(int errorcode, std::string functionName){
         std::string errorMsg;
         bool isNoError = false;
         switch (errorcode){
@@ -56,19 +56,21 @@ namespace PitayaServerUtils{
                 case RP_EOP:     errorMsg = "Execution error"; break;
                 default:         errorMsg = "Unknown error code"; break;
         }
-        std::cout << "Return Code |" << errorcode << "|: " << errorMsg <<"\n";
+        std::cout << "Return Code for: <" << functionName << ">|" << errorcode << "|: " << errorMsg <<"\n";
         return isNoError;
     }
 
     bool initialize(){
         return processPitayaErrorcode(
-            rp_Init()
+            rp_Init(),
+            "rp_Init()"
         );
     }
 
     bool close(){
         return processPitayaErrorcode(
-            rp_Release()
+            rp_Release(),
+            "rp_Release()"
         );
     }
 
@@ -139,17 +141,20 @@ namespace PitayaServerUtils{
 
     bool resetGen(){
         return processPitayaErrorcode(
-            rp_GenReset()
+            rp_GenReset(),
+            "rp_GenReset()"
         );
     }
 
     bool startGen(){
         if(!processPitayaErrorcode(
-            rp_GenOutEnable(outputChannel)
+            rp_GenOutEnable(outputChannel),
+            "rp_GenOutEnable()"
         )) return false;
 
         if(!processPitayaErrorcode(
-            rp_GenResetTrigger(outputChannel)
+            rp_GenResetTrigger(outputChannel),
+            "rp_GenResetTrigger()"
         )) return false;
 
         return true;
@@ -157,7 +162,8 @@ namespace PitayaServerUtils{
 
     bool stopGen(){
         return processPitayaErrorcode(
-            rp_GenOutDisable(outputChannel)
+            rp_GenOutDisable(outputChannel),
+            "rp_GenOutDisable()"
         );
     }
 
@@ -173,15 +179,18 @@ namespace PitayaServerUtils{
         }
 
         if(!processPitayaErrorcode(
-            rp_GenWaveform(RP_CH_1, wfType)
+            rp_GenWaveform(RP_CH_1, wfType),
+            "rp_GenWaveform()"
         )) return false;
 
         if(!processPitayaErrorcode(
-            rp_GenFreq(RP_CH_1, uFreq)
+            rp_GenFreq(RP_CH_1, uFreq),
+            "rp_GenFreq()"
         )) return false;
 
         if(!processPitayaErrorcode(
-            rp_GenAmp(RP_CH_1, uStartVolVal)
+            rp_GenAmp(RP_CH_1, uStartVolVal),
+            "rp_GenAmp()"
         )) return false;
 
         return true;
@@ -189,48 +198,57 @@ namespace PitayaServerUtils{
 
     bool resetAcq(){
         return processPitayaErrorcode(
-            rp_AcqReset()
+            rp_AcqReset(),
+            "rp_AcqReset()"
         );
     }
 
     bool startAcq(){
         return processPitayaErrorcode(
-            rp_AcqStart()    
+            rp_AcqStart(),
+            "rp_AcqStart()"    
         );
     }
     
     bool triggerAcq(){
         rp_acq_trig_src_t triggerSource = RP_TRIG_SRC_NOW; 
         return processPitayaErrorcode(
-            rp_AcqSetTriggerSrc(triggerSource)
+            rp_AcqSetTriggerSrc(triggerSource),
+            "rp_AcqSetTriggerSrc()"
         );
     }
 
     bool stopAcq(){
         return processPitayaErrorcode(
-            rp_AcqStop()
+            rp_AcqStop(),
+            "rp_AcqStop()"
         );
     }
 
     bool setAcqSettings(rp_acq_decimation_t uDec, rp_pinState_t uGain){
         if(!processPitayaErrorcode(
-            rp_AcqSetArmKeep(true) // keeps the continuous acquisition
+            rp_AcqSetArmKeep(true), // keeps the continuous acquisition
+            "rp_AcqSetArmKeep()"
         )) return false;
         
         if(!processPitayaErrorcode(
-            rp_AcqSetAveraging(false) // averages all samples skipped due to decimation
+            rp_AcqSetAveraging(false), // averages all samples skipped due to decimation
+            "rp_AcqSetAveraging()"
         )) return false;
 
         if(!processPitayaErrorcode(
-            rp_AcqSetGain(inputChannels[0], uGain)
+            rp_AcqSetGain(inputChannels[0], uGain),
+            "rp_AcqSetGain()"
         )) return false;
         
         if(!processPitayaErrorcode(
-            rp_AcqSetGain(inputChannels[1], uGain)
+            rp_AcqSetGain(inputChannels[1], uGain),
+            "rp_AcqSetGain()"
         )) return false;
         
         if(!processPitayaErrorcode(
-            rp_AcqSetDecimation(uDec)
+            rp_AcqSetDecimation(uDec),
+            "rp_AcqSetDecimation()"
         )) return false;
 
 
@@ -267,11 +285,13 @@ namespace PitayaServerUtils{
     }
 
     bool changeVoltage(float uNewVoltage){
+        std::cout << "| NEW VOLTAGE VALUE: " << uNewVoltage << " |\n";
         if(isNegative){
             if(uNewVoltage >= 0){
                 isNegative = false;
                 if(!processPitayaErrorcode(
-                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)
+                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
+                    "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
                 )) return false;
             }
         }
@@ -279,13 +299,15 @@ namespace PitayaServerUtils{
             if(uNewVoltage < 0){
                 isNegative = true;
                 if(!processPitayaErrorcode(
-                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)
+                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
+                    "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
                 )) return false;
             }
         }
 
         if(!processPitayaErrorcode(
-            rp_GenAmp(RP_CH_1, uNewVoltage)
+            rp_GenAmp(RP_CH_1, std::abs(uNewVoltage)), //change to absolute value + DC_NEG set for values lower than 0
+            "rp_GenAmp()"
         )) return false;
 
         return true;
@@ -296,7 +318,8 @@ namespace PitayaServerUtils{
         uint32_t size = 1;
 
         if(!processPitayaErrorcode(
-            rp_AcqGetLatestDataV(uChannel, &size, buffer)
+            rp_AcqGetLatestDataV(uChannel, &size, buffer),
+            "rp_AcqGetLatestDataV()"
         )) return false;
 
         hValue = buffer[0];

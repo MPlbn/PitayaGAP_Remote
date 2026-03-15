@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include <cstdint>
+#include <cmath>
 #include "rp.h"
 
 namespace PitayaServerUtils{
@@ -26,7 +27,7 @@ namespace PitayaServerUtils{
     constexpr rp_channel_t CH_2 = RP_CH_2;
 
 
-    bool processPitayaErrorcode(int errorcode);
+    bool processPitayaErrorcode(int errorcode, std::string functionName);
     bool initialize();
     bool close();
 
