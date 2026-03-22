@@ -323,15 +323,15 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool acquireVoltage(rp_channel_t uChannel, int16_t& hValue){
-        int16_t buffer[1];
+    bool acquireVoltage(rp_channel_t uChannel, float& hValue){
+        float buffer[1];
         uint32_t size = 1;
 
 
 
         if(!processPitayaErrorcode(
-            rp_AcqGetLatestDataRaw(uChannel, &size, buffer),
-            "rp_AcqGetLatestDataRaw()"
+            rp_AcqGetLatestDataV(uChannel, &size, buffer),
+            "rp_AcqGetLatestDataV()"
         )) return false;
 
         hValue = buffer[0];
@@ -339,8 +339,8 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool sendVoltageValue(int uClient, int16_t* uBuffer){
-        int sent = send_all(uClient, uBuffer, sizeof(int16_t) * 2);  
+    bool sendVoltageValue(int uClient, float* uBuffer){
+        int sent = send_all(uClient, uBuffer, sizeof(float) * 2);  
         
         if(sent <= 0){
             return false;

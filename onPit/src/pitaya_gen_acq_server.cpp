@@ -102,7 +102,7 @@ int main(){
         }
 
         else if(cmd == PitayaServerUtils::STOP_GEN_COMMAND){
-            if(PitayaServerUtils::stopGen()){
+            if(!PitayaServerUtils::stopGen()){
                 std::cout << "Error stopping generator";
                 break;
             }
@@ -113,7 +113,7 @@ int main(){
         }
 
         else if(cmd == PitayaServerUtils::STOP_ACQ_COMMAND){
-            if(PitayaServerUtils::stopAcq()){
+            if(!PitayaServerUtils::stopAcq()){
                 std::cout << "Error stopping acquisition";
                 break;
             }
@@ -140,8 +140,8 @@ int main(){
         }
 
         else if(cmd == PitayaServerUtils::ACQ_COMMAND){ //CMD FOR ACQUIRE
-            int16_t ch1Val;
-            int16_t ch2Val;
+            float ch1Val;
+            float ch2Val;
 
             if(!PitayaServerUtils::triggerAcq()){
                 std::cout << "Error setting the ACQ trigger to CH1\n";
@@ -163,7 +163,7 @@ int main(){
                 break;
             }       
 
-            int16_t values[2] = {ch1Val, ch2Val};
+            float values[2] = {ch1Val, ch2Val};
             if(!PitayaServerUtils::sendVoltageValue(client, values)){ 
                 std::cout << "Error sending the voltage value back to python program\n";
                 break;

@@ -40,6 +40,10 @@ response = sock.recv(1)
 if(response == RESPONSE_READY):
     print("Reset Ready")
 
+sock.sendall(RESET_ACQ_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("acq reset!")
 
 sock.sendall(SETUP_COMMAND)
 response = sock.recv(1)
@@ -59,10 +63,6 @@ response = sock.recv(1)
 if(response == RESPONSE_READY):
     print("gen started!")
 
-sock.sendall(RESET_ACQ_COMMAND)
-response = sock.recv(1)
-if(response == RESPONSE_READY):
-    print("acq reset!")
 
 sock.sendall(START_ACQ_COMMAND)
 response = sock.recv(1)
@@ -78,8 +78,10 @@ plotter = Plotter.FAcqPlotter()
 testValueX = []
 testValueY = []
 
+timeValues = []
 
 for _ in range(50):
+    startTime = time.time()
     if(voltageValue + step > highRange):
         if(step > 0):
             step *= -1.0
@@ -96,24 +98,27 @@ for _ in range(50):
     sendValue = voltageValue/1000
     packet = struct.pack('<f', sendValue)
     sock.sendall(packet)
-    time.sleep(0.1)
 
     sock.sendall(ACQ_COMMAND)
-    buffer = sock.recv(4)
-    values = struct.unpack("<h h", buffer)
-    testValueX.append(values[1])
+    buffer = sock.recv(8)
+    values = struct.unpack("<f f", buffer)
+    testValueX.append(values[0])
+    endTime = time.time()
+    timeValues.append(endTime-startTime)
 
 
-max_val = 32768
-scale = 0.05
-for value in testValueX:
-    testValueY.append((value*scale)/max_val)
-
-
-plotter.testPlot(testValueY)
+print(timeValues)
 
 sock.sendall(STOP_GEN_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("gen stopped!")
 sock.sendall(STOP_ACQ_COMMAND)
+response = sock.recv(1)
+if(response == RESPONSE_READY):
+    print("acq stopped!")
 
 sock.sendall(CLOSE_COMMAND)
+
 sock.close()
+plotter.testPlot(testValueX)

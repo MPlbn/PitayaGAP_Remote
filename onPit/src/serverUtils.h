@@ -53,6 +53,6 @@ namespace PitayaServerUtils{
     bool sendReady(int uClient);
     bool receiveNewVoltage(int uClient, float& hValue);
     bool changeVoltage(float uNewVoltage);
-    bool acquireVoltage(rp_channel_t uChannel, int16_t& hValue);
-    bool sendVoltageValue(int uClient, int16_t* uBuffer);
+    bool acquireVoltage(rp_channel_t uChannel, float& Value);
+    bool sendVoltageValue(int uClient, float* uBuffer);
 }
