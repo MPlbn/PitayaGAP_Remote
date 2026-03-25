@@ -33,7 +33,7 @@ freq:int = 1000
 amp:float = 0.0
 
 dec:int = 1
-gain = 1
+gain = 0
 
 sock.sendall(RESET_GEN_COMMAND)
 response = sock.recv(1)
