@@ -1,38 +1,12 @@
 import redpitaya_scpi as scpi
 from constants import *
+from commands import GEN_COMMAND, START_GEN_COMMAND, RESET_GEN_COMMAND, STOP_GEN_COMMAND
+from CMDManager import sendTCPNewVoltage, executeTCPCommand, readTCPReadyState
 
-#Fast samples generator
-class Generator:
-    def __init__(self, uIP):
-        self.RP_S = scpi.scpi(uIP)
-        self.channelNumber = GEN_DEFAULT_CHANNEL
-        self.frequency = F_GEN_DEFAULT_DACRATE
-        self.amplitude = 1
-        self.waveform = F_GEN_DEFAULT_WAVEFORM
-        
-    def reset(self):
-        self.RP_S.tx_txt('GEN:RST')
-
-    def setup(self, uChannelNumber, uWaveform, uFrequency, uAmplitude):
-        self.channelNumber = uChannelNumber
-        self.frequency = uFrequency
-        self.amplitude = uAmplitude
-        self.waveform = uWaveform
-        
-    def setSCPIsettings(self):
-        self.RP_S.sour_set(self.channelNumber, self.waveform, self.amplitude, self.frequency)
-
-    def startGenerating(self):
-        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE ON')
-        self.RP_S.tx_txt(f'SOUR{self.channelNumber}:TRIG:INT')
-
-    def stopGenerating(self):
-        self.RP_S.tx_txt(f'OUTPUT{self.channelNumber}:STATE OFF')
-
-
+# Continuous generator class
 class ContGenerator:
-    def __init__(self, uIP):
-        self.RP_S = scpi.scpi(uIP)
+    def __init__(self):
+        self.socket = None
         self.output: int = GEN_DEFAULT_CHANNEL
         self.frequency: int = 1000 #prob not needed
         self.voltageValue: float = GEN_DEFAULT_VOLTAGE
@@ -52,6 +26,9 @@ class ContGenerator:
 
         #for test
         self.steppingRanges = []
+
+    def setSocket(self, uSocket):
+        self.socket = uSocket
 
     def loadValue(self, uValue):
         self.voltageValue = uValue
@@ -84,6 +61,7 @@ class ContGenerator:
         self.steppingIndex += self.steppingLevelsIncrement
         return self.steppingRanges[self.steppingIndex]
 
+    # TODO CHANGE
     def setup(self, uChannelNumber = GEN_DEFAULT_CHANNEL, uFrequency = 1000, uAmplitude = 0.0):
         self.output = uChannelNumber
         self.frequency = uFrequency
@@ -143,8 +121,12 @@ class ContGenerator:
         self.output = uOutput
 
     def changeVolt(self, uNewVoltage):
-        self.RP_S.tx_txt(f'SOUR{self.output}:VOLT {abs(uNewVoltage)}')
-        
+        executeTCPCommand(self.socket, GEN_COMMAND)
+        if(not readTCPReadyState()):
+           print("error: ContGenerator.changeVolt")
+        else:
+            sendTCPNewVoltage(uNewVoltage)
+
     def pause(self):
         self.isPaused = True
 
@@ -155,11 +137,14 @@ class ContGenerator:
         return self.isPaused
 
     def reset(self):
-        self.RP_S.tx_txt('GEN:RST')
+        executeTCPCommand(self.socket, RESET_GEN_COMMAND)
+        if(not readTCPReadyState()):
+            print("error: ContGenerator.reset")
 
     def startGen(self):
-        self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE ON')
-        self.RP_S.tx_txt(f'SOUR{self.output}:TRig:INT')
+        executeTCPCommand(self.socket, START_GEN_COMMAND)
+        if(not readTCPReadyState()):
+            print("error: ContGenerator.startGen")
 
     def flipDirection(self):
         self.step *= -1.0
@@ -191,6 +176,7 @@ class ContGenerator:
     def resetGenValue(self):
         self.resetFlag = True
 
+    #TODO CHANGE, no need to swap the DC-NEG this already happens on server
     def generate(self):
         match self.GEN_MODE:
             case GeneratorMode.CONT:
@@ -245,22 +231,11 @@ class ContGenerator:
     def getRoundingNumber(self) -> int:
         return self.roundingNumber
 
-    #Smooth change if needed
     def stopGen(self, uStopType: StopType):
-        # if(self.voltageValue > 0):
-        #     if(self.step > 0):
-        #         self.step *= -1.0
-        # if(self.voltageValue < 0):
-        #     if(self.step < 0):
-        #         self.step *= -1.0
-        
-
-        # while(self.voltageValue > 0.1 or self.voltageValue < -0.1):
-        #     self.voltageValue += self.step
         match uStopType:
             case StopType.STOP_RESET:
-                self.RP_S.tx_txt(f"OUTPUT{self.output}:STATE OFF")
+                executeTCPCommand(self.socket, STOP_GEN_COMMAND)
                 self.voltageValue = 0.0
                 self.resetFlag = True
             case StopType.STOP_KEEP:
-                self.RP_S.tx_txt(f'OUTPUT{self.output}:STATE OFF')
+                executeTCPCommand(self.socket, STOP_GEN_COMMAND)

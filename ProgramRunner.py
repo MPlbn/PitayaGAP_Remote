@@ -22,8 +22,6 @@ from commands import *
 
 #   class responsible for work routine of a program
 
-#TODO Check BIN instead of ASCII and RAW instead of VOLT
-
 class ProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
         self.IP = uIP
@@ -40,11 +38,13 @@ class ProgramRunner:
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.IP)
 
+    #TODO this will be different
     def initialize(self):
         self.ContGenerator = Generate.ContGenerator(self.SCPI_IP)
         # self.FastGenerator = Generate.Generator(self.SCPI_IP)
         self.Acquisitor = Acquire.Acquisitor(self.SCPI_IP)
         
+    #   Connect to pitaya via ssh
 
     def connect(self):
         if (self.CMDManager.connectToPitaya() is not None):
@@ -52,8 +52,12 @@ class ProgramRunner:
         else:
             return False
 
+    #   Disconnect from pitaya ssh
+
     def disconnect(self):
         self.CMDManager.disconnectFromPitaya()
+
+    #   Startup routine used at the start of GUI
 
     def startupRoutine(self):
         isConnected = self.connect()
@@ -73,22 +77,30 @@ class ProgramRunner:
         return isConnected
         
 
-    def startSCPIServer(self):
-        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
+    # def startSCPIServer(self):
+    #     stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
+    #     time.sleep(1)
+    #     # stdout, stderr, status = self.CMDManager.executeCommand(CMD_STOP_NGINX)
+    #     # time.sleep(1)
+    #     stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_SCPI_SERVER)
+    #     time.sleep(1)
+
+    # def stopSCPIServer(self):
+    #     self.CMDManager.executeCommand(CMD_LIST_PROCESS_SCPI)
+    #     output = self.CMDManager.getOutput()
+    #     pids = [int(line.split()[0]) for line in output.strip().splitlines()]
+    #     for pid in pids:
+    #         self.CMDManager.executeCommand(f'{CMD_STOP_PROCESS}+{pid}')
+
+    #   remotely loading the correct FPGA overlay and running the custom server used for live gen/acq
+
+    def startCustomServer(self):
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_STANDARD_FPGA)
         time.sleep(1)
-        # stdout, stderr, status = self.CMDManager.executeCommand(CMD_STOP_NGINX)
-        # time.sleep(1)
-        stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_SCPI_SERVER)
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_CUSTOM_SERVER)
         time.sleep(1)
 
-    def stopSCPIServer(self):
-        self.CMDManager.executeCommand(CMD_LIST_PROCESS_SCPI)
-        output = self.CMDManager.getOutput()
-        pids = [int(line.split()[0]) for line in output.strip().splitlines()]
-        for pid in pids:
-            self.CMDManager.executeCommand(f'{CMD_STOP_PROCESS}+{pid}')
-
-    #   passing frame to plotter class to place the drawn plot
+    #   Passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
     #   uPlotterType: PlotType - determines which Plotter is to be configured
 
@@ -101,17 +113,7 @@ class ProgramRunner:
                 self.GenPlotter.setFrame(uPlotterFrame)
                 self.GenPlotter.initVisuals()        
 
-    #   handler of generation values
-    #   uChannelNumber: int - channel that generation will be performed on - [1,2]
-    #   uWaveForm: string - type of signal to be generated - [sine, dc, saw, square, triangle, arbitrary]
-    #   uAmplitude: float - amplitude of signal, in case of dc: value of constant
-    #   uFrequency: int - frequency of signal, in Hz
-    #   NOT USED NOT USED NOT USED NOT USED NOT USED
-
-    # def setGeneratorConstants(self, uChannelNumber = DEFAULT_CHANNEL, uWaveform = 'sine', uAmplitude = 1, uFrequency = 1000):
-    #     self.Generator.setup(uChannelNumber, uWaveform, uFrequency, uAmplitude)
-
-    #   setting generator parameters passed from GUI when in normal mode
+    #   Setting generator parameters passed from GUI when in normal mode
     #   uHighRange: float - ceiling voltage value which won't be passed while generating
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
@@ -122,7 +124,7 @@ class ProgramRunner:
         self.ContGenerator.setDirection(uDirection)
         self.ContGenerator.setStartingValue(uStartingValue)
 
-    #   setting generator parameters passed from GUI when in stepping mode
+    #   Setting generator parameters passed from GUI when in stepping mode
     #   uLimit: float - upper/lower voltage limit which won't be passed while generating
     #   uBase: float - base voltage that will be the starting point for each peak run while generating
     #   uStep: float - value by which voltage output will change each step
@@ -133,14 +135,14 @@ class ProgramRunner:
         self.ContGenerator.createSteps(uNumOfSteps)
         self.ContGenerator.setStep(uStep)
 
-    #   setting acquisitor parameters passed form GUI
+    #   Setting acquisitor parameters passed form GUI
     #   uGain: string - gain mode (HV/LV)
     #   uDecimation: int - decimation value (how many samples are skipped between acquiring another one)
 
     def setAcquisitorParameters(self, uGain, uDecimation = 4):
         self.Acquisitor.setup(uDecimation=uDecimation, uGain=uGain)
 
-    #   converting ratio from combobox string to float ratio and passing it to plotter
+    #   Converting ratio from combobox string to float ratio and passing it to plotter
     #   uRatio: str - text acquired from combobox
 
     def setDataRatio(self, uRatio: str):
@@ -148,21 +150,22 @@ class ProgramRunner:
         result: float = numerator/denominator
         self.AcqPlotter.setRatio(result)    
 
-    #   pausing generation of continous generator
+    #   Pausing generation of continous generator
 
     def pauseContGenerator(self):
         self.ContGenerator.pause()
 
-    #   unpausing generation of continous generator
+    #   Unpausing generation of continous generator
 
     def unpauseContGenerator(self):
         self.ContGenerator.unpause()
 
-    #   getter for current generator pause state
+    #   Getter for current generator pause state
+
     def getContGeneratorPauseState(self):
         return self.ContGenerator.getPause()
 
-    #   updates GUI elements - progress bar, progress label and plots
+    #   Updates GUI elements - progress bar, progress label and plots
     #   uProgressBar - progress bar passed from GUI
     #   uProgressLabel - progress label passed from GUI
 
@@ -174,31 +177,34 @@ class ProgramRunner:
         self.GenPlotter.updatePlot()
         self.GenPlotter.canvas.draw()
 
+    # Change program mode to correctly run the CSV file saving
+
     def startSaveProcess(self):
         if(self.PROGRAM_MODE == ProgramMode.IDLE):
             self.changeMode(ProgramMode.CSV_WORK_ROUTINE_TO_IDLE)
         else:
             self.changeMode(ProgramMode.CSV_WORK_ROUTINE_TO_GEN)
 
+    #   Save data to CSV file
     #   dataI: np.array() - Filled with value of the current
     #   dataV: np.array() - Filled with value of the voltages
     def saveDataToCSV(self, dataI = [], dataV = []):
             self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True)
 
-    #   resets the current voltage value to the set starting voltage value
+    #   Resets the current voltage value to the set starting voltage value
     def resetGenerator(self):
         self.ContGenerator.resetGenValue()
 
-    #   flips the step value (*-1) of continouous generator
+    #   Flips the step value (*-1) of continouous generator
     def flipGenStep(self):
         self.ContGenerator.flipDirection()
 
-    #   clears the data from both plotters
+    #   Clears the data from both plotters
     def clearPlot(self):
         self.AcqPlotter.clear()
         self.GenPlotter.clear()
 
-    #   main work routine of program runner
+    #   Main work routine of program runner
 
     def run(self):
         match self.PROGRAM_MODE:
@@ -314,7 +320,7 @@ class ProgramRunner:
             case PlotType.GEN:
                 self.GenPlotter.processData(uBuffer)
     
-    #   closing the scpi connection
+    #   Closing the scpi connection TODO change, SCPI no longer used
 
     def exit(self):
         self.changeMode(ProgramMode.GEN_STOP)
@@ -326,7 +332,7 @@ class ProgramRunner:
 
     # =================== TEST GENERATION FUNCTIONS ===================
     def TEST_START_CMD(self):
-        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
+        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_STANDARD_FPGA)
         time.sleep(1)
 
     def TEST_CMD_GENERATION(self):

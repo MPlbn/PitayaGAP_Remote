@@ -1,6 +1,6 @@
 from constants import *
 
-CMD_LOAD_SCPI_FPGA = "echo STANDARD OVERLAY && /opt/redpitaya/sbin/overlay.sh v0.94"
+CMD_LOAD_STANDARD_FPGA = "echo STANDARD OVERLAY && /opt/redpitaya/sbin/overlay.sh v0.94"
 CMD_STOP_NGINX = "echo STOPING NGINX && systemctl stop redpitaya_nginx"
 CMD_START_NGINX = "echo STOPING NGINX && systemctl start redpitaya_nginx"
 CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &"
@@ -59,6 +59,7 @@ ACQ_COMMAND = b'F'
 START_ACQ_COMMAND = b'G'
 RESET_ACQ_COMMAND = b'H'
 STOP_ACQ_COMMAND = b'I'
+
 CLOSE_COMMAND = b'Z'
 
 RESPONSE_READY = b'R'

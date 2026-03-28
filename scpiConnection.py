@@ -13,7 +13,7 @@ ip = [
 ]
 
 PR.connect()
-stdout, stderr, status = PR.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
+stdout, stderr, status = PR.CMDManager.executeCommand(CMD_LOAD_STANDARD_FPGA)
 time.sleep(1)
 
 stdout, stderr, status = PR.CMDManager.executeCommand(CMD_START_SCPI_SERVER)

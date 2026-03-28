@@ -4,7 +4,11 @@ import threading
 import select
 import subprocess
 import time
+import socket
+import struct
+from commands import *
 
+#TODO possible cleanup
 class CMDManager:
     def __init__(self, uIP, uUsername='root', uPassword='root'):
         self.ip = uIP
@@ -59,7 +63,40 @@ class CMDManager:
             if (self.stdout.channel.exit_status_ready()):
                 break
 
-    # ============== TEST ==============
-    def createGenerateCommand(self,uCommand, uVoltage, uFreq = 1):
-        command = uCommand + f'{uVoltage} {uFreq} dc'
-        return command
+#================== TCP =================#
+
+def connectTCP(self, uIP):
+    for _ in range(5):
+        try:
+            sock = socket.create_connection((self.ip, 5000))
+            break
+        except ConnectionRefusedError:
+            time.sleep(0.5)
+    return sock
+
+def disconnectTCP(uSocket):
+    uSocket.sendall(CLOSE_COMMAND)
+    time.sleep(0.2)
+    uSocket.close()
+
+def executeTCPCommand(uSocket, uCommand):
+    uSocket.sendall(uCommand)
+
+def sendTCPNewVoltage(uSocket, uValue):
+    packet = struct.pack('<f', uValue)
+    uSocket.sendall(packet)
+
+def sendTCPSetupValues(uSocket, uValue, uFrequency, uDecimation, uGain):
+    packet = struct.pack('<f i i B', uValue, uFrequency, uDecimation, uGain)
+    uSocket.sendall(packet)
+
+def readTCPReadyState(uSocket) -> bool:
+    response = uSocket.recv(1)
+    if(response == RESPONSE_READY):
+        return True
+    return False
+
+def readTCPAcqValues(uSocket):
+    buffer = uSocket.recv(8)
+    values = struct.unpack('<f f', buffer)
+    return values

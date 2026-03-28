@@ -2,25 +2,32 @@ import redpitaya_scpi as scpi
 import time
 
 from constants import *
+from commands import ACQ_COMMAND, START_ACQ_COMMAND, RESET_ACQ_COMMAND, STOP_ACQ_COMMAND
+from CMDManager import executeTCPCommand, readTCPReadyState, readTCPAcqValues
 
 #   class responsible for constant, real time data acquisition from RedPitaya.
-#   uses SCPI commands
+#   uses Custom Server
 class Acquisitor:
-    def __init__(self, uIP):
-        self.RP_S = scpi.scpi(uIP)
+    def __init__(self):
+        self.socket = None
         self.decimation = 1
         self.gain = ACQ_DEFAULT_GAIN
 
+    def setSocket(self, uSocket):
+        self.socket = uSocket
+
     #   resets acquisition
     def reset(self):
-        self.RP_S.tx_txt('ACQ:RST')
+        executeTCPCommand(RESET_ACQ_COMMAND)
+        if(not readTCPReadyState()):
+            print("error: Acquisitor.reset")
 
-    #   acquisition settings
+    #   acquisition settings TODO change
     def setup(self, uDecimation, uGain):
         self.decimation = uDecimation
         self.gain = uGain
 
-    #   sends the settings to SCPI
+    #   sends the settings to SCPI TODO change
     def setSCPIsettings(self):
         self.RP_S.tx_txt(f'ACQ:DEC {self.decimation}')
         self.RP_S.tx_txt(f'ACQ:DATA:Units {ACQ_UNITS}')
@@ -29,15 +36,15 @@ class Acquisitor:
         self.RP_S.tx_txt(f'ACQ:SOUR{ACQ_CURRENT_CHANNEL}:GAIN {self.gain}')
         self.RP_S.tx_txt(f'ACQ:AVG ON')
 
-    #   starts acquisition
+    #   starts acquisition TODO change
     def start(self):
         self.RP_S.tx_txt('ACQ:START')
 
-    #   stops acquisition
+    #   stops acquisition TODO change
     def stop(self):
         self.RP_S.tx_txt('ACQ:STOP')
 
-    #   runs acquisition by setting trigger to be instant and waiting for buffer to fill
+    #   runs acquisition by setting trigger to be instant and waiting for buffer to fill TODO change
     def run(self):
         self.RP_S.tx_txt('ACQ:TRig NOW')
 
