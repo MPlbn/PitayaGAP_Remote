@@ -29,19 +29,19 @@ step = 0.5
 hBound = 1
 lBound = -1
 finBuff = []
-PR.ContGenerator.reset()
+PR.Generator.reset()
 PR.Acquisitor.reset()
 PR.Acquisitor.setSCPIsettings()
-PR.ContGenerator.startGen()
+PR.Generator.startGen()
 for i in range(5):
-    PR.ContGenerator.changeVolt(voltage)
+    PR.Generator.changeVolt(voltage)
     if(voltage + step > hBound or voltage + step < lBound):
         step *= -1
     voltage += step
     time.sleep(0.01)
     data += PR.doStuffAcq()
 PR.Acquisitor.stop()
-PR.ContGenerator.stopGen(StopType.STOP_RESET)
+PR.Generator.stopGen(StopType.STOP_RESET)
 #data = PR.Acquisitor.processDataFull(data)
 plotter.testPlot(data)
 

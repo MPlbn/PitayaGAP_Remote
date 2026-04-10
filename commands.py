@@ -2,8 +2,8 @@ from constants import *
 
 CMD_LOAD_STANDARD_FPGA = "echo STANDARD OVERLAY && /opt/redpitaya/sbin/overlay.sh v0.94"
 CMD_STOP_NGINX = "echo STOPING NGINX && systemctl stop redpitaya_nginx"
-CMD_START_NGINX = "echo STOPING NGINX && systemctl start redpitaya_nginx"
-CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &"
+CMD_START_NGINX = "echo STOPING NGINX && systemctl start redpitaya_nginx" 
+CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &" #TODO delete
 
 CMD_START_CUSTOM_SERVER = "echo START CUSTOM SERVER && nohup /root/RedPitaya/gen-acq-server/custom_server &"
 
@@ -63,6 +63,3 @@ STOP_ACQ_COMMAND = b'I'
 CLOSE_COMMAND = b'Z'
 
 RESPONSE_READY = b'R'
-
-# ==================== TEST GENERATE FUNCTIONS ====================
-TEST_CMD_GENERATE = "/opt/redpitaya/bin/generate 1 "

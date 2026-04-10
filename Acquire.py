@@ -1,5 +1,3 @@
-import redpitaya_scpi as scpi
-
 from constants import *
 from commands import ACQ_COMMAND, START_ACQ_COMMAND, RESET_ACQ_COMMAND, STOP_ACQ_COMMAND
 from CMDManager import executeTCPCommand, readTCPReadyState, readTCPAcqValues

@@ -212,7 +212,7 @@ class GUI:
                     self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
                     tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
 
-                self.PR.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, tempLRange/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, self.direction)
+                self.PR.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, tempLRange/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, self.direction) #TODO NEEDED FREQ, AND AMP
             case "stepping":
                 #collecting values
                 tempLimit : float = float(self.maxRangeEntry.get()) if self.maxRangeEntry.get() != "" else GEN_DEFAULT_HRANGE 
@@ -265,8 +265,8 @@ class GUI:
                     self.numOfStepsEntry.insert(0, str(30))
                     tempMessage += f"Error: Number of steps cannot be higher than 30"
 
-                self.PR.setSteppingGeneratorParameters(tempLimit/MV_TO_V_VALUE, tempBase/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, tempNumOfSteps)
-        self.PR.setAcquisitorParameters(self.gain)
+                self.PR.setSteppingGeneratorParameters(tempLimit/MV_TO_V_VALUE, tempBase/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, tempNumOfSteps) #TODO NEED FREQ, AMP
+        self.PR.setAcquisitorParameters(self.gain) #TODO MAYBE GET DEC
         self.PR.resetGenerator()
 
         #showing error message
@@ -362,31 +362,31 @@ class GUI:
         #standard settings used everytime
         self.standardSetFrame = ttk.Frame(self.settingsFrame)
         self.stepLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Step value [mV]')
-        self.intervalLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Speed value')
         self.stepEntry = ttk.Entry(self.standardSetFrame , bootstyle=INFO, validatecommand=(self.valPosFloat, '%P'), validate="key")
+        self.intervalLabel = ttk.Label(self.standardSetFrame , bootstyle=INFO, text='Speed value')
         self.intervalEntry = ttk.Entry(self.standardSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
-        self.setBtn = ttk.Button(self.standardSetFrame , text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
         self.IVratioLabel = ttk.Label(self.standardSetFrame, bootstyle=INFO, text='I/V [A/mV]')
         self.IVratioCombobox = ttk.Combobox(self.standardSetFrame, bootstyle=INFO, state=READONLY)
         self.gainLabel = ttk.Label(self.standardSetFrame, bootstyle=INFO, text='Gain mode')
         self.gainCombobox = ttk.Combobox(self.standardSetFrame, bootstyle=INFO, state=READONLY)
+        self.setBtn = ttk.Button(self.standardSetFrame , text='Set', bootstyle=(INFO,OUTLINE), command=self.setRangesPress)
 
         #normal settings
         self.normalSetFrame = ttk.Frame(self.settingsFrame)
         self.hRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO , text='High value [mV]')
-        self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low value [mV]')
-        self.directionLabel = ttk.Label(self.normalSetFrame, bootstyle=INFO, text='Direction')
         self.hRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.lRangeLabel = ttk.Label(self.normalSetFrame , bootstyle=INFO, text='Low value [mV]')
         self.lRangeEntry = ttk.Entry(self.normalSetFrame , bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.directionLabel = ttk.Label(self.normalSetFrame, bootstyle=INFO, text='Direction')
         self.directionCombobox = ttk.Combobox(self.normalSetFrame, bootstyle=INFO, state=READONLY, width=10)
     
         #stepping settings
         self.steppingSetFrame = ttk.Frame(self.settingsFrame)
         self.baseLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Base level [mV]')
-        self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Limit value [mV]')
-        self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='No. of steps')
         self.baseEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.maxRangeLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='Limit value [mV]')
         self.maxRangeEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valFloat, '%P'), validate="key")
+        self.numOfStepsLabel = ttk.Label(self.steppingSetFrame, bootstyle=INFO, text='No. of steps')
         self.numOfStepsEntry = ttk.Entry(self.steppingSetFrame, bootstyle=INFO, validatecommand=(self.valInt, '%P'), validate="key")
 
         #Setting combobox values

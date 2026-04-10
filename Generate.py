@@ -1,10 +1,9 @@
-import redpitaya_scpi as scpi
 from constants import *
 from commands import GEN_COMMAND, START_GEN_COMMAND, RESET_GEN_COMMAND, STOP_GEN_COMMAND
 from CMDManager import sendTCPNewVoltage, executeTCPCommand, readTCPReadyState
 
 # Continuous generator class
-class ContGenerator:
+class Generator:
     def __init__(self):
         self.socket = None
         self.outputChannel: int = GEN_DEFAULT_CHANNEL
@@ -31,9 +30,8 @@ class ContGenerator:
     def setSocket(self, uSocket):
         self.socket = uSocket
 
-    def setup(self, uFrequency = 1000, uAmplitude = 0.0):
-        self.frequency = uFrequency
-        self.voltageValue = uAmplitude
+    def setFreq(self, uFreq):
+        self.frequency = uFreq
 
     def setRanges(self, uHRange = None, uLRange = None):
         if(uHRange != None):
@@ -74,7 +72,7 @@ class ContGenerator:
     def getFreq(self):
         return self.frequency
 
-    def getAmp(self):
+    def getVoltageValue(self):
         return self.voltageValue
 
     def getPause(self) -> bool:

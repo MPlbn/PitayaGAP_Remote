@@ -5,9 +5,10 @@ import ttkbootstrap
 
 #Standard libraries
 import time
+import psutil
 
 #Redpitaya module for scpi connection and communication
-import redpitaya_scpi as scpi
+#import redpitaya_scpi as scpi
 
 #Custom modules
 import Generate
@@ -16,7 +17,6 @@ import Plotter
 import FileManager
 import CMDManager
 import WaveCreator
-import psutil
 from constants import *
 from commands import *
 
@@ -27,9 +27,9 @@ class ProgramRunner:
         self.IP = uIP
         self.SCPI_IP = RED_PITAYA_IP
         self.PROGRAM_MODE = ProgramMode.IDLE
-        self.ContGenerator = None
-        #self.FastGenerator = None
-        self.Acquisitor = None
+        self.socket = None
+        self.Generator = Generate.Generator()
+        self.Acquisitor = Acquire.Acquisitor()
         self.isRunningContinous = False
         self.dataBuffer = [] #not used for now
         self.isRunningContinous = False
@@ -37,12 +37,6 @@ class ProgramRunner:
         self.GenPlotter = Plotter.GenPlotter()
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.IP)
-
-    #TODO this will be different
-    def initialize(self):
-        self.ContGenerator = Generate.ContGenerator(self.SCPI_IP)
-        # self.FastGenerator = Generate.Generator(self.SCPI_IP)
-        self.Acquisitor = Acquire.Acquisitor(self.SCPI_IP)
         
     #   Connect to pitaya via ssh
 
@@ -71,27 +65,10 @@ class ProgramRunner:
                 else:
                     time.sleep(2)
         if(isConnected):
-            self.startSCPIServer()
+            self.startCustomServer()
             self.disconnect()
-            self.initialize()
         return isConnected
         
-
-    # def startSCPIServer(self):
-    #     stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_SCPI_FPGA)
-    #     time.sleep(1)
-    #     # stdout, stderr, status = self.CMDManager.executeCommand(CMD_STOP_NGINX)
-    #     # time.sleep(1)
-    #     stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_SCPI_SERVER)
-    #     time.sleep(1)
-
-    # def stopSCPIServer(self):
-    #     self.CMDManager.executeCommand(CMD_LIST_PROCESS_SCPI)
-    #     output = self.CMDManager.getOutput()
-    #     pids = [int(line.split()[0]) for line in output.strip().splitlines()]
-    #     for pid in pids:
-    #         self.CMDManager.executeCommand(f'{CMD_STOP_PROCESS}+{pid}')
-
     #   remotely loading the correct FPGA overlay and running the custom server used for live gen/acq
 
     def startCustomServer(self):
@@ -99,6 +76,10 @@ class ProgramRunner:
         time.sleep(1)
         stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_CUSTOM_SERVER)
         time.sleep(1)
+
+    def connectToServer(self):
+        # connect, get socket, set socket to gen and acq
+        pass
 
     #   Passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -117,29 +98,37 @@ class ProgramRunner:
     #   uHighRange: float - ceiling voltage value which won't be passed while generating
     #   uLowRange: float - floor voltage value which won't be passed while generating
     #   uStep: float - value by which voltage output will change each step
+    #   uDirection: string - anodic/kathodic
+    #   uFrequency: int - frequency value
+    #   uStartingValue: float - starting generator voltage
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue = 0.0):
-        self.ContGenerator.setRanges(uHighRange, uLowRange)
-        self.ContGenerator.setStep(uStep)
-        self.ContGenerator.setDirection(uDirection)
-        self.ContGenerator.setStartingValue(uStartingValue)
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uFrequency, uStartingValue = 0.0):
+        self.Generator.setRanges(uHighRange, uLowRange)
+        self.Generator.setStep(uStep)
+        self.Generator.setDirection(uDirection)
+        self.Generator.setStartingValue(uStartingValue)
+        self.Generator.setFrequency(uFrequency)
 
     #   Setting generator parameters passed from GUI when in stepping mode
     #   uLimit: float - upper/lower voltage limit which won't be passed while generating
     #   uBase: float - base voltage that will be the starting point for each peak run while generating
     #   uStep: float - value by which voltage output will change each step
-    #   uNumofSteps: int - number of different voltage peaks to be created
+    #   uNumOfSteps: int - number of different voltage peaks to be created
+    #   uFrequency: int - frequency value
+    #   uStartingValue: float - starting generator voltage
 
-    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps):
-        self.ContGenerator.setSteppingRanges(uLimit, uBase)
-        self.ContGenerator.createSteps(uNumOfSteps)
-        self.ContGenerator.setStep(uStep)
+    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps, uFrequency, uStartingValue = 0.0):
+        self.Generator.setSteppingRanges(uLimit, uBase)
+        self.Generator.createSteps(uNumOfSteps)
+        self.Generator.setStep(uStep)
+        self.Generator.setFrequency(uFrequency)
+        self.Generator.setStartingValue(uStartingValue)
 
     #   Setting acquisitor parameters passed form GUI
     #   uGain: string - gain mode (HV/LV)
     #   uDecimation: int - decimation value (how many samples are skipped between acquiring another one)
 
-    def setAcquisitorParameters(self, uGain, uDecimation = 4):
+    def setAcquisitorParameters(self, uGain, uDecimation = 1):
         self.Acquisitor.setup(uDecimation=uDecimation, uGain=uGain)
 
     #   Converting ratio from combobox string to float ratio and passing it to plotter
@@ -148,34 +137,47 @@ class ProgramRunner:
     def setDataRatio(self, uRatio: str):
         numerator, denominator = map(int, uRatio.split('/'))
         result: float = numerator/denominator
-        self.AcqPlotter.setRatio(result)    
+        self.AcqPlotter.setRatio(result)  
 
     #   Pausing generation of continous generator
 
     def pauseContGenerator(self):
-        self.ContGenerator.pause()
+        self.Generator.pause()
 
     #   Unpausing generation of continous generator
 
     def unpauseContGenerator(self):
-        self.ContGenerator.unpause()
+        self.Generator.unpause()
 
     #   Getter for current generator pause state
 
     def getContGeneratorPauseState(self):
-        return self.ContGenerator.getPause()
+        return self.Generator.getPause()
 
     #   Updates GUI elements - progress bar, progress label and plots
     #   uProgressBar - progress bar passed from GUI
     #   uProgressLabel - progress label passed from GUI
 
     def updateGUIElements(self, uProgressBar, uProgressLabel):
-        uProgressBar.configure(value = self.ContGenerator.voltageToPercent())
-        uProgressLabel.configure(text=str(round(self.ContGenerator.voltageValue, self.ContGenerator.getRoundingNumber())))
+        uProgressBar.configure(value = self.Generator.voltageToPercent())
+        uProgressLabel.configure(text=str(round(self.Generator.voltageValue, self.Generator.getRoundingNumber())))
         self.AcqPlotter.updatePlot()
         self.AcqPlotter.canvas.draw()
         self.GenPlotter.updatePlot()
         self.GenPlotter.canvas.draw()
+
+    def sendSetup(self):
+        amplitude = self.Generator.getVoltageValue()
+        frequency = self.Generator.getFreq()
+        decimation = self.Acquisitor.getDecimation()
+        gain = self.Acquisitor.getGain()
+
+        CMDManager.executeTCPCommand(self.socket, CMDManager.SETUP_COMMAND)
+        if(not CMDManager.readTCPReadyState):
+            print('error: ProgramRunner.sendSetup:Runing the command')
+        CMDManager.sendTCPSetupValues(amplitude, frequency, decimation, gain)
+        if(not CMDManager.readTCPReadyState):
+            print('error: ProgramRunner.sendSetup:Setting the values')        
 
     # Change program mode to correctly run the CSV file saving
 
@@ -188,18 +190,22 @@ class ProgramRunner:
     #   Save data to CSV file
     #   dataI: np.array() - Filled with value of the current
     #   dataV: np.array() - Filled with value of the voltages
+
     def saveDataToCSV(self, dataI = [], dataV = []):
-            self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True)
+            self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True) #TODO CHANGE MOCK IN CASE OF TESTING REAL THING
 
     #   Resets the current voltage value to the set starting voltage value
+
     def resetGenerator(self):
-        self.ContGenerator.resetGenValue()
+        self.Generator.resetGenValue()
 
     #   Flips the step value (*-1) of continouous generator
+
     def flipGenStep(self):
-        self.ContGenerator.flipDirection()
+        self.Generator.flipDirection()
 
     #   Clears the data from both plotters
+
     def clearPlot(self):
         self.AcqPlotter.clear()
         self.GenPlotter.clear()
@@ -208,91 +214,86 @@ class ProgramRunner:
 
     def run(self):
         match self.PROGRAM_MODE:
-            case ProgramMode.IDLE: #idle state
+            case ProgramMode.IDLE:
                 pass
 
-            case ProgramMode.CONT_START: #Continous run start
-                self.ContGenerator.changeMode(GeneratorMode.CONT)
-                self.ContGenerator.reset()
-                self.ContGenerator.setup()
-                self.ContGenerator.startGen()
+            case ProgramMode.CONT_START:
+                self.Generator.changeMode(GeneratorMode.CONT)
+                self.Generator.reset()
+                self.Acquisitor.reset()
+                self.sendSetup()
+                self.Generator.startGen()
+                self.Acquisitor.start()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
-                self.ContGenerator.applyDirection()
+                self.Generator.applyDirection()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE) 
-    
-            case ProgramMode.GEN_STOP: #Stop continous
-                #run to 0 and stop
-                self.ContGenerator.stopGen(StopType.STOP_RESET)
 
-                if(self.ContGenerator.getPause()):
-                    self.ContGenerator.unpause()
-                
-                self.AcqPlotter.stop()
-                self.GenPlotter.stop()
-                self.changeMode(ProgramMode.IDLE)
-
-            case ProgramMode.GEN_WORK_ROUTINE:
-
-                self.ContGenerator.workRoutine()
-                self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
-                self.Acquisitor.reset()
-                self.Acquisitor.setSCPIsettings()
-                self.Acquisitor.start()
-                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE) #this takes the most time
-                Vbuffer = np.array(buffer[0])
-                Ibuffer = np.array(buffer[1])
-                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
-                self.Acquisitor.stop()
-                
-                
             case ProgramMode.STEPPING_START:
-                self.ContGenerator.changeMode(GeneratorMode.STEPPING)
-                self.ContGenerator.reset()
-                self.ContGenerator.setup()
-                self.ContGenerator.setRanges(uHRange=self.ContGenerator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #TODO something to check here
-                self.ContGenerator.startGen()
+                self.Generator.changeMode(GeneratorMode.STEPPING)
+                self.Generator.reset()
+                self.Acquisitor.reset()
+                self.sendSetup()
+                self.Generator.setRanges(uHRange=self.Generator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #TODO something to check here
+                self.Generator.startGen()
+                self.Acquisitor.start()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
-            
+    
             case ProgramMode.PRE_WORK_ROUTINE:
-                self.processDataBuffer(self.ContGenerator.voltageValue, PlotType.GEN)
-                self.Acquisitor.reset()
-                self.Acquisitor.setSCPIsettings()
-                self.Acquisitor.start()
-                buffer = self.Acquisitor.getBuff(ACQ_SAMPLE_SIZE)
-                Vbuffer = np.array(buffer[0])
-                Ibuffer = np.array(buffer[1])
+                self.processDataBuffer(self.Generator.getVoltageValue(), PlotType.GEN)
+                self.Acquisitor.workRoutine()
+                Vbuffer = self.Acquisitor.getCurrentV
+                Ibuffer = self.Acquisitor.getCurrentI
                 self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
-                self.Acquisitor.stop()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
-            
+
+            case ProgramMode.GEN_WORK_ROUTINE:
+                self.Generator.workRoutine()
+                self.processDataBuffer(self.Generator.getVoltageValue(), PlotType.GEN)
+                self.Acquisitor.workRoutine()
+                Vbuffer = self.Acquisitor.getCurrentV
+                Ibuffer = self.Acquisitor.getCurrentI
+                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                            
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
-                self.ContGenerator.stopGen(StopType.STOP_KEEP)
+                self.Generator.stopGen(StopType.STOP_KEEP) 
+                self.Acquisitor.stop()
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqPlotter.getData())
-                self.ContGenerator.startGen()
+                self.Generator.startGen()
+                self.Acquisitor.start()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.CSV_WORK_ROUTINE_TO_IDLE:
-                self.ContGenerator.stopGen(StopType.STOP_KEEP)
+                self.Generator.stopGen(StopType.STOP_KEEP)
+                self.Acquisitor.stop()
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqPlotter.getData())
-                self.ContGenerator.startGen()
+                self.Generator.startGen()
+                self.Acquisitor.start()
                 self.AcqPlotter.start()
                 self.GenPlotter.start()
                 self.changeMode(ProgramMode.IDLE)
 
+            case ProgramMode.GEN_STOP:
+                self.Generator.stopGen(StopType.STOP_RESET)
+                self.Acquisitor.stop()
 
-            
-            
+                if(self.Generator.getPause()):
+                    self.Generator.unpause()
+                
+                self.AcqPlotter.stop()
+                self.GenPlotter.stop()
+                self.changeMode(ProgramMode.IDLE)
+
             
     #   Changing the work routine
     #   newMode: int - new mode to be set
@@ -307,7 +308,7 @@ class ProgramRunner:
     #   uChangeType: int = modifier to step value
 
     def manualChangeGenVoltage(self, uChangeType):
-        self.ContGenerator.manualChangeVoltage(uChangeType)
+        self.Generator.manualChangeVoltage(uChangeType)
 
     #   Passing data to plotter processing function
     #   uBuffer: array of floats - buffer returned from aqcuisition
@@ -320,79 +321,11 @@ class ProgramRunner:
             case PlotType.GEN:
                 self.GenPlotter.processData(uBuffer)
     
-    #   Closing the scpi connection TODO change, SCPI no longer used
+    #   Closing the custom server connection
 
     def exit(self):
         self.changeMode(ProgramMode.GEN_STOP)
-        scpi.scpi(self.IP).close()
-        isConnected = self.connect()
-        self.stopSCPIServer()
-        self.disconnect()
-
-
-    # =================== TEST GENERATION FUNCTIONS ===================
-    def TEST_START_CMD(self):
-        stdout, stderr, status = self.CMDManager.executeCommand(CMD_LOAD_STANDARD_FPGA)
-        time.sleep(1)
-
-    def TEST_CMD_GENERATION(self):
-        voltage = 0
-        step = 0.10
-        hBound = 1
-        lBound = -1
-        for i in range(10):
-            time.sleep(1)
-            generateCommand = self.CMDManager.createGenerateCommand(TEST_CMD_GENERATE, voltage)
-            self.CMDManager.executeCommand(generateCommand)
-            if(voltage + step > hBound or voltage + step < lBound):
-                step *= -1
-            voltage += step
-        generateCommand = self.CMDManager.createGenerateCommand(TEST_CMD_GENERATE, 0)
-        self.CMDManager.executeCommand(generateCommand)
-
-    def doStuff(self):
-        self.Plotter = Plotter.FAcqPlotter()
-        voltage = 0
-        step = 0.10
-        hBound = 1
-        lBound = -1
-        finBuff = []
-        self.ContGenerator.reset()
-        self.Acquisitor.reset()
-        self.ContGenerator.startGen()
-        self.Acquisitor.start()
-        time.sleep(0.01)
-        for i in range(200):
-            self.Acquisitor.setTrig()
-            time.sleep(0.01)
-            finBuff.append(self.Acquisitor.AcqRoutine()) 
-            start = time.time()
-            self.ContGenerator.changeVolt(voltage)
-            if(voltage + step > hBound or voltage + step < lBound):
-                step *= -1
-            voltage += step
-            end = time.time()
-            elapsed = end-start
-            print(f'step time: {elapsed} ms')
-        self.Acquisitor.stop()
-        self.ContGenerator.stopGen(StopType.STOP_RESET)
-        self.Acquisitor.reset()
-        #print(finBuff)
-        finBuff = self.Acquisitor.processData(finBuff.copy())
-        print(type(finBuff[0]))
-        self.Plotter.testPlot(finBuff)
-    def doStuffAcq(self):
-        #finBuff = []
-        self.Acquisitor.start()
-        self.Acquisitor.setTrig()
-        #finBuff.append(self.Acquisitor.AcqRoutine())
-        finBuff = self.Acquisitor.AcqRoutineFull()
-        self.Acquisitor.stop()
-        return self.Acquisitor.processDataFull(finBuff)
-        #return finBuff
-
-        
-    
+        CMDManager.disconnectTCP()
 
 class FastProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
@@ -421,6 +354,7 @@ class FastProgramRunner:
 
     #   calculates number of loops + leftover samples that are needed for fast acquisition
     #   uSamplesNumber: int - number of samples needed for full run
+
     def processNumberOfSamples(self, uSamplesNumber):
         loopNumber = int(uSamplesNumber / WF_FULL_SIZE)
         leftoverSamples = uSamplesNumber - (WF_FULL_SIZE * loopNumber)
@@ -528,48 +462,3 @@ class FastProgramRunner:
         self.runAcquisition(uSamples, uFileType)
         self.cleanup()
         self.showPlot(self.CSVFileManager.getNewestPath())
-
-# ==================== TEST ====================
-    def testSetup(self):
-        #Setups - this will be done differently
-        self.setConfig(F_GEN_DEFAULT_DACRATE, F_ACQ_DEFAULT_DEC, F_ACQ_DEFAULT_STATE, F_ACQ_DEFAULT_STATE)
-        self.pushConfig() 
-
-    def generateWaveForm(self, uVoltage):
-        waveform = self.WaveCreator.createDC(uVoltage)
-        self.WAVFileManager.saveToFile('DC', waveform, self.WaveCreator.getSampleRate())
-
-    def TESTrunGeneration(self, command):
-        command[7] = self.WAVFileManager.getCurrentPath()
-        print(command)
-        self.CMDManager.executeLocalCommand(command)
-
-    def TEST_STREAMING_GENERATION(self):
-        voltage = 0.5
-        step = 0.10
-        hBound = 1.0
-        lBound = -1.0
-        self.testSetup()
-        command = [
-    './streaming_app/rpsa_client', 
-    '-o',
-    '-h', f'{RED_PITAYA_IP}',
-    '-f', 'wav', 
-    '-d', '', #tochange
-    'r', 'inf',
-    '-v'
-    ]
-
-        # for i in range(10):
-            # start = time.time()
-            # self.generateWaveForm(voltage)
-            # self.runGeneration()
-            # if(voltage + step > hBound or voltage + step < lBound):
-                # step *= -1
-            # voltage += step
-            # end = time.time()
-            # elapsed = end-start
-            # print(f'step time: {elapsed} ms')
-        self.generateWaveForm(voltage)
-        self.TESTrunGeneration(command.copy())
-        time.sleep(10)
