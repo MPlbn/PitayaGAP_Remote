@@ -212,7 +212,7 @@ class GUI:
                     self.lRangeEntry.insert(0, str(GEN_DEFAULT_LRANGE))
                     tempMessage += f"Error: Ranges cannot have the same value - resetting to default range values\n"
 
-                self.PR.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, tempLRange/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, self.direction) #TODO NEEDED FREQ, AND AMP
+                self.PR.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, tempLRange/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, self.direction, uFrequency=10, uStartingValue=0.0) #TODO NEEDED FREQ, AND AMP
             case "stepping":
                 #collecting values
                 tempLimit : float = float(self.maxRangeEntry.get()) if self.maxRangeEntry.get() != "" else GEN_DEFAULT_HRANGE 
@@ -265,7 +265,7 @@ class GUI:
                     self.numOfStepsEntry.insert(0, str(30))
                     tempMessage += f"Error: Number of steps cannot be higher than 30"
 
-                self.PR.setSteppingGeneratorParameters(tempLimit/MV_TO_V_VALUE, tempBase/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, tempNumOfSteps) #TODO NEED FREQ, AMP
+                self.PR.setSteppingGeneratorParameters(tempLimit/MV_TO_V_VALUE, tempBase/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, tempNumOfSteps, uFrequency=10, uStartingValue=0.0) #TODO NEED FREQ, AMP
         self.PR.setAcquisitorParameters(self.gain) #TODO MAYBE GET DEC
         self.PR.resetGenerator()
 
@@ -281,13 +281,13 @@ class GUI:
 
     def threadTask(self):
         while True:
-            tStartTime = time.time()
+            # tStartTime = time.time()
             self.PR.run()
             self.root.after(0, self.updateFun)
-            tStopTime = time.time()
-            tElapsed = (tStopTime - tStartTime) * 1000
-            print(f'Elapsed time: {tElapsed} ms')
-            time.sleep(self.interval/1000)
+            # tStopTime = time.time()
+            # tElapsed = (tStopTime - tStartTime) * 1000
+            # print(f'Elapsed time: {tElapsed} ms')
+            time.sleep(self.interval/100)
 
     #   Update gui elements function
 

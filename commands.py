@@ -5,7 +5,7 @@ CMD_STOP_NGINX = "echo STOPING NGINX && systemctl stop redpitaya_nginx"
 CMD_START_NGINX = "echo STOPING NGINX && systemctl start redpitaya_nginx" 
 CMD_START_SCPI_SERVER = "echo START SCPI SERVER && systemctl start redpitaya_scpi &" #TODO delete
 
-CMD_START_CUSTOM_SERVER = "echo START CUSTOM SERVER && nohup /root/RedPitaya/gen-acq-server/custom_server &"
+CMD_START_CUSTOM_SERVER = "echo START CUSTOM SERVER && nohup /root/RedPitaya/gen-acq-server/custom_server > /tmp/server.log 2>&1 < /dev/null &"
 
 CMD_START_STREAMING_SERVER = "echo STREAMINGSERVER && /opt/redpitaya/bin/streaming-server -b"
 CMD_STOP_PROCESS = "kill "

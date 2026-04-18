@@ -33,7 +33,7 @@ class CSVFileManager():
             with open(self.currentPath, 'a', newline='') as csvFile:
                 writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
                 for i in range(0, len(uVData)):
-                    writer.writerow([uIData[i], uVData[i]])
+                    writer.writerow([uVData[i], uIData[i]])
 
     def loadFastData(self, uPath):
         data = np.loadtxt(uPath, delimiter=',') #check delimiter

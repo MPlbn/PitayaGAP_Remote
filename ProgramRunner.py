@@ -6,6 +6,7 @@ import ttkbootstrap
 #Standard libraries
 import time
 import psutil
+import socket
 
 #Redpitaya module for scpi connection and communication
 #import redpitaya_scpi as scpi
@@ -65,9 +66,18 @@ class ProgramRunner:
                 else:
                     time.sleep(2)
         if(isConnected):
+            time.sleep(1)
             self.startCustomServer()
             self.disconnect()
-        return isConnected
+            
+        isTCPconnected = self.connectToServer()
+        if(isTCPconnected):
+            self.Generator.setSocket(self.socket)
+            self.Acquisitor.setSocket(self.socket)
+        else:
+            print('Error connecting: TCP')
+        
+        return isConnected and isTCPconnected
         
     #   remotely loading the correct FPGA overlay and running the custom server used for live gen/acq
 
@@ -77,9 +87,27 @@ class ProgramRunner:
         stdout, stderr, status = self.CMDManager.executeCommand(CMD_START_CUSTOM_SERVER)
         time.sleep(1)
 
+    #   connect to custom server via TCP socket
+
     def connectToServer(self):
-        # connect, get socket, set socket to gen and acq
-        pass
+        isConnected = False
+        for _ in range(5):
+            try:
+                sock = socket.create_connection((RED_PITAYA_IP, 5000))
+                isConnected = True
+                break
+            except ConnectionRefusedError:
+                time.sleep(0.5)
+
+        if(isConnected):
+            self.socket = sock
+        return isConnected
+    
+    def disconnectFromServer(self):
+        self.socket.sendall(CLOSE_COMMAND)
+        time.sleep(0.2)
+        self.socket.close()
+
 
     #   Passing frame to plotter class to place the drawn plot
     #   uPlotterFrame: ttk.Frame - gui frame from GUI class
@@ -173,10 +201,10 @@ class ProgramRunner:
         gain = self.Acquisitor.getGain()
 
         CMDManager.executeTCPCommand(self.socket, CMDManager.SETUP_COMMAND)
-        if(not CMDManager.readTCPReadyState):
+        if(not CMDManager.readTCPReadyState(self.socket)):
             print('error: ProgramRunner.sendSetup:Runing the command')
-        CMDManager.sendTCPSetupValues(amplitude, frequency, decimation, gain)
-        if(not CMDManager.readTCPReadyState):
+        CMDManager.sendTCPSetupValues(self.socket, amplitude, frequency, decimation, gain)
+        if(not CMDManager.readTCPReadyState(self.socket)):
             print('error: ProgramRunner.sendSetup:Setting the values')        
 
     # Change program mode to correctly run the CSV file saving
@@ -192,7 +220,7 @@ class ProgramRunner:
     #   dataV: np.array() - Filled with value of the voltages
 
     def saveDataToCSV(self, dataI = [], dataV = []):
-            self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI, uIsMock=True) #TODO CHANGE MOCK IN CASE OF TESTING REAL THING
+        self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI)
 
     #   Resets the current voltage value to the set starting voltage value
 
@@ -242,10 +270,11 @@ class ProgramRunner:
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
     
             case ProgramMode.PRE_WORK_ROUTINE:
+                print("IM_PRE WORK ROUTINE")
                 self.processDataBuffer(self.Generator.getVoltageValue(), PlotType.GEN)
                 self.Acquisitor.workRoutine()
-                Vbuffer = self.Acquisitor.getCurrentV
-                Ibuffer = self.Acquisitor.getCurrentI
+                Vbuffer = self.Acquisitor.getCurrentV()
+                Ibuffer = self.Acquisitor.getCurrentI()
                 self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
@@ -253,8 +282,8 @@ class ProgramRunner:
                 self.Generator.workRoutine()
                 self.processDataBuffer(self.Generator.getVoltageValue(), PlotType.GEN)
                 self.Acquisitor.workRoutine()
-                Vbuffer = self.Acquisitor.getCurrentV
-                Ibuffer = self.Acquisitor.getCurrentI
+                Vbuffer = self.Acquisitor.getCurrentV()
+                Ibuffer = self.Acquisitor.getCurrentI()
                 self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
                             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
@@ -263,7 +292,7 @@ class ProgramRunner:
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.CSVFileManager.createFile()
-                self.saveDataToCSV(dataV=self.AcqPlotter.getData())
+                self.saveDataToCSV(dataV=self.AcqPlotter.getDataV(), dataI=self.AcqPlotter.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
                 self.AcqPlotter.start()
@@ -276,7 +305,7 @@ class ProgramRunner:
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.CSVFileManager.createFile()
-                self.saveDataToCSV(dataV=self.AcqPlotter.getData())
+                self.saveDataToCSV(dataV=self.AcqPlotter.getDataV(), dataI=self.AcqPlotter.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
                 self.AcqPlotter.start()
@@ -293,6 +322,17 @@ class ProgramRunner:
                 self.AcqPlotter.stop()
                 self.GenPlotter.stop()
                 self.changeMode(ProgramMode.IDLE)
+
+            case ProgramMode.EXIT:
+                self.Generator.stopGen(StopType.STOP_RESET)
+                self.Acquisitor.stop()
+                
+                if(self.Generator.getPause()):
+                    self.Generator.unpause()
+                
+                self.AcqPlotter.stop()
+                self.GenPlotter.stop()
+                self.disconnectFromServer()
 
             
     #   Changing the work routine
@@ -324,8 +364,7 @@ class ProgramRunner:
     #   Closing the custom server connection
 
     def exit(self):
-        self.changeMode(ProgramMode.GEN_STOP)
-        CMDManager.disconnectTCP()
+        self.changeMode(ProgramMode.EXIT)
 
 class FastProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):

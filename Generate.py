@@ -43,6 +43,9 @@ class Generator:
         self.resetVoltageValue = uStartingValue
         self.voltageValue = uStartingValue
 
+    def setFrequency(self, uFrequency):
+        self.frequency = uFrequency
+
     def setSteppingRanges(self, uLimit, uBase = None):
         if(uBase != None):
             if(uBase > uLimit):
@@ -132,10 +135,10 @@ class Generator:
 
     def changeVolt(self, uNewVoltage):
         executeTCPCommand(self.socket, GEN_COMMAND)
-        if(not readTCPReadyState()):
+        if(not readTCPReadyState(self.socket)):
            print("error: ContGenerator.changeVolt")
         else:
-            sendTCPNewVoltage(uNewVoltage)
+            sendTCPNewVoltage(self.socket, uNewVoltage)
 
     def pause(self):
         self.isPaused = True
@@ -145,12 +148,12 @@ class Generator:
 
     def reset(self):
         executeTCPCommand(self.socket, RESET_GEN_COMMAND)
-        if(not readTCPReadyState()):
+        if(not readTCPReadyState(self.socket)):
             print("error: ContGenerator.reset")
 
     def startGen(self):
         executeTCPCommand(self.socket, START_GEN_COMMAND)
-        if(not readTCPReadyState()):
+        if(not readTCPReadyState(self.socket)):
             print("error: ContGenerator.startGen")
 
     def flipDirection(self):
@@ -242,3 +245,5 @@ class Generator:
                 self.resetFlag = True
             case StopType.STOP_KEEP:
                 executeTCPCommand(self.socket, STOP_GEN_COMMAND)
+        if(not readTCPReadyState(self.socket)):
+            print("error: Acquisitor.stop")

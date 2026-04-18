@@ -17,7 +17,7 @@ class Acquisitor:
     #   resets acquisition
     def reset(self):
         executeTCPCommand(self.socket, RESET_ACQ_COMMAND)
-        if(not readTCPReadyState()):
+        if(not readTCPReadyState(self.socket)):
             print("error: Acquisitor.reset")
 
     #   acquisition settings
@@ -31,18 +31,22 @@ class Acquisitor:
     
     #   returns gain
     def getGain(self):
-        return self.gain
+        if self.gain == "HV":
+            return True
+        else:
+            return False
+        
 
     #   starts acquisition
     def start(self):
         executeTCPCommand(self.socket, START_ACQ_COMMAND)
-        if(not readTCPReadyState()):
+        if(not readTCPReadyState(self.socket)):
             print("error: Acquisitor.start")
 
     #   stops acquisition
     def stop(self):
         executeTCPCommand(self.socket, STOP_ACQ_COMMAND)
-        if(not readTCPReadyState()):
+        if(not readTCPReadyState(self.socket)):
             print("error: Acquisitor.stop")
 
     def workRoutine(self):

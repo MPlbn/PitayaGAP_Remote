@@ -30,9 +30,6 @@ class Plotter(ABC):
     def loadData(self, uData):
         self.data = uData
 
-    def getData(self):
-        return self.data
-    
     @abstractmethod
     def clear(self):
         pass
@@ -69,6 +66,12 @@ class AcqPlotter(Plotter):
     def setRatio(self, uRatio: float):
         self.ratio = uRatio
 
+    def getDataV(self):
+        return self.dataV
+    
+    def getDataI(self):
+        return self.dataI
+
     def processData(self, uNewDataI, uNewDataV):
         if(self.isRunning):
             if(len(self.dataI) >= PLOT_MAX_DATA_SIZE):
@@ -102,6 +105,10 @@ class GenPlotter(Plotter):
         self.line, = self.ax.plot([], [], lw=2)
         self.ax.set_xlabel("No. of Samples")
         self.ax.set_ylabel("U (Voltage)")
+        self.data = np.array([])
+
+    def getData(self):
+        return self.data
 
     def processData(self, uNewData):
         if(self.isRunning):
