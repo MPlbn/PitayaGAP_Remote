@@ -119,28 +119,29 @@ class SlowGUI(QWidget):
         genModeCombobox = QComboBox()
         directionCombobox = QComboBox()
         gainCombobox = QComboBox()
-        ratioCombobox = QComboBox()
+        IVRatioCombobox = QComboBox()
 
         genModeCombobox.addItems(GUI_COMBOBOX_VALUES)
         directionCombobox.addItems(GUI_DIR_COMBOBOX_VALUES)
         gainCombobox.addItems(GUI_GAIN_COMBOBOX_VALUES)
-        ratioCombobox.addItems(GUI_RATIO_COMBOBOX_VALUES)
+        IVRatioCombobox.addItems(GUI_RATIO_COMBOBOX_VALUES)
 
         genModeCombobox.setCurrentIndex(0)
         directionCombobox.setCurrentIndex(0)
         gainCombobox.setCurrentIndex(0)
-        ratioCombobox.setCurrentIndex(0)
+        IVRatioCombobox.setCurrentIndex(0)
 
         genModeCombobox.currentTextChanged.connect(self.genModeCBCallback)
         directionCombobox.currentTextChanged.connect(self.directionCBCallback)
         gainCombobox.currentTextChanged.connect(self.gainCBCallback)
-        ratioCombobox.currentTextChanged.connect(self.ratioCBCallback)
+        IVRatioCombobox.currentTextChanged.connect(self.ratioCBCallback)
 
         # ========== PROGRESS BAR ========== # 
         progressBar = QSlider()
         progressBar.setTracking(False)
         progressBar.setEnabled(False)
         progressBar.setRange(-1.0, 1.0)
+
         # ========== PLOTS ========== # 
         acqPlotter = Plotter()
         genPlotter = Plotter()
@@ -163,29 +164,85 @@ class SlowGUI(QWidget):
         progressLabel = QLabel("") #to be filled during program
 
         # ========== LAYOUT ASSIGNMENT ========== # 
-        # mainLayout = QGridLayout()                TODO
-        # settingsLayout = QGridLayout()            TODO
-        # stackerSettingsLayout = QStackedLayout()  TODO
-        # steppingSettingsLayout = QGridLayout()    TODO
-        # normalSettingsLayout = QGridLayout()      TODO
-        # commonSettingsLayout = QGridLayout()      TODO
-        # buttonsLayout = QGridLayout()             DONE
-        # progressLayout = QVBoxLayout()            DONE
-        # plotLayout = QVBoxLayout()                DONE
-        # genPlotLayout = QVBoxLayout()             DONE
-        # errorLayout = QVBoxLayout()               DONE
+        # mainLayout = QGridLayout()                DONE 
+        # settingsLayout = QGridLayout()            DONE 1
+        # stackerSettingsLayout = QStackedLayout()  DONE 2
+        # steppingSettingsLayout = QGridLayout()    DONE 3
+        # normalSettingsLayout = QGridLayout()      DONE 4
+        # commonSettingsLayout = QGridLayout()      DONE 5
+        # buttonsLayout = QGridLayout()             DONE 6
+        # progressLayout = QVBoxLayout()            DONE 7
+        # plotLayout = QVBoxLayout()                DONE 8
+        # genPlotLayout = QVBoxLayout()             DONE 9
+        # errorLayout = QVBoxLayout()               DONE 0
 
-        settingsLayout.addWidget(None)
 
-        buttonsLayout.addWidget(startBtn,       0, 0)
-        buttonsLayout.addWidget(stopBtn,        0, 1)
-        buttonsLayout.addWidget(resetBtn,       0, 2)
-        buttonsLayout.addWidget(pauseBtn,       1, 0)
-        buttonsLayout.addWidget(unpauseBtn,     1, 1)
-        buttonsLayout.addWidget(flipBtn,        1, 2)
-        buttonsLayout.addWidget(saveToCSVBtn,   2, 0)
-        buttonsLayout.addWidget(clearPlotBtn,   2, 1)
-        buttonsLayout.addWidget(exitBtn,        2, 2)
+        #     0   1   2   3   4   5   6   7   8   9
+        #   ---------------mainLayout----------------
+        # 0 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 1 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 2 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 3 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 4 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 5 | 7 | 7 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 6 | 9 | 9 | 9 | 0 | 0 | 6 | 6 | 6 | 6 | 6 |
+        # 7 | 9 | 9 | 9 | 0 | 0 | 6 | 6 | 6 | 6 | 6 |
+        # 8 | 9 | 9 | 9 | . | . | . | . | . | . | . |
+        # 9 | 9 | 9 | 9 | . | . | . | . | . | . | . |
+
+        
+        # GRID SETTINGS --------- .addWidget(xyz, [row], [column], [rowSpan], [columnSpan])
+
+        steppingSettingsLayout.addWidget(maxRangeLabel,     0, 0,   1, 1)
+        steppingSettingsLayout.addWidget(maxRangeEntry,     0, 1,   1, 1)
+        steppingSettingsLayout.addWidget(numOfStepsLabel,   1, 0,   1, 1)
+        steppingSettingsLayout.addWidget(numOfStepsEntry,   1, 1,   1, 1)
+
+        normalSettingsLayout.addWidget(hRangeLabel,         0, 0,   1, 1)
+        normalSettingsLayout.addWidget(hRangeEntry,         0, 1,   1, 1)
+        normalSettingsLayout.addWidget(lRangeLabel,         1, 0,   1, 1)
+        normalSettingsLayout.addWidget(lRangeEntry,         1, 1,   1, 1)
+        normalSettingsLayout.addWidget(directionLabel,      2, 0,   1, 1)
+        normalSettingsLayout.addWidget(directionCombobox,   2, 1,   1, 1)
+        
+        #wrapping for stackerSettingsLayout
+        steppingSettingsWidgetWrapper = QWidget()
+        normalSettingsWidgetWrapper = QWidget()
+        steppingSettingsWidgetWrapper.setLayout(steppingSettingsLayout)
+        normalSettingsWidgetWrapper.setLayout(normalSettingsLayout)
+
+        stackerSettingsLayout.addWidget(normalSettingsWidgetWrapper) #index 0
+        stackerSettingsLayout.addWidget(steppingSettingsWidgetWrapper) #index 1
+
+        commonSettingsLayout.addWidget(startPointLabel, 0, 0,   1, 1)
+        commonSettingsLayout.addWidget(startPointEntry, 0, 1,   1, 1)
+        commonSettingsLayout.addWidget(stepLabel,       1, 0,   1, 1)
+        commonSettingsLayout.addWidget(stepEntry,       1, 1,   1, 1)
+        commonSettingsLayout.addWidget(IVRatioLabel,    2, 0,   1, 1)
+        commonSettingsLayout.addWidget(IVRatioCombobox, 2, 1,   1, 1)
+        commonSettingsLayout.addWidget(gainLabel,       3, 0,   1, 1)
+        commonSettingsLayout.addWidget(gainCombobox,    3, 1,   1, 1)
+        
+        #wrapping for settingsLayout
+        stackerSettingsWidgetWrapper = QWidget()
+        commonSettingsWidgetWrapper = QWidget()
+        stackerSettingsWidgetWrapper.setLayout(stackerSettingsLayout)    
+        commonSettingsWidgetWrapper.setLayout(commonSettingsLayout) 
+
+        settingsLayout.addWidget(genModeCombobox,               0, 1,   1, 2)
+        settingsLayout.addWidget(stackerSettingsWidgetWrapper,  1, 0,   4, 4)
+        settingsLayout.addWidget(commonSettingsWidgetWrapper,   4, 0,   4, 4)
+        settingsLayout.addWidget(setBtn,                        8, 1,   1, 2)
+
+        buttonsLayout.addWidget(startBtn,       0, 0,   1, 1)
+        buttonsLayout.addWidget(stopBtn,        0, 1,   1, 1)
+        buttonsLayout.addWidget(resetBtn,       0, 2,   1, 1)
+        buttonsLayout.addWidget(pauseBtn,       1, 0,   1, 1)
+        buttonsLayout.addWidget(unpauseBtn,     1, 1,   1, 1)
+        buttonsLayout.addWidget(flipBtn,        1, 2,   1, 1)
+        buttonsLayout.addWidget(saveToCSVBtn,   2, 0,   1, 1)
+        buttonsLayout.addWidget(clearPlotBtn,   2, 1,   1, 1)
+        buttonsLayout.addWidget(exitBtn,        2, 2,   1, 1)
 
         progressLayout.addWidget(progressLabel)
         progressLayout.addWidget(progressBar)
@@ -195,6 +252,33 @@ class SlowGUI(QWidget):
         genPlotLayout.addWidget(genPlotter)
 
         errorLayout.addWidget(errorLabel)
+
+        #wrapping for mainLayout
+        settingsWidgetWrapper = QWidget()
+        buttonsWidgetWrapper = QWidget()
+        progressWidgetWrapper = QWidget()
+        plotWidgetWrapper = QWidget()
+        genPlotWidgetWrapper = QWidget()
+        errorWidgetWrapper = QWidget()
+        settingsWidgetWrapper.setLayout(settingsLayout)
+        buttonsWidgetWrapper.setLayout(buttonsLayout)
+        progressWidgetWrapper.setLayout(progressLayout)
+        plotWidgetWrapper.setLayout(plotLayout)
+        genPlotWidgetWrapper.setLayout(genPlotLayout)
+        errorWidgetWrapper.setLayout(errorLayout)
+
+        mainLayout.addWidget(settingsWidgetWrapper, 0, 0,   5, 2) #1
+        mainLayout.addWidget(progressWidgetWrapper, 5, 0,   1, 1)
+        mainLayout.addWidget(genPlotWidgetWrapper,  6, 0,   4, 3)
+        mainLayout.addWidget(errorWidgetWrapper,    6, 3,   2, 2)
+        mainLayout.addWidget(plotWidgetWrapper,     0, 5,   6, 5)
+        mainLayout.addWidget(buttonsWidgetWrapper,  6, 5,   2, 5)
+
+        for i in range(9):
+            mainLayout.setRowStretch(i, 1)
+            mainLayout.setColumnStretch(i, 1)
+
+        self.setLayout(mainLayout)
 
 
 class FastGUI(QWidget):
@@ -354,7 +438,7 @@ class Plotter(PGraph.PlotWidget):
         self.setTitle("test")
         self.setYRange(-2,2)
 
-        self.x = np.linpace(0,2*np.pi, 200)
+        self.x = np.linspace(0,2*np.pi, 200)
         self.phase = 0
         self.curve = self.plot(self.x, np.sin(self.x), pen="y")
 
