@@ -120,14 +120,17 @@ class WindowType(IntEnum):
     SLOW = 1
     FAST = 2
 
+class GenModeGUI(IntEnum):
+    NORMAL = 0
+    STEP = 1
 
-F_GUI_WF_COMBOBOX_VALUES = (WF_SINE, WF_SQR, WF_TRI, WF_RMP_UP, WF_RMP_DWN)
-F_GUI_DEC_COMBOBOX_VALUES = ("125000000", "62500000", "31250000", "15625000", "7812500", "3906250",
+F_GUI_WF_COMBOBOX_VALUES = [WF_SINE, WF_SQR, WF_TRI, WF_RMP_UP, WF_RMP_DWN]
+F_GUI_DEC_COMBOBOX_VALUES = ["125000000", "62500000", "31250000", "15625000", "7812500", "3906250",
                              "1953125", "976562", "488281", "244140", "122070", "61035", "30517",
-                             "15258", "7629", "3814", "1907")
+                             "15258", "7629", "3814", "1907"]
 
-F_GUI_STATE_COMBOBOX_VALUES = ("ON", "OFF")
-F_GUI_FILETYPE_COMBOBOX_VALUES = ("csv", "wav", "tdsm", "bin")
+F_GUI_STATE_COMBOBOX_VALUES = ["ON", "OFF"]
+F_GUI_FILETYPE_COMBOBOX_VALUES = ["csv", "wav", "tdsm", "bin"]
 
 F_GUI_DEFAULT_WINDOW_SIZE = (1600, 1080)
 

@@ -1,6 +1,6 @@
 import sys
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
-                               QStackedWidget, QSlider, QComboBox, QLabel, QLineEdit, QStackedLayout )
+                               QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
 from PySide6.QtCore import Signal, Qt, QTimer
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 #test
@@ -50,7 +50,7 @@ class SlowGUI(QWidget):
     gainCBCallback = Signal()
     ratioCBCallback = Signal()
 
-    # ========== PLOTTER CALLBACKS ========== #
+    # ========== PLOTTER CALLBACKS =========== #
     plotterCallback = Signal()
 
     def __init__(self):
@@ -58,110 +58,121 @@ class SlowGUI(QWidget):
 
 
         # ========== LAYOUTS ========== #
-        mainLayout = QGridLayout()
-        settingsLayout = QGridLayout() 
-        stackerSettingsLayout = QStackedLayout()
-        steppingSettingsLayout = QGridLayout()
-        normalSettingsLayout = QGridLayout()
-        commonSettingsLayout = QGridLayout()
-        buttonsLayout = QGridLayout()
-        progressLayout = QVBoxLayout()
-        plotLayout = QVBoxLayout()
-        genPlotLayout = QVBoxLayout()
-        errorLayout = QVBoxLayout()
+        self.mainLayout = QGridLayout()
+        self.settingsLayout = QGridLayout() 
+        self.stackerSettingsLayout = QStackedLayout()
+        self.steppingSettingsLayout = QGridLayout()
+        self.normalSettingsLayout = QGridLayout()
+        self.commonSettingsLayout = QGridLayout()
+        self.buttonsLayout = QGridLayout()
+        self.progressLayout = QVBoxLayout()
+        self.plotLayout = QVBoxLayout()
+        self.genPlotLayout = QVBoxLayout()
+        self.errorLayout = QVBoxLayout()
 
         # ========== BUTTONS ========== #    
-        startBtn = QPushButton("START")
-        stopBtn = QPushButton("STOP")
-        resetBtn = QPushButton("RESET")
-        pauseBtn = QPushButton("PAUSE")
-        unpauseBtn = QPushButton("UNPAUSE")
-        flipBtn = QPushButton("FLIP")
-        saveToCSVBtn = QPushButton("SAVE TO CSV")
-        clearPlotBtn = QPushButton("CLEAR PLOT")
-        exitBtn = QPushButton("EXIT")
-        setBtn = QPushButton("SET")
+        self.startBtn = QPushButton("START")
+        self.stopBtn = QPushButton("STOP")
+        self.resetBtn = QPushButton("RESET")
+        self.pauseBtn = QPushButton("PAUSE")
+        self.unpauseBtn = QPushButton("UNPAUSE")
+        self.flipBtn = QPushButton("FLIP")
+        self.saveToCSVBtn = QPushButton("SAVE TO CSV")
+        self.clearPlotBtn = QPushButton("CLEAR PLOT")
+        self.exitBtn = QPushButton("EXIT")
+        self.setBtn = QPushButton("SET")
 
-        startBtn.clicked.connect(self.startBtnCallback)
-        stopBtn.clicked.connect(self.stopBtnCallback)
-        resetBtn.clicked.connect(self.resetBtnCallback)
-        pauseBtn.clicked.connect(self.pauseBtnCallback)
-        unpauseBtn.clicked.connect(self.unpauseBtnCallback)
-        flipBtn.clicked.connect(self.flipBtnCallback)
-        saveToCSVBtn.clicked.connect(self.saveToCSVBtnCallback)
-        clearPlotBtn.clicked.connect(self.clearPlotBtnCallback)
-        exitBtn.clicked.connect(self.exitBtnCallback)
-        setBtn.clicked.connect(self.setBtnCallback)
+        self.startBtn.setObjectName("green")
+        self.stopBtn.setObjectName("red")
+        self.exitBtn.setObjectName("red")
+        self.setBtn.setObjectName("smallClassic")
+
+        self.startBtn.clicked.connect(self.startBtnCallback)
+        self.stopBtn.clicked.connect(self.stopBtnCallback)
+        self.resetBtn.clicked.connect(self.resetBtnCallback)
+        self.pauseBtn.clicked.connect(self.pauseBtnCallback)
+        self.unpauseBtn.clicked.connect(self.unpauseBtnCallback)
+        self.flipBtn.clicked.connect(self.flipBtnCallback)
+        self.saveToCSVBtn.clicked.connect(self.saveToCSVBtnCallback)
+        self.clearPlotBtn.clicked.connect(self.clearPlotBtnCallback)
+        self.exitBtn.clicked.connect(self.exitBtnCallback)
+        self.setBtn.clicked.connect(self.setBtnCallback)
 
         # ========== ENTRIES ========== # 
-        stepEntry = QLineEdit()
-        hRangeEntry = QLineEdit()
-        lRangeEntry = QLineEdit()
-        startPointEntry = QLineEdit()
-        maxRangeEntry = QLineEdit()
-        numOfStepsEntry = QLineEdit()
+        self.stepEntry = QLineEdit()
+        self.hRangeEntry = QLineEdit()
+        self.lRangeEntry = QLineEdit()
+        self.startPointEntry = QLineEdit()
+        self.maxRangeEntry = QLineEdit()
+        self.numOfStepsEntry = QLineEdit()
 
-        stepEntry.setText(str(GEN_DEFAULT_STEP))
-        hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
-        lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
-        startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
-        maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
-        numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
+        self.stepEntry.setText(str(GEN_DEFAULT_STEP))
+        self.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
+        self.lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
+        self.startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
+        self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
+        self.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
 
-        stepEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        hRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        lRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        startPointEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        maxRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        numOfStepsEntry.setValidator(QIntValidator(1,20))
+        self.stepEntry.setValidator(QDoubleValidator(0.0, 1000.0, 2))
+        self.hRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
+        self.lRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
+        self.startPointEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
+        self.maxRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
+        self.numOfStepsEntry.setValidator(QIntValidator(1,20))
 
         # ========== COMBOBOXES ========== # 
-        genModeCombobox = QComboBox()
-        directionCombobox = QComboBox()
-        gainCombobox = QComboBox()
-        IVRatioCombobox = QComboBox()
+        self.genModeCombobox = QComboBox()
+        self.directionCombobox = QComboBox()
+        self.gainCombobox = QComboBox()
+        self.IVRatioCombobox = QComboBox()
 
-        genModeCombobox.addItems(GUI_COMBOBOX_VALUES)
-        directionCombobox.addItems(GUI_DIR_COMBOBOX_VALUES)
-        gainCombobox.addItems(GUI_GAIN_COMBOBOX_VALUES)
-        IVRatioCombobox.addItems(GUI_RATIO_COMBOBOX_VALUES)
+        self.genModeCombobox.addItems(GUI_COMBOBOX_VALUES)
+        self.directionCombobox.addItems(GUI_DIR_COMBOBOX_VALUES)
+        self.gainCombobox.addItems(GUI_GAIN_COMBOBOX_VALUES)
+        self.IVRatioCombobox.addItems(GUI_RATIO_COMBOBOX_VALUES)
 
-        genModeCombobox.setCurrentIndex(0)
-        directionCombobox.setCurrentIndex(0)
-        gainCombobox.setCurrentIndex(0)
-        IVRatioCombobox.setCurrentIndex(0)
+        self.genModeCombobox.setCurrentIndex(0)
+        self.directionCombobox.setCurrentIndex(0)
+        self.gainCombobox.setCurrentIndex(0)
+        self.IVRatioCombobox.setCurrentIndex(0)
 
-        genModeCombobox.currentTextChanged.connect(self.genModeCBCallback)
-        directionCombobox.currentTextChanged.connect(self.directionCBCallback)
-        gainCombobox.currentTextChanged.connect(self.gainCBCallback)
-        IVRatioCombobox.currentTextChanged.connect(self.ratioCBCallback)
+        self.genModeCombobox.currentIndexChanged.connect(self.genModeCBCallback)
+        self.directionCombobox.currentTextChanged.connect(self.directionCBCallback)
+        self.gainCombobox.currentTextChanged.connect(self.gainCBCallback)
+        self.IVRatioCombobox.currentTextChanged.connect(self.ratioCBCallback)
 
         # ========== PROGRESS BAR ========== # 
-        progressBar = QSlider()
-        progressBar.setTracking(False)
-        progressBar.setEnabled(False)
-        progressBar.setRange(-1.0, 1.0)
+        self.progressBar = QProgressBar()
+        self.progressBar.setRange(-1.0, 1.0)
+        self.progressBar.setTextVisible(False)
+        self.progressBar.setValue(0.0) #temp
 
         # ========== PLOTS ========== # 
-        acqPlotter = Plotter()
-        genPlotter = Plotter()
+        self.acqPlotter = Plotter()
+        self.genPlotter = Plotter()
         #SUBJECT TO CHANGE TODO
-        timer = QTimer()
-        timer.timeout.connect(self.plotterCallback)
-        timer.start(16)
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.plotterCallback)
+        self.timer.start(16)
 
         # ========== LABELS ========== # 
-        stepLabel = QLabel("Step value [mV]")
-        IVRatioLabel = QLabel("I/V [A/V?]")
-        gainLabel = QLabel("Gain mode")
-        hRangeLabel = QLabel("High peak value [mV]")
-        lRangeLabel = QLabel("Low peak value [mV]")
-        startPointLabel = QLabel("Starting value [mV]") #used instead of base label and used for normal
-        directionLabel = QLabel("Starting direction")
-        maxRangeLabel = QLabel("Limit value [mV]")
-        numOfStepsLabel = QLabel("No. of steps")
-        errorLabel = QLabel("") #to be filled during program
-        progressLabel = QLabel("") #to be filled during program
+        self.stepLabel = QLabel("Step value [mV]")
+        self.IVRatioLabel = QLabel("I/V [A/V?]")
+        self.gainLabel = QLabel("Gain mode")
+        self.hRangeLabel = QLabel("High peak value [mV]")
+        self.lRangeLabel = QLabel("Low peak value [mV]")
+        self.startPointLabel = QLabel("Starting value [mV]") #used instead of base label and used for normal
+        self.directionLabel = QLabel("Starting direction")
+        self.maxRangeLabel = QLabel("Limit value [mV]")
+        self.numOfStepsLabel = QLabel("No. of steps")
+        self.errorLabel = QLabel("TEMP ERROR") #to be filled during program
+        self.progressLabel = QLabel("TEMP 0.0") #to be filled during program
+
+        self.errorLabel.setObjectName("red")
+        self.progressLabel.setObjectName("blue")
+
+        self.errorLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.progressLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # ========== LAYOUT ASSIGNMENT ========== # 
         # mainLayout = QGridLayout()                DONE 
@@ -184,7 +195,7 @@ class SlowGUI(QWidget):
         # 2 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
         # 3 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
         # 4 | 1 | 1 | . | . | . | 8 | 8 | 8 | 8 | 8 |
-        # 5 | 7 | 7 | . | . | . | 8 | 8 | 8 | 8 | 8 |
+        # 5 | 7 | 7 | 7 | . | . | 8 | 8 | 8 | 8 | 8 |
         # 6 | 9 | 9 | 9 | 0 | 0 | 6 | 6 | 6 | 6 | 6 |
         # 7 | 9 | 9 | 9 | 0 | 0 | 6 | 6 | 6 | 6 | 6 |
         # 8 | 9 | 9 | 9 | . | . | . | . | . | . | . |
@@ -193,118 +204,230 @@ class SlowGUI(QWidget):
         
         # GRID SETTINGS --------- .addWidget(xyz, [row], [column], [rowSpan], [columnSpan])
 
-        steppingSettingsLayout.addWidget(maxRangeLabel,     0, 0,   1, 1)
-        steppingSettingsLayout.addWidget(maxRangeEntry,     0, 1,   1, 1)
-        steppingSettingsLayout.addWidget(numOfStepsLabel,   1, 0,   1, 1)
-        steppingSettingsLayout.addWidget(numOfStepsEntry,   1, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.maxRangeLabel,     0, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.maxRangeEntry,     0, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.numOfStepsLabel,   1, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.numOfStepsEntry,   1, 1,   1, 1)
 
-        normalSettingsLayout.addWidget(hRangeLabel,         0, 0,   1, 1)
-        normalSettingsLayout.addWidget(hRangeEntry,         0, 1,   1, 1)
-        normalSettingsLayout.addWidget(lRangeLabel,         1, 0,   1, 1)
-        normalSettingsLayout.addWidget(lRangeEntry,         1, 1,   1, 1)
-        normalSettingsLayout.addWidget(directionLabel,      2, 0,   1, 1)
-        normalSettingsLayout.addWidget(directionCombobox,   2, 1,   1, 1)
+        self.normalSettingsLayout.addWidget(self.hRangeLabel,         0, 0,   1, 1)
+        self.normalSettingsLayout.addWidget(self.hRangeEntry,         0, 1,   1, 1)
+        self.normalSettingsLayout.addWidget(self.lRangeLabel,         1, 0,   1, 1)
+        self.normalSettingsLayout.addWidget(self.lRangeEntry,         1, 1,   1, 1)
+        self.normalSettingsLayout.addWidget(self.directionLabel,      2, 0,   1, 1)
+        self.normalSettingsLayout.addWidget(self.directionCombobox,   2, 1,   1, 1)
         
         #wrapping for stackerSettingsLayout
-        steppingSettingsWidgetWrapper = QWidget()
-        normalSettingsWidgetWrapper = QWidget()
-        steppingSettingsWidgetWrapper.setLayout(steppingSettingsLayout)
-        normalSettingsWidgetWrapper.setLayout(normalSettingsLayout)
+        self.steppingSettingsWidgetWrapper = QWidget()
+        self.normalSettingsWidgetWrapper = QWidget()
+        self.steppingSettingsWidgetWrapper.setLayout(self.steppingSettingsLayout)
+        self.normalSettingsWidgetWrapper.setLayout(self.normalSettingsLayout)
 
-        stackerSettingsLayout.addWidget(normalSettingsWidgetWrapper) #index 0
-        stackerSettingsLayout.addWidget(steppingSettingsWidgetWrapper) #index 1
+        self.stackerSettingsLayout.addWidget(self.normalSettingsWidgetWrapper) #index 0
+        self.stackerSettingsLayout.addWidget(self.steppingSettingsWidgetWrapper) #index 1
 
-        commonSettingsLayout.addWidget(startPointLabel, 0, 0,   1, 1)
-        commonSettingsLayout.addWidget(startPointEntry, 0, 1,   1, 1)
-        commonSettingsLayout.addWidget(stepLabel,       1, 0,   1, 1)
-        commonSettingsLayout.addWidget(stepEntry,       1, 1,   1, 1)
-        commonSettingsLayout.addWidget(IVRatioLabel,    2, 0,   1, 1)
-        commonSettingsLayout.addWidget(IVRatioCombobox, 2, 1,   1, 1)
-        commonSettingsLayout.addWidget(gainLabel,       3, 0,   1, 1)
-        commonSettingsLayout.addWidget(gainCombobox,    3, 1,   1, 1)
+        self.commonSettingsLayout.addWidget(self.startPointLabel, 0, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.startPointEntry, 0, 1,   1, 1)
+        self.commonSettingsLayout.addWidget(self.stepLabel,       1, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.stepEntry,       1, 1,   1, 1)
+        self.commonSettingsLayout.addWidget(self.IVRatioLabel,    2, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.IVRatioCombobox, 2, 1,   1, 1)
+        self.commonSettingsLayout.addWidget(self.gainLabel,       3, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.gainCombobox,    3, 1,   1, 1)
         
         #wrapping for settingsLayout
-        stackerSettingsWidgetWrapper = QWidget()
-        commonSettingsWidgetWrapper = QWidget()
-        stackerSettingsWidgetWrapper.setLayout(stackerSettingsLayout)    
-        commonSettingsWidgetWrapper.setLayout(commonSettingsLayout) 
+        self.stackerSettingsWidgetWrapper = QWidget()
+        self.commonSettingsWidgetWrapper = QWidget()
+        self.stackerSettingsWidgetWrapper.setLayout(self.stackerSettingsLayout)    
+        self.commonSettingsWidgetWrapper.setLayout(self.commonSettingsLayout) 
 
-        settingsLayout.addWidget(genModeCombobox,               0, 1,   1, 2)
-        settingsLayout.addWidget(stackerSettingsWidgetWrapper,  1, 0,   4, 4)
-        settingsLayout.addWidget(commonSettingsWidgetWrapper,   4, 0,   4, 4)
-        settingsLayout.addWidget(setBtn,                        8, 1,   1, 2)
+        self.settingsLayout.addWidget(self.genModeCombobox,               0, 1,   1, 2)
+        self.settingsLayout.addWidget(self.stackerSettingsWidgetWrapper,  1, 0,   4, 4)
+        self.settingsLayout.addWidget(self.commonSettingsWidgetWrapper,   4, 0,   4, 4)
+        self.settingsLayout.addWidget(self.setBtn,                        8, 1,   1, 2)
 
-        buttonsLayout.addWidget(startBtn,       0, 0,   1, 1)
-        buttonsLayout.addWidget(stopBtn,        0, 1,   1, 1)
-        buttonsLayout.addWidget(resetBtn,       0, 2,   1, 1)
-        buttonsLayout.addWidget(pauseBtn,       1, 0,   1, 1)
-        buttonsLayout.addWidget(unpauseBtn,     1, 1,   1, 1)
-        buttonsLayout.addWidget(flipBtn,        1, 2,   1, 1)
-        buttonsLayout.addWidget(saveToCSVBtn,   2, 0,   1, 1)
-        buttonsLayout.addWidget(clearPlotBtn,   2, 1,   1, 1)
-        buttonsLayout.addWidget(exitBtn,        2, 2,   1, 1)
+        self.buttonsLayout.addWidget(self.startBtn,       0, 0,   1, 1)
+        self.buttonsLayout.addWidget(self.stopBtn,        0, 1,   1, 1)
+        self.buttonsLayout.addWidget(self.resetBtn,       0, 2,   1, 1)
+        self.buttonsLayout.addWidget(self.pauseBtn,       1, 0,   1, 1)
+        self.buttonsLayout.addWidget(self.unpauseBtn,     1, 1,   1, 1)
+        self.buttonsLayout.addWidget(self.flipBtn,        1, 2,   1, 1)
+        self.buttonsLayout.addWidget(self.saveToCSVBtn,   2, 0,   1, 1)
+        self.buttonsLayout.addWidget(self.clearPlotBtn,   2, 1,   1, 1)
+        self.buttonsLayout.addWidget(self.exitBtn,        2, 2,   1, 1)
 
-        progressLayout.addWidget(progressLabel)
-        progressLayout.addWidget(progressBar)
+        self.progressLayout.addWidget(self.progressLabel)
+        self.progressLayout.addWidget(self.progressBar)
 
-        plotLayout.addWidget(acqPlotter)
+        self.plotLayout.addWidget(self.acqPlotter)
 
-        genPlotLayout.addWidget(genPlotter)
+        self.genPlotLayout.addWidget(self.genPlotter)
 
-        errorLayout.addWidget(errorLabel)
+        self.errorLayout.addWidget(self.errorLabel)
 
         #wrapping for mainLayout
-        settingsWidgetWrapper = QWidget()
-        buttonsWidgetWrapper = QWidget()
-        progressWidgetWrapper = QWidget()
-        plotWidgetWrapper = QWidget()
-        genPlotWidgetWrapper = QWidget()
-        errorWidgetWrapper = QWidget()
-        settingsWidgetWrapper.setLayout(settingsLayout)
-        buttonsWidgetWrapper.setLayout(buttonsLayout)
-        progressWidgetWrapper.setLayout(progressLayout)
-        plotWidgetWrapper.setLayout(plotLayout)
-        genPlotWidgetWrapper.setLayout(genPlotLayout)
-        errorWidgetWrapper.setLayout(errorLayout)
+        self.settingsWidgetWrapper = QWidget()
+        self.buttonsWidgetWrapper = QWidget()
+        self.progressWidgetWrapper = QWidget()
+        self.plotWidgetWrapper = QWidget()
+        self.genPlotWidgetWrapper = QWidget()
+        self.errorWidgetWrapper = QWidget()
+        self.settingsWidgetWrapper.setLayout(self.settingsLayout)
+        self.buttonsWidgetWrapper.setLayout(self.buttonsLayout)
+        self.progressWidgetWrapper.setLayout(self.progressLayout)
+        self.plotWidgetWrapper.setLayout(self.plotLayout)
+        self.genPlotWidgetWrapper.setLayout(self.genPlotLayout)
+        self.errorWidgetWrapper.setLayout(self.errorLayout)
 
-        mainLayout.addWidget(settingsWidgetWrapper, 0, 0,   5, 2) #1
-        mainLayout.addWidget(progressWidgetWrapper, 5, 0,   1, 1)
-        mainLayout.addWidget(genPlotWidgetWrapper,  6, 0,   4, 3)
-        mainLayout.addWidget(errorWidgetWrapper,    6, 3,   2, 2)
-        mainLayout.addWidget(plotWidgetWrapper,     0, 5,   6, 5)
-        mainLayout.addWidget(buttonsWidgetWrapper,  6, 5,   2, 5)
+        self.mainLayout.addWidget(self.settingsWidgetWrapper, 0, 0,   5, 2) #1
+        self.mainLayout.addWidget(self.progressWidgetWrapper, 5, 0,   1, 3) #7
+        self.mainLayout.addWidget(self.genPlotWidgetWrapper,  6, 0,   4, 3)
+        self.mainLayout.addWidget(self.errorWidgetWrapper,    6, 3,   2, 2)
+        self.mainLayout.addWidget(self.plotWidgetWrapper,     0, 5,   6, 5)
+        self.mainLayout.addWidget(self.buttonsWidgetWrapper,  6, 5,   2, 5)
 
         for i in range(9):
-            mainLayout.setRowStretch(i, 1)
-            mainLayout.setColumnStretch(i, 1)
+            self.mainLayout.setRowStretch(i, 1)
+            self.mainLayout.setColumnStretch(i, 1)
 
-        self.setLayout(mainLayout)
-
+        self.setLayout(self.mainLayout)
 
 class FastGUI(QWidget):
+    # ========== BUTTON CALLBACKS ========== #
     startBtnCallback = Signal()
     exitBtnCallback = Signal()
+
+    # ========== COMBOBOX CALLBACKS ========== #
+
+
+    # ========== PLOTTER CALLBACKS =========== #
+    
 
     def __init__(self):
         super().__init__()
 
-        layout = QVBoxLayout()
+        # ========== LAYOUTS ========== #
+        self.mainLayout = QGridLayout()
+        self.settingsLayout = QGridLayout()
+        self.errorLayout = QHBoxLayout()
+        self.buttonsLayout = QVBoxLayout()
 
-        startBtn = QPushButton("Start")
-        exitBtn = QPushButton("EXIT")
+        # ========== BUTTONS ========== #    
+        self.startBtn = QPushButton("RUN")
+        self.exitBtn = QPushButton("EXIT")
         
-        exitBtn.clicked.connect(self.exitBtnCallback)
+        self.startBtn.setObjectName("green")
+        self.exitBtn.setObjectName("red")
 
-        layout.addWidget(startBtn)
-        layout.addWidget(exitBtn)
-        self.setLayout(layout)
+        self.startBtn.clicked.connect(self.startBtnCallback)
+        self.exitBtn.clicked.connect(self.exitBtnCallback)
+
+        # ========== ENTRIES ========== # 
+        self.hPointEntry = QLineEdit()
+        self.lPointEntry = QLineEdit()
+        self.sPointEntry = QLineEdit()
+        self.freqEntry = QLineEdit()
+        self.samplesEntry = QLineEdit()
+
+        self.hPointEntry.setText(str(F_GEN_DEFAULT_HPOINT))
+        self.lPointEntry.setText(str(F_GEN_DEFAULT_LPOINT))
+        self.sPointEntry.setText(str(F_GEN_DEFAULT_SPOINT))
+        self.freqEntry.setText(str(F_GEN_DEFAULT_FREQ))
+        self.samplesEntry.setText(str(F_ACQ_DEFAULT_SAMPLES))
+
+        self.hPointEntry.setValidator(QDoubleValidator())
+        self.lPointEntry.setValidator(QDoubleValidator())
+        self.sPointEntry.setValidator(QDoubleValidator())
+        self.freqEntry.setValidator(QIntValidator())
+        self.samplesEntry.setValidator(QIntValidator())
+
+        # ========== COMBOBOXES ========== # 
+        self.waveFormCB = QComboBox()
+        self.samplesPerSecCB = QComboBox()
+        self.stateCH1CB = QComboBox()
+        self.stateCH2CB = QComboBox()
+        self.fileTypeCB = QComboBox()
+
+        self.waveFormCB.addItems(F_GUI_WF_COMBOBOX_VALUES)
+        self.samplesPerSecCB.addItems(F_GUI_DEC_COMBOBOX_VALUES)
+        self.stateCH1CB.addItems(F_GUI_STATE_COMBOBOX_VALUES)
+        self.stateCH2CB.addItems(F_GUI_STATE_COMBOBOX_VALUES)
+        self.fileTypeCB.addItems(F_GUI_FILETYPE_COMBOBOX_VALUES)
+
+        self.waveFormCB.setCurrentIndex(0)
+        self.samplesPerSecCB.setCurrentIndex(0)
+        self.stateCH1CB.setCurrentIndex(0)
+        self.stateCH2CB.setCurrentIndex(0)
+        self.fileTypeCB.setCurrentIndex(0)
+
+        # ========== PLOTS ========== # 
+
+
+        # ========== LABELS ========== # 
+        self.waveFormLabel = QLabel("Waveform type")
+        self.hPointLabel = QLabel("High value [mV]")
+        self.lPointLabel = QLabel("Low value [mV]")
+        self.sPointLabel = QLabel("Starting value [mV]")
+        self.freqLabel = QLabel("Frequency [Hz]")
+        self.samplesPerSecLabel = QLabel("Samples per second")
+        self.samplesLabel = QLabel("Number of samples to collect")
+        self.stateCH1Label = QLabel("channel 1 state")
+        self.stateCH2Label = QLabel("channel 2 state")
+        self.fileTypeLabel = QLabel("data save file format")
+        self.errorLabel = QLabel("TEMP ERROR") # to be filled
+
+        self.errorLabel.setObjectName("red")
+
+        # ========== LAYOUT ASSIGNMENT ========== # 
+        # GRID SETTINGS --------- .addWidget(xyz, [row], [column], [rowSpan], [columnSpan])
+        self.settingsLayout.addWidget(self.waveFormLabel,       0, 0, 1, 1)
+        self.settingsLayout.addWidget(self.waveFormCB,          0, 1, 1, 1)
+        self.settingsLayout.addWidget(self.hPointLabel,         1, 0, 1, 1)
+        self.settingsLayout.addWidget(self.hPointEntry,         1, 1, 1, 1)
+        self.settingsLayout.addWidget(self.lPointLabel,         2, 0, 1, 1)
+        self.settingsLayout.addWidget(self.lPointEntry,         2, 1, 1, 1)
+        self.settingsLayout.addWidget(self.sPointLabel,         3, 0, 1, 1)
+        self.settingsLayout.addWidget(self.sPointEntry,         3, 1, 1, 1)
+        self.settingsLayout.addWidget(self.freqLabel,           4, 0, 1, 1)
+        self.settingsLayout.addWidget(self.freqEntry,           4, 1, 1, 1)
+        self.settingsLayout.addWidget(self.samplesPerSecLabel,  5, 0, 1, 1)
+        self.settingsLayout.addWidget(self.samplesPerSecCB,     5, 1, 1, 1)
+        self.settingsLayout.addWidget(self.samplesLabel,        6, 0, 1, 1)
+        self.settingsLayout.addWidget(self.samplesEntry,        6, 1, 1, 1)
+        self.settingsLayout.addWidget(self.stateCH1Label,       7, 0, 1, 1)
+        self.settingsLayout.addWidget(self.stateCH1CB,          7, 1, 1, 1)
+        self.settingsLayout.addWidget(self.stateCH2Label,       8, 0, 1, 1)
+        self.settingsLayout.addWidget(self.stateCH2CB,          8, 1, 1, 1)
+        self.settingsLayout.addWidget(self.fileTypeLabel,       9, 0, 1, 1)
+        self.settingsLayout.addWidget(self.fileTypeCB,          9, 1, 1, 1)
+
+        self.errorLayout.addWidget(self.errorLabel)
+
+        self.buttonsLayout.addWidget(self.startBtn)
+        self.buttonsLayout.addWidget(self.exitBtn)
+
+        #wrapping for main layout
+        self.settingsWidgetWrapper = QWidget()
+        self.errorWidgetWrapper = QWidget()
+        self.buttonsWidgetWrapper = QWidget()
+        self.settingsWidgetWrapper.setLayout(self.settingsLayout)
+        self.errorWidgetWrapper.setLayout(self.errorLayout)
+        self.buttonsWidgetWrapper.setLayout(self.buttonsLayout)
+
+        self.mainLayout.addWidget(self.settingsWidgetWrapper,   0, 0, 3, 2)
+        self.mainLayout.addWidget(self.errorWidgetWrapper,      0, 2, 2, 2)
+        self.mainLayout.addWidget(self.buttonsWidgetWrapper,    8, 2, 1, 2)
+
+        self.setLayout(self.mainLayout)
+        
+        
+ 
 
 class App(QWidget):
     def __init__(self):
         super().__init__()
 
         self.setWindowTitle("Test")
-        self.resize(1000,800)
+        self.resize(1000,800) #TODO Fullscreen later with exit button
 
         self.stack = QStackedWidget()
 
@@ -321,6 +444,7 @@ class App(QWidget):
         self.menuGUI.slowBtnCallback.connect(self.menu_S_BTN_CBCK)
 
 
+        self.fastGUI.startBtnCallback.connect(self.fast_start_BTN_CBCK)
         self.fastGUI.exitBtnCallback.connect(self.fast_exit_BTN_CBCK)
 
 
@@ -356,6 +480,10 @@ class App(QWidget):
         self.stack.setCurrentIndex(WindowType.SLOW)
 
     # ============ FAST GUI ============ #
+    def fast_start_BTN_CBCK(self):
+        #logic...
+        pass
+
     def fast_exit_BTN_CBCK(self):
         #logic...
         self.stack.setCurrentIndex(WindowType.MENU)
@@ -395,37 +523,59 @@ class App(QWidget):
 
     def slow_exit_BTN_CBCK(self):
         #TODO
-        pass
+        #logic...
+        self.stack.setCurrentIndex(WindowType.MENU)
 
     def slow_set_BTN_CBCK(self):
-        #TODO
-        pass
+        # VALIDATORS WORK BAD :(
+        genMode = self.slowGUI.genModeCombobox.currentIndex()
+        match genMode:
+            case GenModeGUI.NORMAL:
+                hRange = self.slowGUI.hRangeEntry.text()
+                lRange = self.slowGUI.lRangeEntry.text()
+                direction = self.slowGUI.directionCombobox.currentText()
+                print(hRange, lRange, direction)
+            case GenModeGUI.STEP:
+                maxRange = self.slowGUI.maxRangeEntry.text()
+                numOfSteps = self.slowGUI.numOfStepsEntry.text()
+                print(maxRange, numOfSteps)
+        startPoint = self.slowGUI.startPointEntry.text()
+        step = self.slowGUI.stepEntry.text()
+        IVratio = self.slowGUI.IVRatioCombobox.currentText()
+        gain = self.slowGUI.gainCombobox.currentText()
+        print(startPoint, step, IVratio, gain)
 
     def slow_genMode_CB_CBCK(self):
-        #TODO
-        pass
-
+        currentIndex = self.slowGUI.genModeCombobox.currentIndex()
+        self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)
+        
+    #probs not needed
     def slow_direction_CB_CBCK(self):
         #TODO
         pass
-
+    #probs not needed
     def slow_gain_CB_CBCK(self):
         #TODO
         pass
-
+    #probs not needed
     def slow_ratio_CB_CBCK(self):
         #TODO
         pass
 
     def slow_plotter_CBCK(self):
-        #TODO
-        pass
+        self.slowGUI.acqPlotter.updatePlot()
+        self.slowGUI.genPlotter.updatePlot()
 
 
     # ======================= End Callbacks ======================= #
+    #IF NOT FIXED VALIDATORS
+    def checkValues(uValue, uRange: tuple):
+        pass
 
 def run():
     app = QApplication(sys.argv)
+    loadStyle(app)
+    app.setStyle("Fusion")
     window = App()
     window.show()
     sys.exit(app.exec())
@@ -445,5 +595,8 @@ class Plotter(PGraph.PlotWidget):
     def updatePlot(self):
         self.phase += 0.1
         y = np.sin(self.x + self.phase)
-
         self.curve.setData(self.x, y)
+
+def loadStyle(uApp):
+    with open("./styles/styles.qss", "r") as file:
+        uApp.setStyleSheet(file.read())
