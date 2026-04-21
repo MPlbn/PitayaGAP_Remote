@@ -602,7 +602,6 @@ class fastGUI:
     #     self.gain = str(self.gainCB.get())
 
     #   Initialization of GUI elements
-    # TODO lPoint, hPoint, sPoint
     def initGUI(self):
 
         ##style configuration

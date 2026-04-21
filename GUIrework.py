@@ -3,12 +3,13 @@ from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout,
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
 from PySide6.QtCore import Signal, Qt, QTimer
 from PySide6.QtGui import QIntValidator, QDoubleValidator
-#test\
-import time
+#test
 import pyqtgraph as PGraph
 import numpy as np
 
-from mConstants import *
+#Custom modules
+from constants import *
+import ProgramRunner
 
 class MenuGUI(QWidget):
     fastBtnCallback = Signal()
@@ -37,8 +38,8 @@ class SlowGUI(QWidget):
     startBtnCallback = Signal()
     stopBtnCallback = Signal()
     resetBtnCallback = Signal()
-    pauseBtnCallback = Signal()
-    unpauseBtnCallback = Signal()
+    lockBtnCallback = Signal()
+    unlockBtnCallback = Signal()
     flipBtnCallback = Signal()
     saveToCSVBtnCallback = Signal()
     clearPlotBtnCallback = Signal()
@@ -47,9 +48,6 @@ class SlowGUI(QWidget):
 
     # ========== COMBOBOX CALLBACKS ========== #
     genModeCBCallback = Signal()
-    directionCBCallback = Signal()
-    gainCBCallback = Signal()
-    ratioCBCallback = Signal()
 
     # ========== PLOTTER CALLBACKS =========== #
     plotterCallback = Signal()
@@ -75,8 +73,8 @@ class SlowGUI(QWidget):
         self.startBtn = QPushButton("START")
         self.stopBtn = QPushButton("STOP")
         self.resetBtn = QPushButton("RESET")
-        self.pauseBtn = QPushButton("PAUSE")
-        self.unpauseBtn = QPushButton("UNPAUSE")
+        self.lockBtn = QPushButton("LOCK")
+        self.unlockBtn = QPushButton("UNLOCK")
         self.flipBtn = QPushButton("FLIP")
         self.saveToCSVBtn = QPushButton("SAVE TO CSV")
         self.clearPlotBtn = QPushButton("CLEAR PLOT")
@@ -91,8 +89,8 @@ class SlowGUI(QWidget):
         self.startBtn.clicked.connect(self.startBtnCallback)
         self.stopBtn.clicked.connect(self.stopBtnCallback)
         self.resetBtn.clicked.connect(self.resetBtnCallback)
-        self.pauseBtn.clicked.connect(self.pauseBtnCallback)
-        self.unpauseBtn.clicked.connect(self.unpauseBtnCallback)
+        self.lockBtn.clicked.connect(self.lockBtnCallback)
+        self.unlockBtn.clicked.connect(self.unlockBtnCallback)
         self.flipBtn.clicked.connect(self.flipBtnCallback)
         self.saveToCSVBtn.clicked.connect(self.saveToCSVBtnCallback)
         self.clearPlotBtn.clicked.connect(self.clearPlotBtnCallback)
@@ -103,8 +101,8 @@ class SlowGUI(QWidget):
         self.startBtn.setEnabled(True)
         self.stopBtn.setEnabled(False)
         self.resetBtn.setEnabled(False)
-        self.pauseBtn.setEnabled(False)
-        self.unpauseBtn.setEnabled(False)
+        self.lockBtn.setEnabled(False)
+        self.unlockBtn.setEnabled(False)
         self.flipBtn.setEnabled(False)
         self.saveToCSVBtn.setEnabled(False)
         self.clearPlotBtn.setEnabled(False)
@@ -150,9 +148,6 @@ class SlowGUI(QWidget):
         self.IVRatioCombobox.setCurrentIndex(0)
 
         self.genModeCombobox.currentIndexChanged.connect(self.genModeCBCallback)
-        self.directionCombobox.currentTextChanged.connect(self.directionCBCallback)
-        self.gainCombobox.currentTextChanged.connect(self.gainCBCallback)
-        self.IVRatioCombobox.currentTextChanged.connect(self.ratioCBCallback)
 
         # ========== PROGRESS BAR ========== # 
         self.progressBar = QProgressBar()
@@ -261,8 +256,8 @@ class SlowGUI(QWidget):
         self.buttonsLayout.addWidget(self.startBtn,       0, 0,   1, 1)
         self.buttonsLayout.addWidget(self.stopBtn,        0, 1,   1, 1)
         self.buttonsLayout.addWidget(self.resetBtn,       0, 2,   1, 1)
-        self.buttonsLayout.addWidget(self.pauseBtn,       1, 0,   1, 1)
-        self.buttonsLayout.addWidget(self.unpauseBtn,     1, 1,   1, 1)
+        self.buttonsLayout.addWidget(self.lockBtn,       1, 0,   1, 1)
+        self.buttonsLayout.addWidget(self.unlockBtn,     1, 1,   1, 1)
         self.buttonsLayout.addWidget(self.flipBtn,        1, 2,   1, 1)
         self.buttonsLayout.addWidget(self.saveToCSVBtn,   2, 0,   1, 1)
         self.buttonsLayout.addWidget(self.clearPlotBtn,   2, 1,   1, 1)
@@ -308,13 +303,7 @@ class FastGUI(QWidget):
     # ========== BUTTON CALLBACKS ========== #
     startBtnCallback = Signal()
     exitBtnCallback = Signal()
-
-    # ========== COMBOBOX CALLBACKS ========== #
-
-
-    # ========== PLOTTER CALLBACKS =========== #
     
-
     def __init__(self):
         super().__init__()
 
@@ -372,9 +361,6 @@ class FastGUI(QWidget):
         self.stateCH2CB.setCurrentIndex(0)
         self.fileTypeCB.setCurrentIndex(0)
 
-        # ========== PLOTS ========== # 
-
-
         # ========== LABELS ========== # 
         self.waveFormLabel = QLabel("Waveform type")
         self.hPointLabel = QLabel("High value [mV]")
@@ -431,13 +417,13 @@ class FastGUI(QWidget):
         self.mainLayout.addWidget(self.buttonsWidgetWrapper,    8, 2, 1, 2)
 
         self.setLayout(self.mainLayout)
-        
-        
- 
 
 class App(QWidget):
     def __init__(self):
         super().__init__()
+
+        self.F_PRunner = ProgramRunner.FastProgramRunner()
+        self.PRunner = ProgramRunner.ProgramRunner()
 
         self.setWindowTitle("Test")
         self.resize(1000,800) #TODO Fullscreen later with exit button
@@ -464,8 +450,8 @@ class App(QWidget):
         self.slowGUI.startBtnCallback.connect(self.slow_start_BTN_CBCK)
         self.slowGUI.stopBtnCallback.connect(self.slow_stop_BTN_CBCK)
         self.slowGUI.resetBtnCallback.connect(self.slow_reset_BTN_CBCK)
-        self.slowGUI.pauseBtnCallback.connect(self.slow_pause_BTN_CBCK)
-        self.slowGUI.unpauseBtnCallback.connect(self.slow_unpause_BTN_CBCK)
+        self.slowGUI.lockBtnCallback.connect(self.slow_lock_BTN_CBCK)
+        self.slowGUI.unlockBtnCallback.connect(self.slow_unlock_BTN_CBCK)
         self.slowGUI.flipBtnCallback.connect(self.slow_flip_BTN_CBCK)
         self.slowGUI.saveToCSVBtnCallback.connect(self.slow_saveToCSV_BTN_CBCK)
         self.slowGUI.clearPlotBtnCallback.connect(self.slow_clearPlot_BTN_CBCK)
@@ -485,111 +471,197 @@ class App(QWidget):
 
     # ============ MENU ============ #
     def menu_F_BTN_CBCK(self):
-        #prepare part...
-        self.stack.setCurrentIndex(WindowType.FAST)
+        #connecting to pitaya
+        self.isConnectedToPitaya = self.F_PRunner.startupRoutine()
+        if(self.isConnectedToPitaya):
+            self.F_PRunner.runStreamingServer()
+            self.stack.setCurrentIndex(WindowType.FAST)
+            self.showFullScreen()
+        else:
+            print("ERROR CONNECTING TO PITAYA, TRY AGIAN...")
 
     def menu_S_BTN_CBCK(self):
-        #prepare part...
-        self.stack.setCurrentIndex(WindowType.SLOW)
-
+        self.isConnectedToPitaya = self.PRunner.startupRoutine()
+        if(self.isConnectedToPitaya):
+            self.stack.setCurrentIndex(WindowType.SLOW)
+            self.showFullScreen()
+        else:
+            print("ERROR CONNECTING TO PITAYA AND TCP SERVER, TRY AGAIN...")
+            
     # ============ FAST GUI ============ #
     def fast_start_BTN_CBCK(self):
         self.fastGUI.startBtn.setEnabled(False)
-        #logic...TODO
+        
+        errorFlag = False
+        errorText = ""
+        tempWaveForm = self.fastGUI.waveFormCB.currentText()
+        tempDec = self.fastGUI.samplesPerSecCB.currentText()
+        tempStateCH1 = self.fastGUI.stateCH1CB.currentText()
+        tempStateCH2 = self.fastGUI.stateCH2CB.currentText()
+        tempFileType = self.fastGUI.fileTypeCB.currentText()
+
+        tempHPoint = self.fastGUI.hPointEntry.text()
+        if(tempHPoint == ""):
+            tempHPoint = F_GEN_DEFAULT_HPOINT
+            self.fastGUI.hPointEntry.setText(str(F_GEN_DEFAULT_HPOINT))
+        else:
+            tempHPoint = float(tempHPoint)
+        if(tempHPoint >= F_GEN_RANGE_DOWN_LIMIT and tempHPoint <= F_GEN_RANGE_UP_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: High Value: voltage value is out of range. The value must be between {F_GEN_RANGE_UP_LIMIT} and {F_GEN_RANGE_DOWN_LIMIT}\n'
+
+        tempLPoint = self.fastGUI.lPointEntry.text()
+        if(tempLPoint == ""):
+            tempLPoint = F_GEN_DEFAULT_LPOINT
+            self.fastGUI.lPointEntry.setText(str(F_GEN_DEFAULT_LPOINT))
+        else:
+            tempLPoint = float(tempLPoint)
+        if(tempLPoint >= F_GEN_RANGE_DOWN_LIMIT and tempLPoint <= F_GEN_RANGE_UP_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Low Value: voltage value is out of range. The value must be between {F_GEN_RANGE_UP_LIMIT} and {F_GEN_RANGE_DOWN_LIMIT}\n'
+
+        if(tempLPoint > tempHPoint):
+            valueHolder = tempLPoint
+            tempLPoint = tempHPoint
+            tempHPoint = valueHolder 
+
+        tempSPoint = self.fastGUI.sPointEntry.text()
+        if(tempSPoint == ""):
+            tempSPoint = F_GEN_DEFAULT_SPOINT
+            self.fastGUI.sPointEntry.setText(str(F_GEN_DEFAULT_SPOINT))
+        else:
+            tempSPoint = float(tempSPoint)
+        if(tempSPoint >= tempLPoint and tempSPoint <= tempHPoint):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Starting Value: voltage value is out of range. The value must be between set High Value and Low Value\n'
+
+        tempFreq = self.fastGUI.freqEntry.text()
+        if(tempFreq == ""):
+            tempFreq = F_GEN_DEFAULT_FREQ
+            self.fastGUI.freqEntry.setText(str(F_GEN_DEFAULT_FREQ))
+        else:
+            tempFreq = int(tempFreq)
+        if(tempFreq <= F_GEN_FREQ_UP_LIMIT and tempFreq >= F_GEN_FREQ_DOWN_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Frequency: Frequency is out of range. The value must be between {F_GEN_FREQ_UP_LIMIT} and {F_GEN_FREQ_DOWN_LIMIT}\n'
+
+        tempSamples = self.fastGUI.samplesEntry.text()
+        if(tempSamples == ""):
+            tempSamples = F_ACQ_DEFAULT_SAMPLES
+            self.fastGUI.samplesEntry.setText(F_ACQ_DEFAULT_SAMPLES)
+        else:
+            tempSamples = int(tempSamples)
+        if(tempSamples <= F_ACQ_SAMPLES_UP_LIMIT and tempSamples >= F_ACQ_SAMPLES_DOWN_LIMIT):
+            pass
+        else:
+            errorFlag = True
+            errorText += f'Invalid field: Samples: Number of samples is out of range. The value must be between {F_ACQ_SAMPLES_UP_LIMIT} and {F_ACQ_SAMPLES_DOWN_LIMIT}'
+
+        if(not errorFlag):
+            self.fastGUI.errorLabel.setText("")
+            tempHPoint /= MV_TO_V_VALUE
+            tempLPoint /= MV_TO_V_VALUE
+            tempSPoint /= MV_TO_V_VALUE
+            self.F_PRunner.run(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
+        else:
+            self.fastGUI.errorLabel.setText(errorText)
+        
         self.fastGUI.startBtn.setEnabled(True)
         
-
     def fast_exit_BTN_CBCK(self):
-        #logic...
+        if(not self.isConnectedToPitaya):
+            self.F_PRunner.connect()
+        self.F_PRunner.stopStreaming()
+        self.F_PRunner.disconnect()
+        self.isConnectedToPitaya = False
         self.stack.setCurrentIndex(WindowType.MENU)
+        self.resize(1000,800) 
 
     # ============ SLOW GUI ============ #
     def slow_start_BTN_CBCK(self):
         self.slowGUI.startBtn.setEnabled(False)
         self.slowGUI.stopBtn.setEnabled(True)
         self.slowGUI.resetBtn.setEnabled(True)
-        self.slowGUI.pauseBtn.setEnabled(True)
+        self.slowGUI.lockBtn.setEnabled(True)
         self.slowGUI.flipBtn.setEnabled(True)
         self.slowGUI.saveToCSVBtn.setEnabled(True)
         self.slowGUI.clearPlotBtn.setEnabled(True)
         self.slowGUI.exitBtn.setEnabled(True)
-        #logic... TODO
-
+        genMode = self.slowGUI.genModeCombobox.currentIndex()
+        self.slow_set_BTN_CBCK() # a little jank with genmode twice, but what can You do
+        match genMode:
+            case GenModeGUI.NORMAL:
+                self.PRunner.changeMode(ProgramMode.CONT_START)
+            case GenModeGUI.STEP:
+                self.PRunner.changeMode(ProgramMode.STEPPING_START)
+                
     def slow_stop_BTN_CBCK(self):
         self.slowGUI.stopBtn.setEnabled(False)
+        self.slowGUI.lockBtn.setEnabled(False)        
+        self.slowGUI.unlockBtn.setEnabled(False)
+        self.slowGUI.resetBtn.setEnabled(False)
         self.slowGUI.startBtn.setEnabled(True)
-        #logic... TODO
+        self.PRunner.changeMode(ProgramMode.GEN_STOP)
 
     def slow_reset_BTN_CBCK(self):
-        #TODO
-        pass
+        self.slow_unlock_BTN_CBCK()
+        self.PRunner.resetGenerator()
 
-    def slow_pause_BTN_CBCK(self):
-        self.slowGUI.pauseBtn.setEnabled(False)
-        self.slowGUI.unpauseBtn.setEnabled(True)
-        #logic... TODO
+    def slow_lock_BTN_CBCK(self):
+        self.slowGUI.lockBtn.setEnabled(False)
+        self.slowGUI.unlockBtn.setEnabled(True)
+        self.PRunner.pauseContGenerator()
         
 
-    def slow_unpause_BTN_CBCK(self):
-        self.slowGUI.unpauseBtn.setEnabled(False)
-        self.slowGUI.pauseBtn.setEnabled(True)
-        #logic... TODO
+    def slow_unlock_BTN_CBCK(self):
+        self.slowGUI.unlockBtn.setEnabled(False)
+        self.slowGUI.lockBtn.setEnabled(True)
+        self.PRunner.unpauseContGenerator()
 
     def slow_flip_BTN_CBCK(self):
-        #TODO
-        pass
+        self.PRunner.flipGenStep()
 
     def slow_saveToCSV_BTN_CBCK(self):
-        #TODO
-        pass
+        self.PRunner.startSaveProcess()
 
     def slow_clearPlot_BTN_CBCK(self):
-        #TODO
-        pass
+        self.PRunner.clearPlot()
 
     def slow_exit_BTN_CBCK(self):
-        #logic... TODO
+        self.PRunner.exit()
+        if self.isConnectedToPitaya:
+            self.PRunner.disconnect()
         self.stack.setCurrentIndex(WindowType.MENU)
+        self.resize(1000,800)         
 
     def slow_set_BTN_CBCK(self):
         # VALIDATORS WORK BAD :(
         genMode = self.slowGUI.genModeCombobox.currentIndex()
-        match genMode:
-            case GenModeGUI.NORMAL:
-                hRange = self.slowGUI.hRangeEntry.text()
-                lRange = self.slowGUI.lRangeEntry.text()
-                direction = self.slowGUI.directionCombobox.currentText()
-                print(hRange, lRange, direction)
-            case GenModeGUI.STEP:
-                maxRange = self.slowGUI.maxRangeEntry.text()
-                numOfSteps = self.slowGUI.numOfStepsEntry.text()
-                print(maxRange, numOfSteps)
-        startPoint = self.slowGUI.startPointEntry.text()
-        step = self.slowGUI.stepEntry.text()
-        IVratio = self.slowGUI.IVRatioCombobox.currentText()
-        gain = self.slowGUI.gainCombobox.currentText()
-        print(startPoint, step, IVratio, gain)
 
     def slow_genMode_CB_CBCK(self):
         currentIndex = self.slowGUI.genModeCombobox.currentIndex()
-        self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)
-        
-    #probs not needed
-    def slow_direction_CB_CBCK(self):
-        #TODO
-        pass
-    #probs not needed
-    def slow_gain_CB_CBCK(self):
-        #TODO
-        pass
-    #probs not needed
-    def slow_ratio_CB_CBCK(self):
-        #TODO
-        pass
+        self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)       
 
     def slow_plotter_CBCK(self):
         self.slowGUI.acqPlotter.updatePlot()
         self.slowGUI.genPlotter.updatePlot()
+
+    def slow_UP_KEY_CBCK(self):
+        if(self.PRunner.getContGeneratorPauseState()):
+            self.PRunner.manualChangeGenVoltage(GUI_INCREMENT_STEP)    
+
+    def slow_DOWN_KEY_CBCK(self):
+        if(self.PRunner.getContGeneratorPauseState()):
+            self.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
+
 
 
     # ======================= End Callbacks ======================= #
