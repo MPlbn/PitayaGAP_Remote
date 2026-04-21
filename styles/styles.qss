@@ -1,0 +1,36 @@
+QLineEdit {
+    max-width: 150px;
+}
+
+QComboBox {
+    max-width: 150px;
+}
+
+QPushButton {
+    min-height: 60px;
+    min-width: 100px;
+    max-width: 250px;
+}
+
+QPushButton#smallClassic {
+    min-height: 40px;
+    max-height: 40px;
+    min-width: 100px;
+    max-width: 150px;
+}
+
+QPushButton#green {
+    background-color: green;
+}
+
+QPushButton#red {
+    background-color: red;
+}
+
+QLabel#red {
+    color: red;
+}
+
+QLabel#blue {
+    color: #26b2ee;
+}
