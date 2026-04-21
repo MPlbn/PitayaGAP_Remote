@@ -52,7 +52,10 @@ class SlowGUI(QWidget):
 
     def __init__(self):
         super().__init__()
-
+        # ========== PROGRAM RUNNER ========== #
+        self.PRunner = ProgramRunner.ProgramRunner()
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.PRunner.run)
 
         # ========== LAYOUTS ========== #
         self.mainLayout = QGridLayout()
@@ -293,6 +296,12 @@ class SlowGUI(QWidget):
 
         self.setLayout(self.mainLayout)
 
+    def startPR(self):
+        self.timer.start(20)
+    
+    def stopPR(self):
+        self.timer.stop()
+
 class FastGUI(QWidget):
     # ========== BUTTON CALLBACKS ========== #
     startBtnCallback = Signal()
@@ -300,6 +309,8 @@ class FastGUI(QWidget):
     
     def __init__(self):
         super().__init__()
+        # ========== PROGRAMRUNNER ========== #        
+        self.F_PRunner = ProgramRunner.FastProgramRunner()
 
         # ========== LAYOUTS ========== #
         self.mainLayout = QGridLayout()
@@ -416,17 +427,15 @@ class App(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.F_PRunner = ProgramRunner.FastProgramRunner()
-        self.PRunner = ProgramRunner.ProgramRunner(self.pr_handle_event_CBCK)
-
         self.setWindowTitle("Test")
-        self.resize(1000,800) #TODO Fullscreen later with exit button
+        self.resize(1000,800)
 
         self.stack = QStackedWidget()
 
         self.menuGUI = MenuGUI()
         self.slowGUI = SlowGUI()
         self.fastGUI = FastGUI()
+        self.slowGUI.PRunner.setEventFunction(self.pr_handle_event_CBCK)
     
         self.stack.addWidget(self.menuGUI)
         self.stack.addWidget(self.slowGUI)
@@ -468,31 +477,32 @@ class App(QWidget):
                 self.slowGUI.acqPlotter.start()
                 self.slowGUI.genPlotter.start()
             case EventType.UPDATE_PROGRESS:
-                self.slowGUI.acqPlotter.updatePlot(self.PRunner.AcqDataProcessor.getDataV(),
-                                                   self.PRunner.AcqDataProcessor.getDataI())                                        
-                self.slowGUI.genPlotter.updatePlot(self.PRunner.GenDataProcessor.getData())   
-                currentGenValue = self.PRunner.Generator.getVoltageValue()
+                self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
+                                                   self.slowGUI.PRunner.AcqDataProcessor.getDataI())                                        
+                self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())   
+                currentGenValue = self.slowGUI.PRunner.Generator.getVoltageValue()
                 self.slowGUI.progressBar.setValue(currentGenValue)
                 self.slowGUI.progressLabel.setText(str(currentGenValue))                 
                                     
     # ============ MENU ============ #
     def menu_F_BTN_CBCK(self):
         #connecting to pitaya
-        self.isConnectedToPitaya = self.F_PRunner.startupRoutine()
+        self.isConnectedToPitaya = self.fastGUI.F_PRunner.startupRoutine()
         if(self.isConnectedToPitaya):
-            self.F_PRunner.runStreamingServer()
+            self.fastGUI.F_PRunner.runStreamingServer()
             self.stack.setCurrentIndex(WindowType.FAST)
-            self.showFullScreen()
+            #self.showFullScreen()
         else:
             print("ERROR CONNECTING TO PITAYA, TRY AGIAN...")
 
     def menu_S_BTN_CBCK(self):
-        self.isConnectedToPitaya = self.PRunner.startupRoutine()
+        self.isConnectedToPitaya = self.slowGUI.PRunner.startupRoutine()
         if(self.isConnectedToPitaya):
             self.stack.setCurrentIndex(WindowType.SLOW)
-            self.showFullScreen()
+            #self.showFullScreen()
         else:
             print("ERROR CONNECTING TO PITAYA AND TCP SERVER, TRY AGAIN...")
+        self.slowGUI.startPR()
             
     # ============ FAST GUI ============ #
     def fast_start_BTN_CBCK(self):
@@ -566,7 +576,7 @@ class App(QWidget):
             tempHPoint /= MV_TO_V_VALUE
             tempLPoint /= MV_TO_V_VALUE
             tempSPoint /= MV_TO_V_VALUE
-            self.F_PRunner.run(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
+            self.fastGUI.F_PRunner.run(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
         else:
             self.fastGUI.errorLabel.setText(errorText)
         
@@ -574,9 +584,9 @@ class App(QWidget):
         
     def fast_exit_BTN_CBCK(self):
         if(not self.isConnectedToPitaya):
-            self.F_PRunner.connect()
-        self.F_PRunner.stopStreaming()
-        self.F_PRunner.disconnect()
+            self.fastGUI.F_PRunner.connect()
+        self.fastGUI.F_PRunner.stopStreaming()
+        self.fastGUI.F_PRunner.disconnect()
         self.isConnectedToPitaya = False
         self.stack.setCurrentIndex(WindowType.MENU)
         self.resize(1000,800) 
@@ -595,9 +605,9 @@ class App(QWidget):
         self.slow_set_BTN_CBCK() # a little jank with genmode twice, but what can You do
         match genMode:
             case GenModeGUI.NORMAL:
-                self.PRunner.changeMode(ProgramMode.CONT_START)
+                self.slowGUI.PRunner.changeMode(ProgramMode.CONT_START)
             case GenModeGUI.STEP:
-                self.PRunner.changeMode(ProgramMode.STEPPING_START)
+                self.slowGUI.PRunner.changeMode(ProgramMode.STEPPING_START)
                 
     def slow_stop_BTN_CBCK(self):
         self.slowGUI.stopBtn.setEnabled(False)
@@ -605,36 +615,38 @@ class App(QWidget):
         self.slowGUI.unlockBtn.setEnabled(False)
         self.slowGUI.resetBtn.setEnabled(False)
         self.slowGUI.startBtn.setEnabled(True)
-        self.PRunner.changeMode(ProgramMode.GEN_STOP)
+        self.slowGUI.PRunner.changeMode(ProgramMode.GEN_STOP)
 
     def slow_reset_BTN_CBCK(self):
         self.slow_unlock_BTN_CBCK()
-        self.PRunner.resetGenerator()
+        self.slowGUI.PRunner.resetGenerator()
 
     def slow_lock_BTN_CBCK(self):
         self.slowGUI.lockBtn.setEnabled(False)
         self.slowGUI.unlockBtn.setEnabled(True)
-        self.PRunner.pauseContGenerator()
+        self.slowGUI.PRunner.pauseContGenerator()
         
 
     def slow_unlock_BTN_CBCK(self):
         self.slowGUI.unlockBtn.setEnabled(False)
         self.slowGUI.lockBtn.setEnabled(True)
-        self.PRunner.unpauseContGenerator()
+        self.slowGUI.PRunner.unpauseContGenerator()
 
     def slow_flip_BTN_CBCK(self):
-        self.PRunner.flipGenStep()
+        self.slowGUI.PRunner.flipGenStep()
 
     def slow_saveToCSV_BTN_CBCK(self):
-        self.PRunner.startSaveProcess()
+        self.slowGUI.PRunner.startSaveProcess()
 
     def slow_clearPlot_BTN_CBCK(self):
-        self.PRunner.clearPlot()
+        self.slowGUI.PRunner.clearPlot()
 
     def slow_exit_BTN_CBCK(self):
-        self.PRunner.exit()
+        self.slowGUI.stopPR()
+        self.slowGUI.PRunner.exit()
+        self.slowGUI.PRunner.run()
         if self.isConnectedToPitaya:
-            self.PRunner.disconnect()
+            self.slowGUI.PRunner.disconnect()
         self.stack.setCurrentIndex(WindowType.MENU)
         self.resize(1000,800)         
 
@@ -652,7 +664,7 @@ class App(QWidget):
             self.slowGUI.stepEntry.setText(str(GEN_DEFAULT_STEP))
         else:
             tempStep = float(tempStep)
-        if(tempStep < GEN_MAX_STEP or tempStep > 0):
+        if(tempStep > GEN_MAX_STEP or tempStep < 0):
             errorFlag = True
             errorText += f'Invalid field: Step: step value is out of range. The value must be between {0} and {GEN_MAX_STEP}\n'
         #common settings
@@ -696,7 +708,7 @@ class App(QWidget):
                     errorFlag = True
                     errorText += f'Invalid field: Starting Point Value: value must be between High Peak Value and Low Peak Value'
                 if(not errorFlag):
-                    self.PRunner.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, 
+                    self.slowGUI.PRunner.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, 
                                                             tempLRange/MV_TO_V_VALUE, 
                                                             tempStep/MV_TO_V_VALUE, 
                                                             tempDirection, 
@@ -730,16 +742,16 @@ class App(QWidget):
                     errorFlag = True
                     errorText += f'Invalid field: Starting Point Value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE} and cannot go beyond Max range\n'
                 if(not errorFlag):
-                    self.PRunner.setSteppingGeneratorParameters(tempMaxRange/MV_TO_V_VALUE,
+                    self.slowGUI.PRunner.setSteppingGeneratorParameters(tempMaxRange/MV_TO_V_VALUE,
                                                                 tempStartPoint/MV_TO_V_VALUE, #Maybe different base and startPoint? TODO
                                                                 tempStep/MV_TO_V_VALUE,
                                                                 tempNumOfSteps,
                                                                 10, #Maybe add Freq TODO
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
-            self.PRunner.setAcquisitorParameters(tempGain)
-            self.PRunner.resetGenerator()
-            ratio = self.PRunner.processRatio(tempIVratio)
+            self.slowGUI.PRunner.setAcquisitorParameters(tempGain)
+            self.slowGUI.PRunner.resetGenerator()
+            ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
         self.slowGUI.errorLabel.setText(errorText)
                     
@@ -748,12 +760,12 @@ class App(QWidget):
         self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)       
 
     def slow_UP_KEY_CBCK(self):
-        if(self.PRunner.getContGeneratorPauseState()):
-            self.PRunner.manualChangeGenVoltage(GUI_INCREMENT_STEP)    
+        if(self.slowGUI.PRunner.getContGeneratorPauseState()):
+            self.slowGUI.PRunner.manualChangeGenVoltage(GUI_INCREMENT_STEP)    
 
     def slow_DOWN_KEY_CBCK(self):
-        if(self.PRunner.getContGeneratorPauseState()):
-            self.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
+        if(self.slowGUI.PRunner.getContGeneratorPauseState()):
+            self.slowGUI.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
     # ======================= End Callbacks ======================= #
 

@@ -7,7 +7,7 @@ class Plotter(PGraph.PlotWidget):
         super().__init__(parent, background, plotItem, **kargs)
         self.isRunning = False
         self.ratio = 1.0
-        self.setYRange(-1,1)
+        #self.setYRange(-2,2)
 
     def stop(self):
         self.isRunning = False
@@ -36,7 +36,7 @@ class AcqPlotter(Plotter):
         if(self.isRunning):
             self.dataI = uDataI
             self.dataV = uDataV
-            self.curve.setData(self.dataV, self.DataI)
+            self.curve.setData(self.dataV, self.dataI)
 
 class GenPlotter(Plotter):
     def __init__(self):

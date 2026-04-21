@@ -34,7 +34,7 @@ class GeneratorDataProcessor(DataProcessor):
     def processData(self, uNewDataBuffer):
         if(len(self.dataV) >= self.dataLimit):
             self.dataV = self.dataV[self.sampleSize:]
-        self.dataV = np.append(self.dataV, uNewDataBuffer[0]*MV_TO_V_VALUE)
+        self.dataV = np.append(self.dataV, uNewDataBuffer*MV_TO_V_VALUE)
 
     def getData(self):
         return self.dataV
@@ -61,7 +61,7 @@ class AcquisitorDataProcessor(DataProcessor):
     def getDataI(self):
         return self.dataI
     
-def processRatio(self, uRatio: str) -> float:
+def processRatio(uRatio: str) -> float:
     numerator, denominator = map(int, uRatio.split('/'))
     result: float = numerator/denominator 
     return result

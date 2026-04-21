@@ -24,7 +24,7 @@ from commands import *
 #   class responsible for work routine of a program
 
 class ProgramRunner:
-    def __init__(self, uGUIEventHandler, uIP = RED_PITAYA_IP):
+    def __init__(self, uIP = RED_PITAYA_IP):
         self.IP = uIP
         self.SCPI_IP = RED_PITAYA_IP
         self.PROGRAM_MODE = ProgramMode.IDLE
@@ -36,10 +36,13 @@ class ProgramRunner:
         self.GenDataProcessor = DataProcessor.GeneratorDataProcessor()
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.IP)
-        self.sendEvent = uGUIEventHandler
+        self.sendEvent = None
         # self.stopPlotters = uSignalList[0]      
         # self.startPlotters = uSignalList[1]
         # self.updateProgressElements = uSignalList[2]
+
+    def setEventFunction(self, uEventHandlerFunction):
+        self.sendEvent = uEventHandlerFunction
 
     #   Connect to pitaya via ssh
 
@@ -225,6 +228,7 @@ class ProgramRunner:
                 pass
 
             case ProgramMode.CONT_START:
+                print("CONT START")
                 self.Generator.changeMode(GeneratorMode.CONT)
                 self.Generator.reset()
                 self.Acquisitor.reset()
@@ -258,7 +262,7 @@ class ProgramRunner:
 
             case ProgramMode.GEN_WORK_ROUTINE:
                 self.Generator.workRoutine()
-                self.processDataBuffer([self.Generator.getVoltageValue()], DataType.GEN)
+                self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
