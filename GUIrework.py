@@ -124,12 +124,12 @@ class SlowGUI(QWidget):
         self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
 
-        self.stepEntry.setValidator(QDoubleValidator(0.0, 1000.0, 2))
-        self.hRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        self.lRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        self.startPointEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        self.maxRangeEntry.setValidator(QDoubleValidator(-1000.0, 1000.0, 2))
-        self.numOfStepsEntry.setValidator(QIntValidator(1,20))
+        self.stepEntry.setValidator(QDoubleValidator())
+        self.hRangeEntry.setValidator(QDoubleValidator())
+        self.lRangeEntry.setValidator(QDoubleValidator())
+        self.startPointEntry.setValidator(QDoubleValidator())
+        self.maxRangeEntry.setValidator(QDoubleValidator())
+        self.numOfStepsEntry.setValidator(QIntValidator())
 
         # ========== COMBOBOXES ========== # 
         self.genModeCombobox = QComboBox()
@@ -506,9 +506,7 @@ class App(QWidget):
             self.fastGUI.hPointEntry.setText(str(F_GEN_DEFAULT_HPOINT))
         else:
             tempHPoint = float(tempHPoint)
-        if(tempHPoint >= F_GEN_RANGE_DOWN_LIMIT and tempHPoint <= F_GEN_RANGE_UP_LIMIT):
-            pass
-        else:
+        if(tempHPoint < F_GEN_RANGE_DOWN_LIMIT or tempHPoint > F_GEN_RANGE_UP_LIMIT):
             errorFlag = True
             errorText += f'Invalid field: High Value: voltage value is out of range. The value must be between {F_GEN_RANGE_UP_LIMIT} and {F_GEN_RANGE_DOWN_LIMIT}\n'
 
@@ -518,9 +516,7 @@ class App(QWidget):
             self.fastGUI.lPointEntry.setText(str(F_GEN_DEFAULT_LPOINT))
         else:
             tempLPoint = float(tempLPoint)
-        if(tempLPoint >= F_GEN_RANGE_DOWN_LIMIT and tempLPoint <= F_GEN_RANGE_UP_LIMIT):
-            pass
-        else:
+        if(tempLPoint < F_GEN_RANGE_DOWN_LIMIT or tempLPoint > F_GEN_RANGE_UP_LIMIT):
             errorFlag = True
             errorText += f'Invalid field: Low Value: voltage value is out of range. The value must be between {F_GEN_RANGE_UP_LIMIT} and {F_GEN_RANGE_DOWN_LIMIT}\n'
 
@@ -535,9 +531,7 @@ class App(QWidget):
             self.fastGUI.sPointEntry.setText(str(F_GEN_DEFAULT_SPOINT))
         else:
             tempSPoint = float(tempSPoint)
-        if(tempSPoint >= tempLPoint and tempSPoint <= tempHPoint):
-            pass
-        else:
+        if(tempSPoint < tempLPoint or tempSPoint > tempHPoint):
             errorFlag = True
             errorText += f'Invalid field: Starting Value: voltage value is out of range. The value must be between set High Value and Low Value\n'
 
@@ -547,9 +541,7 @@ class App(QWidget):
             self.fastGUI.freqEntry.setText(str(F_GEN_DEFAULT_FREQ))
         else:
             tempFreq = int(tempFreq)
-        if(tempFreq <= F_GEN_FREQ_UP_LIMIT and tempFreq >= F_GEN_FREQ_DOWN_LIMIT):
-            pass
-        else:
+        if(tempFreq > F_GEN_FREQ_UP_LIMIT or tempFreq < F_GEN_FREQ_DOWN_LIMIT):
             errorFlag = True
             errorText += f'Invalid field: Frequency: Frequency is out of range. The value must be between {F_GEN_FREQ_UP_LIMIT} and {F_GEN_FREQ_DOWN_LIMIT}\n'
 
@@ -559,9 +551,7 @@ class App(QWidget):
             self.fastGUI.samplesEntry.setText(F_ACQ_DEFAULT_SAMPLES)
         else:
             tempSamples = int(tempSamples)
-        if(tempSamples <= F_ACQ_SAMPLES_UP_LIMIT and tempSamples >= F_ACQ_SAMPLES_DOWN_LIMIT):
-            pass
-        else:
+        if(tempSamples > F_ACQ_SAMPLES_UP_LIMIT or tempSamples < F_ACQ_SAMPLES_DOWN_LIMIT):
             errorFlag = True
             errorText += f'Invalid field: Samples: Number of samples is out of range. The value must be between {F_ACQ_SAMPLES_UP_LIMIT} and {F_ACQ_SAMPLES_DOWN_LIMIT}'
 
@@ -643,9 +633,109 @@ class App(QWidget):
         self.resize(1000,800)         
 
     def slow_set_BTN_CBCK(self):
-        # VALIDATORS WORK BAD :(
+        errorFlag = False
+        errorText = ""
         genMode = self.slowGUI.genModeCombobox.currentIndex()
+        tempStep = self.slowGUI.stepEntry.text()
+        tempStartPoint = self.slowGUI.startPointEntry.text()
+        tempIVratio = self.slowGUI.IVRatioCombobox.currentText()
+        tempGain = self.slowGUI.gainCombobox.currentText()
 
+        if(tempStep == ""):
+            tempStep = GEN_DEFAULT_STEP
+            self.slowGUI.stepEntry.setText(str(GEN_DEFAULT_STEP))
+        else:
+            tempStep = float(tempStep)
+        if(tempStep < GEN_MAX_STEP or tempStep > 0):
+            errorFlag = True
+            errorText += f'Invalid field: Step: step value is out of range. The value must be between {0} and {GEN_MAX_STEP}\n'
+        #common settings
+        if(tempStartPoint == ""):
+            tempStartPoint = GEN_DEFAULT_VOLTAGE
+            self.slowGUI.stepEntry.setText(str(GEN_DEFAULT_VOLTAGE))
+        else:
+            tempStartPoint = float(tempStartPoint)
+        #check the start Point later depending on normal/stepping
+
+        match genMode:
+            case GenModeGUI.NORMAL:
+                tempHRange = self.slowGUI.hRangeEntry.text()
+                tempLRange = self.slowGUI.lRangeEntry.text()     
+                tempDirection = self.slowGUI.directionCombobox.currentText()
+
+                if(tempHRange == ""):
+                    tempHRange = GEN_DEFAULT_HRANGE
+                    self.slowGUI.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
+                else:
+                    tempHRange = float(tempHRange)
+                if(tempHRange > GEN_MAX_RANGE or tempHRange < GEN_MIN_RANGE):               
+                    errorFlag = True
+                    errorText += f'Invalid field: High Peak Value: value must be between {GEN_MIN_RANGE} and {GEN_MAX_RANGE}\n'    
+
+                if(tempLRange == ""):
+                    tempLRange = GEN_DEFAULT_LRANGE
+                    self.slowGUI.lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
+                else:
+                    tempLRange = float(tempLRange)
+                if(tempLRange > GEN_MAX_RANGE or tempLRange < GEN_MIN_RANGE):
+                    errorFlag = True
+                    errorText += f'Invalid field: Low Peak Value: value must be between {GEN_MIN_RANGE} and {GEN_MAX_RANGE}\n'
+
+                if(tempHRange < tempLRange):
+                    swapVar = tempLRange
+                    tempLRange = tempHRange
+                    tempHRange = swapVar   
+
+                if(tempStartPoint > tempHRange or tempStartPoint < tempLRange):
+                    errorFlag = True
+                    errorText += f'Invalid field: Starting Point Value: value must be between High Peak Value and Low Peak Value'
+                if(not errorFlag):
+                    self.PRunner.setContGeneratorParameters(tempHRange/MV_TO_V_VALUE, 
+                                                            tempLRange/MV_TO_V_VALUE, 
+                                                            tempStep/MV_TO_V_VALUE, 
+                                                            tempDirection, 
+                                                            10, #Maybe add Freq TODO
+                                                            tempStartPoint/MV_TO_V_VALUE)
+            
+            case GenModeGUI.STEP:
+                tempNumOfSteps = self.slowGUI.numOfStepsEntry.text()
+                tempMaxRange = self.slowGUI.maxRangeEntry.text()
+
+                if(tempNumOfSteps == ""):
+                    tempNumOfSteps = GEN_DEFAULT_NUM_STEPS
+                    self.slowGUI.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
+                else:
+                    tempNumOfSteps = int(tempNumOfSteps)
+                if(tempNumOfSteps > GEN_MAX_NUM_STEPS or tempNumOfSteps <= 0):
+                    errorFlag = True
+                    errorText += f'Invalid field: Number of steps: value must be between {1} and {GEN_MAX_NUM_STEPS}\ns'
+
+                if(tempMaxRange == ""):
+                    tempMaxRange = GEN_DEFAULT_HRANGE
+                    self.slowGUI.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
+                else:
+                    tempMaxRange = float(tempMaxRange)
+                if(tempMaxRange > GEN_MAX_RANGE or tempMaxRange < GEN_MIN_RANGE):
+                    errorFlag = True
+                    errorText += f'Invalid field: Max range: value must be between {GEN_MIN_RANGE} and {GEN_MAX_RANGE}\n'
+                
+                if(tempStartPoint > tempMaxRange or tempStartPoint < tempMaxRange
+                   or tempStartPoint > GEN_MAX_RANGE or tempStartPoint < GEN_MIN_RANGE):
+                    errorFlag = True
+                    errorText += f'Invalid field: Starting Point Value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE} and cannot go beyond Max range\n'
+                if(not errorFlag):
+                    self.PRunner.setSteppingGeneratorParameters(tempMaxRange/MV_TO_V_VALUE,
+                                                                tempStartPoint/MV_TO_V_VALUE, #Maybe different base and startPoint? TODO
+                                                                tempStep/MV_TO_V_VALUE,
+                                                                tempNumOfSteps,
+                                                                10, #Maybe add Freq TODO
+                                                                tempStartPoint/MV_TO_V_VALUE)
+        if(not errorFlag):
+            self.PRunner.setAcquisitorParameters(tempGain)
+            self.PRunner.resetGenerator()
+            self.PRunner.setDataRatio(tempIVratio)
+        self.slowGUI.errorLabel.setText(errorText)
+                    
     def slow_genMode_CB_CBCK(self):
         currentIndex = self.slowGUI.genModeCombobox.currentIndex()
         self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)       
@@ -665,9 +755,6 @@ class App(QWidget):
 
 
     # ======================= End Callbacks ======================= #
-    #IF NOT FIXED VALIDATORS
-    def checkValues(uValue, uRange: tuple):
-        pass
 
 def run():
     app = QApplication(sys.argv)
