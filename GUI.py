@@ -128,7 +128,7 @@ class GUI:
     #   Handling the ratio
 
     def passRatio(self):
-        self.PR.setDataRatio(self.ratio)
+        self.PR.processRatio(self.ratio)
 
     #   Set button press handling function    
 
@@ -446,11 +446,11 @@ class GUI:
 
         #plot
         self.plotFrame = ttk.Frame(self.root, width=1000, height=700, border=5, relief="sunken", bootstyle=SECONDARY)
-        self.PR.setPlotterFrame(self.plotFrame, PlotType.ACQ)
+        self.PR.setPlotterFrame(self.plotFrame, DataType.ACQ)
 
         #generation plot
         self.genPlotFrame = ttk.Frame(self.genProgFrame, border=5, relief="sunken", bootstyle=SECONDARY)
-        self.PR.setPlotterFrame(self.genPlotFrame, PlotType.GEN)
+        self.PR.setPlotterFrame(self.genPlotFrame, DataType.GEN)
 
         #frame list
         self.FRAME_LIST = {"normal" : self.normalSetFrame, "stepping" : self.steppingSetFrame}

@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 #Required libraries to download
 import numpy as np
-import ttkbootstrap
 
 #Standard libraries
 import time
@@ -18,13 +17,14 @@ import Plotter
 import FileManager
 import CMDManager
 import WaveCreator
+import DataProcessor
 from constants import *
 from commands import *
 
 #   class responsible for work routine of a program
 
 class ProgramRunner:
-    def __init__(self, uIP = RED_PITAYA_IP):
+    def __init__(self, uGUIEventHandler, uIP = RED_PITAYA_IP):
         self.IP = uIP
         self.SCPI_IP = RED_PITAYA_IP
         self.PROGRAM_MODE = ProgramMode.IDLE
@@ -32,13 +32,15 @@ class ProgramRunner:
         self.Generator = Generate.Generator()
         self.Acquisitor = Acquire.Acquisitor()
         self.isRunningContinous = False
-        self.dataBuffer = [] #not used for now
-        self.isRunningContinous = False
-        self.AcqPlotter = Plotter.AcqPlotter()
-        self.GenPlotter = Plotter.GenPlotter()
+        self.AcqDataProcessor = DataProcessor.AcquisitorDataProcessor()
+        self.GenDataProcessor = DataProcessor.GeneratorDataProcessor()
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.IP)
-        
+        self.sendEvent = uGUIEventHandler
+        # self.stopPlotters = uSignalList[0]      
+        # self.startPlotters = uSignalList[1]
+        # self.updateProgressElements = uSignalList[2]
+
     #   Connect to pitaya via ssh
 
     def connect(self):
@@ -107,21 +109,7 @@ class ProgramRunner:
         self.socket.sendall(CLOSE_COMMAND)
         time.sleep(0.2)
         self.socket.close()
-
-
-    #   Passing frame to plotter class to place the drawn plot
-    #   uPlotterFrame: ttk.Frame - gui frame from GUI class
-    #   uPlotterType: PlotType - determines which Plotter is to be configured
-
-    def setPlotterFrame(self, uPlotterFrame, uPlotterType):
-        match uPlotterType:
-            case PlotType.ACQ:
-                self.AcqPlotter.setFrame(uPlotterFrame)
-                self.AcqPlotter.initVisuals()
-            case PlotType.GEN:
-                self.GenPlotter.setFrame(uPlotterFrame)
-                self.GenPlotter.initVisuals()        
-
+      
     #   Setting generator parameters passed from GUI when in normal mode
     #   uHighRange: float - ceiling voltage value which won't be passed while generating
     #   uLowRange: float - floor voltage value which won't be passed while generating
@@ -159,13 +147,10 @@ class ProgramRunner:
     def setAcquisitorParameters(self, uGain, uDecimation = 1):
         self.Acquisitor.setup(uDecimation=uDecimation, uGain=uGain)
 
-    #   Converting ratio from combobox string to float ratio and passing it to plotter
+    #   Converting ratio from combobox string to float ratio and passing it to dataProcessor
     #   uRatio: str - text acquired from combobox
-
-    def setDataRatio(self, uRatio: str):
-        numerator, denominator = map(int, uRatio.split('/'))
-        result: float = numerator/denominator
-        self.AcqPlotter.setRatio(result)  
+    def processRatio(self, uRatio: str) -> float:
+        return DataProcessor.processRatio(uRatio)
 
     #   Pausing generation of continous generator
 
@@ -185,7 +170,7 @@ class ProgramRunner:
     #   Updates GUI elements - progress bar, progress label and plots
     #   uProgressBar - progress bar passed from GUI
     #   uProgressLabel - progress label passed from GUI
-
+    #TODO REWORK, NOT NEEDED PROBS - will work as Signal()
     def updateGUIElements(self, uProgressBar, uProgressLabel):
         uProgressBar.configure(value = self.Generator.voltageToPercent())
         uProgressLabel.configure(text=str(round(self.Generator.voltageValue, self.Generator.getRoundingNumber())))
@@ -232,12 +217,6 @@ class ProgramRunner:
     def flipGenStep(self):
         self.Generator.flipDirection()
 
-    #   Clears the data from both plotters
-
-    def clearPlot(self):
-        self.AcqPlotter.clear()
-        self.GenPlotter.clear()
-
     #   Main work routine of program runner
 
     def run(self):
@@ -252,10 +231,9 @@ class ProgramRunner:
                 self.sendSetup()
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.AcqPlotter.start()
-                self.GenPlotter.start()
+                self.sendEvent(EventType.START_PLOT)
                 self.Generator.applyDirection()
-                self.changeMode(ProgramMode.PRE_WORK_ROUTINE) 
+                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
 
             case ProgramMode.STEPPING_START:
                 self.Generator.changeMode(GeneratorMode.STEPPING)
@@ -265,51 +243,48 @@ class ProgramRunner:
                 self.Generator.setRanges(uHRange=self.Generator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #TODO something to check here
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.AcqPlotter.start()
-                self.GenPlotter.start()
+                self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
     
             case ProgramMode.PRE_WORK_ROUTINE:
                 print("IM_PRE WORK ROUTINE")
-                self.processDataBuffer(self.Generator.getVoltageValue(), PlotType.GEN)
+                self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
-                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
+                self.sendEvent(EventType.UPDATE_PROGRESS)
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE:
                 self.Generator.workRoutine()
-                self.processDataBuffer(self.Generator.getVoltageValue(), PlotType.GEN)
+                self.processDataBuffer([self.Generator.getVoltageValue()], DataType.GEN)
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
-                self.processDataBuffer(Vbuffer, PlotType.ACQ, Ibuffer)
+                self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
+                self.sendEvent(EventType.UPDATE_PROGRESS)
                             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
                 self.Generator.stopGen(StopType.STOP_KEEP) 
                 self.Acquisitor.stop()
-                self.AcqPlotter.stop()
-                self.GenPlotter.stop()
+                self.sendEvent(EventType.STOP_PLOT)
                 self.CSVFileManager.createFile()
-                self.saveDataToCSV(dataV=self.AcqPlotter.getDataV(), dataI=self.AcqPlotter.getDataI())
+                self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.AcqPlotter.start()
-                self.GenPlotter.start()
+                self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.CSV_WORK_ROUTINE_TO_IDLE:
                 self.Generator.stopGen(StopType.STOP_KEEP)
                 self.Acquisitor.stop()
-                self.AcqPlotter.stop()
-                self.GenPlotter.stop()
+                self.sendEvent(EventType.STOP_PLOT)
                 self.CSVFileManager.createFile()
-                self.saveDataToCSV(dataV=self.AcqPlotter.getDataV(), dataI=self.AcqPlotter.getDataI())
+                self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.AcqPlotter.start()
-                self.GenPlotter.start()
+                self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.GEN_STOP:
@@ -319,8 +294,7 @@ class ProgramRunner:
                 if(self.Generator.getPause()):
                     self.Generator.unpause()
                 
-                self.AcqPlotter.stop()
-                self.GenPlotter.stop()
+                self.sendEvent(EventType.STOP_PLOT)
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.EXIT:
@@ -330,8 +304,7 @@ class ProgramRunner:
                 if(self.Generator.getPause()):
                     self.Generator.unpause()
                 
-                self.AcqPlotter.stop()
-                self.GenPlotter.stop()
+                self.sendEvent(EventType.STOP_PLOT)
                 self.disconnectFromServer()
 
             
@@ -350,17 +323,17 @@ class ProgramRunner:
     def manualChangeGenVoltage(self, uChangeType):
         self.Generator.manualChangeVoltage(uChangeType)
 
-    #   Passing data to plotter processing function
-    #   uBuffer: array of floats - buffer returned from aqcuisition
-    #   uPlotterType: PlotType - determines which plotter should take care of data buffer
+    #   Passing data to data processor processing function
+    #   uBuffer: array of floats - buffer = [V, I] for ACQ, buffer = [V] for Gen
+    #   uDataType: DataType - determines which data processor should take care of data buffer
     
-    def processDataBuffer(self, uBuffer, uPlotterType, uBufferCurrent=[]):
-        match uPlotterType:
-            case PlotType.ACQ:
-                self.AcqPlotter.processData(uBufferCurrent, uBuffer)
-            case PlotType.GEN:
-                self.GenPlotter.processData(uBuffer)
-    
+    def processDataBuffer(self, uBuffer, uDataType):
+        match uDataType:
+            case DataType.ACQ:
+                self.AcqDataProcessor.processData(uBuffer)
+            case DataType.GEN:
+                self.GenDataProcessor.processData(uBuffer)
+
     #   Closing the custom server connection
 
     def exit(self):
@@ -374,7 +347,7 @@ class FastProgramRunner:
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
-        self.Plotter = Plotter.FAcqPlotter()
+        #self.Plotter = Plotter.FAcqPlotter()
 
     def connect(self) -> bool:
         if (self.CMDManager.connectToPitaya() is not None):
@@ -491,13 +464,13 @@ class FastProgramRunner:
     def outputFix(self):
         self.runCleanupGeneration()
 
-    def showPlot(self, uPath):
-        data = self.CSVFileManager.loadFastData(uPath)
-        self.Plotter.plot(data)
+    # def showPlot(self, uPath):
+    #     data = self.CSVFileManager.loadFastData(uPath)
+    #     self.Plotter.plot(data)
 
     def run(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
         self.setup(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
         self.cleanup()
-        self.showPlot(self.CSVFileManager.getNewestPath())
+        #self.showPlot(self.CSVFileManager.getNewestPath())

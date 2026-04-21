@@ -16,13 +16,18 @@ class GeneratorMode(Enum):
     CONT = auto()
     STEPPING = auto()
 
-class PlotType(Enum):
+class DataType(Enum):
     ACQ = auto()
     GEN = auto()
 
 class StopType(Enum):
     STOP_RESET = auto()
     STOP_KEEP = auto()
+
+class EventType(IntEnum):
+    STOP_PLOT = 0
+    START_PLOT = 1
+    UPDATE_PROGRESS = 2
 
 FIRST_MODE: int = 1
 LAST_MODE: int = 9
@@ -68,7 +73,10 @@ F_ACQ_DEFAULT_FILETYPE: str = "csv"
 
 PLOT_MAX_DATA_SIZE: int = 5000
 PLOT_GEN_MAX_DATA_SIZE: int = 150
-PLOT_DEFAULT_RATIO: float = 1.0
+DEFAULT_RATIO: float = 1.0
+
+MAX_DATA_SIZE: int = 5000
+MAX_DATA_SIZE_GEN: int = 150
 
 GEN_DEFAULT_CHANNEL = 1
 GEN_DEFAULT_HRANGE: float = 1000.0

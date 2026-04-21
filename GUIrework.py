@@ -10,6 +10,7 @@ import numpy as np
 #Custom modules
 from constants import *
 import ProgramRunner
+import Plotter
 
 class MenuGUI(QWidget):
     fastBtnCallback = Signal()
@@ -48,9 +49,6 @@ class SlowGUI(QWidget):
 
     # ========== COMBOBOX CALLBACKS ========== #
     genModeCBCallback = Signal()
-
-    # ========== PLOTTER CALLBACKS =========== #
-    plotterCallback = Signal()
 
     def __init__(self):
         super().__init__()
@@ -156,12 +154,8 @@ class SlowGUI(QWidget):
         self.progressBar.setValue(0.0) #temp
 
         # ========== PLOTS ========== # 
-        self.acqPlotter = Plotter()
-        self.genPlotter = Plotter()
-        #SUBJECT TO CHANGE TODO
-        self.timer = QTimer()
-        self.timer.timeout.connect(self.plotterCallback)
-        self.timer.start(16)
+        self.acqPlotter = Plotter.AcqPlotter()
+        self.genPlotter = Plotter.GenPlotter()
 
         # ========== LABELS ========== # 
         self.stepLabel = QLabel("Step value [mV]")
@@ -423,7 +417,7 @@ class App(QWidget):
         super().__init__()
 
         self.F_PRunner = ProgramRunner.FastProgramRunner()
-        self.PRunner = ProgramRunner.ProgramRunner()
+        self.PRunner = ProgramRunner.ProgramRunner(self.pr_handle_event_CBCK)
 
         self.setWindowTitle("Test")
         self.resize(1000,800) #TODO Fullscreen later with exit button
@@ -458,17 +452,29 @@ class App(QWidget):
         self.slowGUI.exitBtnCallback.connect(self.slow_exit_BTN_CBCK)
         self.slowGUI.setBtnCallback.connect(self.slow_set_BTN_CBCK)
         self.slowGUI.genModeCBCallback.connect(self.slow_genMode_CB_CBCK)
-        self.slowGUI.directionCBCallback.connect(self.slow_direction_CB_CBCK)
-        self.slowGUI.gainCBCallback.connect(self.slow_gain_CB_CBCK)
-        self.slowGUI.ratioCBCallback.connect(self.slow_ratio_CB_CBCK)
-        self.slowGUI.plotterCallback.connect(self.slow_plotter_CBCK)
 
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
 
     # ========================= Callbacks ========================= #
-
+    # ============ PROGRAMRUNNER ============ #
+    def pr_handle_event_CBCK(self, uEventType):
+        match uEventType:
+            case EventType.STOP_PLOT:
+                self.slowGUI.acqPlotter.stop()
+                self.slowGUI.genPlotter.stop()
+            case EventType.START_PLOT:
+                self.slowGUI.acqPlotter.start()
+                self.slowGUI.genPlotter.start()
+            case EventType.UPDATE_PROGRESS:
+                self.slowGUI.acqPlotter.updatePlot(self.PRunner.AcqDataProcessor.getDataV(),
+                                                   self.PRunner.AcqDataProcessor.getDataI())                                        
+                self.slowGUI.genPlotter.updatePlot(self.PRunner.GenDataProcessor.getData())   
+                currentGenValue = self.PRunner.Generator.getVoltageValue()
+                self.slowGUI.progressBar.setValue(currentGenValue)
+                self.slowGUI.progressLabel.setText(str(currentGenValue))                 
+                                    
     # ============ MENU ============ #
     def menu_F_BTN_CBCK(self):
         #connecting to pitaya
@@ -733,16 +739,13 @@ class App(QWidget):
         if(not errorFlag):
             self.PRunner.setAcquisitorParameters(tempGain)
             self.PRunner.resetGenerator()
-            self.PRunner.setDataRatio(tempIVratio)
+            ratio = self.PRunner.processRatio(tempIVratio)
+            self.slowGUI.acqPlotter.setRatio(ratio)
         self.slowGUI.errorLabel.setText(errorText)
                     
     def slow_genMode_CB_CBCK(self):
         currentIndex = self.slowGUI.genModeCombobox.currentIndex()
         self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)       
-
-    def slow_plotter_CBCK(self):
-        self.slowGUI.acqPlotter.updatePlot()
-        self.slowGUI.genPlotter.updatePlot()
 
     def slow_UP_KEY_CBCK(self):
         if(self.PRunner.getContGeneratorPauseState()):
@@ -752,9 +755,12 @@ class App(QWidget):
         if(self.PRunner.getContGeneratorPauseState()):
             self.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
-
-
     # ======================= End Callbacks ======================= #
+
+# ============= MISC ============= # 
+def loadStyle(uApp):
+    with open("./styles/styles.qss", "r") as file:
+        uApp.setStyleSheet(file.read())
 
 def run():
     app = QApplication(sys.argv)
@@ -763,24 +769,4 @@ def run():
     window = App()
     window.show()
     sys.exit(app.exec())
-
-# TEST TO BE PUT IN PLOTTER.PY
-class Plotter(PGraph.PlotWidget):
-    def __init__(self):
-        super().__init__()
-
-        self.setTitle("test")
-        self.setYRange(-2,2)
-
-        self.x = np.linspace(0,2*np.pi, 200)
-        self.phase = 0
-        self.curve = self.plot(self.x, np.sin(self.x), pen="y")
-
-    def updatePlot(self):
-        self.phase += 0.1
-        y = np.sin(self.x + self.phase)
-        self.curve.setData(self.x, y)
-
-def loadStyle(uApp):
-    with open("./styles/styles.qss", "r") as file:
-        uApp.setStyleSheet(file.read())
+# =========== END MISC =========== # 
