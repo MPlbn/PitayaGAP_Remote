@@ -1,4 +1,5 @@
 import sys
+import time
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
 from PySide6.QtCore import Signal, Qt, QTimer
@@ -297,7 +298,7 @@ class SlowGUI(QWidget):
         self.setLayout(self.mainLayout)
 
     def startPR(self):
-        self.timer.start(20)
+        self.timer.start(0)
     
     def stopPR(self):
         self.timer.stop()
@@ -712,7 +713,7 @@ class App(QWidget):
                                                             tempLRange/MV_TO_V_VALUE, 
                                                             tempStep/MV_TO_V_VALUE, 
                                                             tempDirection, 
-                                                            10, #Maybe add Freq TODO
+                                                            1000, #Maybe add Freq TODO
                                                             tempStartPoint/MV_TO_V_VALUE)
             
             case GenModeGUI.STEP:
@@ -737,8 +738,9 @@ class App(QWidget):
                     errorFlag = True
                     errorText += f'Invalid field: Max range: value must be between {GEN_MIN_RANGE} and {GEN_MAX_RANGE}\n'
                 
-                if(tempStartPoint > tempMaxRange or tempStartPoint < tempMaxRange
-                   or tempStartPoint > GEN_MAX_RANGE or tempStartPoint < GEN_MIN_RANGE):
+                if((tempMaxRange >= 0 and tempStartPoint > tempMaxRange)
+                    or (tempMaxRange < 0 and tempStartPoint < tempMaxRange)
+                    or tempStartPoint > GEN_MAX_RANGE or tempStartPoint < GEN_MIN_RANGE):
                     errorFlag = True
                     errorText += f'Invalid field: Starting Point Value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE} and cannot go beyond Max range\n'
                 if(not errorFlag):
@@ -746,7 +748,7 @@ class App(QWidget):
                                                                 tempStartPoint/MV_TO_V_VALUE, #Maybe different base and startPoint? TODO
                                                                 tempStep/MV_TO_V_VALUE,
                                                                 tempNumOfSteps,
-                                                                10, #Maybe add Freq TODO
+                                                                1000, #Maybe add Freq TODO
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)

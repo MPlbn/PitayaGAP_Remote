@@ -6,6 +6,7 @@ import subprocess
 import time
 import socket
 import struct
+
 from commands import *
 
 #TODO possible cleanup
@@ -101,12 +102,14 @@ def sendTCPSetupValues(uSocket, uValue, uFrequency, uDecimation, uGain):
 
 def readTCPReadyState(uSocket) -> bool:
     response = recv_all(uSocket, 1)
-    print(response)
     if(response == RESPONSE_READY):
         return True
     return False
 
 def readTCPAcqValues(uSocket):
-    buffer = recv_all(uSocket, 8)
+    t0 = time.perf_counter()
+    buffer = recv_all(uSocket, 8) #This started to take a lot of time again 40-50ms, why?? check server
+    t1 = time.perf_counter()
+    print(f'{(t1-t0)*1000}ms')
     values = struct.unpack('<f f', buffer)
     return values

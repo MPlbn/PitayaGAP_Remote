@@ -16,6 +16,10 @@ int main(){
     int client = accept(server, nullptr, nullptr);
     std::cout << "Client connected!\n";
 
+    int nagleFlag = 1;
+    setsockopt(client, IPPROTO_TCP, TCP_NODELAY, &nagleFlag, sizeof(nagleFlag));
+    std::cout << "TCP_NODELAY enabled!\n";
+
     PitayaServerUtils::initialize();
     std::cout << "Redpitaya API initialized!\n";
 
@@ -140,6 +144,7 @@ int main(){
         }
 
         else if(cmd == PitayaServerUtils::ACQ_COMMAND){ //CMD FOR ACQUIRE
+            auto start = std::chrono::high_resolution_clock::now();
             float ch1Val;
             float ch2Val;
 
@@ -168,6 +173,9 @@ int main(){
                 std::cout << "Error sending the voltage value back to python program\n";
                 break;
             }
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+            std::cout << "TIME ON ACQ: " << duration.count() << "us\n";
         }
 
         else if(cmd == PitayaServerUtils::CLOSE_COMMAND){ //CMD FOR STOPPING THE SERVER

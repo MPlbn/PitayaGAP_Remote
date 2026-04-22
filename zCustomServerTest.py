@@ -1,7 +1,5 @@
 from constants import *
 from commands import *
-import CMDManager
-import Plotter
 import time
 import socket
 import struct
@@ -74,7 +72,6 @@ step = GEN_DEFAULT_STEP
 highRange = GEN_MAX_RANGE
 lowRange = GEN_MIN_RANGE
 
-plotter = Plotter.FAcqPlotter()
 testValueX = []
 testValueY = []
 
@@ -121,4 +118,3 @@ if(response == RESPONSE_READY):
 sock.sendall(CLOSE_COMMAND)
 
 sock.close()
-plotter.testPlot(testValueX)

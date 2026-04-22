@@ -105,6 +105,7 @@ class ProgramRunner:
                 time.sleep(0.5)
 
         if(isConnected):
+            sock.setsockopt(socket.IPPROTO_IP, socket.TCP_NODELAY, 1)
             self.socket = sock
         return isConnected
     
@@ -228,7 +229,6 @@ class ProgramRunner:
                 pass
 
             case ProgramMode.CONT_START:
-                print("CONT START")
                 self.Generator.changeMode(GeneratorMode.CONT)
                 self.Generator.reset()
                 self.Acquisitor.reset()
@@ -251,7 +251,6 @@ class ProgramRunner:
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
     
             case ProgramMode.PRE_WORK_ROUTINE:
-                print("IM_PRE WORK ROUTINE")
                 self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
@@ -310,8 +309,6 @@ class ProgramRunner:
                 
                 self.sendEvent(EventType.STOP_PLOT)
                 self.disconnectFromServer()
-
-            
     #   Changing the work routine
     #   newMode: int - new mode to be set
 
