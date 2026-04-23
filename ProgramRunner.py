@@ -250,9 +250,6 @@ class ProgramRunner:
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE:
-                #time counting
-                t0 = time.perf_counter()
-
                 self.Generator.workRoutine()
                 self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
                 self.Acquisitor.workRoutine()
@@ -262,8 +259,6 @@ class ProgramRunner:
                 #do the queue stuff
                 #push gen to queue
                 #push acq to queue
-                t1 = time.perf_counter()
-                print(f'{(t1-t0)*1000}ms')
                             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
                 self.Generator.stopGen(StopType.STOP_KEEP) 

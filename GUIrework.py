@@ -1,5 +1,6 @@
 import sys
 import time
+from queue import Queue
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
 from PySide6.QtCore import Signal, Qt, QTimer, QObject, QThread
@@ -47,10 +48,12 @@ class SlowGUI(QWidget):
     clearPlotBtnCallback = Signal()
     exitBtnCallback = Signal()
     setBtnCallback = Signal()
-    workerUpdateProgressCallback = Signal(float)
 
     # ========== COMBOBOX CALLBACKS ========== #
     genModeCBCallback = Signal()
+
+    # ========== OTHER CALLBACKS ============= #
+    workerUpdateProgressCallback = Signal(float)
 
     def __init__(self):
         super().__init__()
@@ -623,6 +626,8 @@ class App(QWidget):
                 self.slowGUI.PRunner.changeMode(ProgramMode.CONT_START)
             case GenModeGUI.STEP:
                 self.slowGUI.PRunner.changeMode(ProgramMode.STEPPING_START)
+        self.slowGUI.acqPlotter.start()
+        self.slowGUI.genPlotter.start()
                 
     def slow_stop_BTN_CBCK(self):
         self.slowGUI.stopBtn.setEnabled(False)
@@ -631,6 +636,8 @@ class App(QWidget):
         self.slowGUI.resetBtn.setEnabled(False)
         self.slowGUI.startBtn.setEnabled(True)
         self.slowGUI.PRunner.changeMode(ProgramMode.GEN_STOP)
+        self.slowGUI.acqPlotter.stop()
+        self.slowGUI.genPlotter.stop()
 
     def slow_reset_BTN_CBCK(self):
         self.slow_unlock_BTN_CBCK()
@@ -650,7 +657,11 @@ class App(QWidget):
         self.slowGUI.PRunner.flipGenStep()
 
     def slow_saveToCSV_BTN_CBCK(self):
+        self.slowGUI.acqPlotter.stop()
+        self.slowGUI.genPlotter.stop()
         self.slowGUI.PRunner.startSaveProcess()
+        self.slowGUI.acqPlotter.start()
+        self.slowGUI.genPlotter.start()
 
     def slow_clearPlot_BTN_CBCK(self):
         self.slowGUI.PRunner.clearPlot()
@@ -785,6 +796,11 @@ class App(QWidget):
     def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
         self.slowGUI.progressBar.setValue(int(uVoltage*1000))
         self.slowGUI.progressLabel.setText(f'{uVoltage*1000:.1f} mV')
+        self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
+                                           self.slowGUI.PRunner.AcqDataProcessor.getDataI())
+        self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())
+        #DESYNC get that sorted out TODO
+    
     # ======================= End Callbacks ======================= #
 
 # ============= MISC ============= # 
@@ -817,7 +833,14 @@ class RunnerWorker(QObject):
 
     def run(self):
         while self.running:
+            maxWait = 0.002
+            t0 = time.perf_counter()
             self.runner.run()
             self.cycleDone.emit(self.runner.Generator.getVoltageValue())
+            t1 = time.perf_counter()
+            delta = t1 - t0
+            print(f'{(delta)*1000}ms')
+            if(maxWait - delta >= 0):
+                time.sleep(maxWait - delta)
         self.finished.emit()
 # =========== END MISC =========== # 
