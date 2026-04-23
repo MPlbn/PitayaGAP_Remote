@@ -135,10 +135,11 @@ class Generator:
 
     def changeVolt(self, uNewVoltage):
         executeTCPCommand(self.socket, GEN_COMMAND)
-        if(not readTCPReadyState(self.socket)):
-           print("error: ContGenerator.changeVolt")
-        else:
-            sendTCPNewVoltage(self.socket, uNewVoltage)
+        # if(not readTCPReadyState(self.socket)):
+        #    print("error: ContGenerator.changeVolt")
+        # else:
+        #     sendTCPNewVoltage(self.socket, uNewVoltage)
+        sendTCPNewVoltage(self.socket, uNewVoltage)
 
     def pause(self):
         self.isPaused = True

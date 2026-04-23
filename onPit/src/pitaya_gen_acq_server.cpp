@@ -128,10 +128,10 @@ int main(){
         }
 
         else if(cmd == PitayaServerUtils::GEN_COMMAND){ //CMD FOR CHANGE VOLT
-            if(!PitayaServerUtils::sendReady(client)){
-                std::cout << "Error sending the ready status to client\n";
-                break;
-            }
+            // if(!PitayaServerUtils::sendReady(client)){
+            //     std::cout << "Error sending the ready status to client\n";
+            //     break;
+            // }
             float newVoltageValue;
             if(!PitayaServerUtils::receiveNewVoltage(client, newVoltageValue)){
                 std::cout << "Error recieving new voltage\n";

@@ -171,18 +171,6 @@ class ProgramRunner:
     def getContGeneratorPauseState(self):
         return self.Generator.getPause()
 
-    #   Updates GUI elements - progress bar, progress label and plots
-    #   uProgressBar - progress bar passed from GUI
-    #   uProgressLabel - progress label passed from GUI
-    #TODO REWORK, NOT NEEDED PROBS - will work as Signal()
-    def updateGUIElements(self, uProgressBar, uProgressLabel):
-        uProgressBar.configure(value = self.Generator.voltageToPercent())
-        uProgressLabel.configure(text=str(round(self.Generator.voltageValue, self.Generator.getRoundingNumber())))
-        self.AcqPlotter.updatePlot()
-        self.AcqPlotter.canvas.draw()
-        self.GenPlotter.updatePlot()
-        self.GenPlotter.canvas.draw()
-
     def sendSetup(self):
         amplitude = self.Generator.getVoltageValue()
         frequency = self.Generator.getFreq()
@@ -256,38 +244,43 @@ class ProgramRunner:
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
-                #self.sendEvent(EventType.UPDATE_PROGRESS)
+                #do the queue stuff
+                #push gen to queue
+                #push acq to queue
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE:
+                #time counting
+                t0 = time.perf_counter()
+
                 self.Generator.workRoutine()
                 self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
-                #self.sendEvent(EventType.UPDATE_PROGRESS)
+                #do the queue stuff
+                #push gen to queue
+                #push acq to queue
+                t1 = time.perf_counter()
+                print(f'{(t1-t0)*1000}ms')
                             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
                 self.Generator.stopGen(StopType.STOP_KEEP) 
                 self.Acquisitor.stop()
-                #self.sendEvent(EventType.STOP_PLOT)
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                #self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.CSV_WORK_ROUTINE_TO_IDLE:
                 self.Generator.stopGen(StopType.STOP_KEEP)
                 self.Acquisitor.stop()
-                #self.sendEvent(EventType.STOP_PLOT)
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                #self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.GEN_STOP:
@@ -297,7 +290,6 @@ class ProgramRunner:
                 if(self.Generator.getPause()):
                     self.Generator.unpause()
                 
-                #self.sendEvent(EventType.STOP_PLOT)
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.EXIT:
@@ -307,7 +299,6 @@ class ProgramRunner:
                 if(self.Generator.getPause()):
                     self.Generator.unpause()
                 
-                #self.sendEvent(EventType.STOP_PLOT)
                 self.disconnectFromServer()
     #   Changing the work routine
     #   newMode: int - new mode to be set

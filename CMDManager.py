@@ -108,9 +108,6 @@ def readTCPReadyState(uSocket) -> bool:
     return False
 
 def readTCPAcqValues(uSocket):
-    t0 = time.perf_counter()
-    buffer = recv_all(uSocket, 8) #This spikes to 50ms once every 10-20 times, I cannot fix that any more than I'm doing right now
-    t1 = time.perf_counter()
-    print(f'{(t1-t0)*1000}ms')
+    buffer = recv_all(uSocket, 8) #This spikes to max 50ms once every 10-20 times. With generator.changeVolt() disabled it works fine, without GUI it works fine. I can't find where is the issue
     values = struct.unpack('<f f', buffer)
     return values
