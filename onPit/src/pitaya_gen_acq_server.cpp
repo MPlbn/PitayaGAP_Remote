@@ -1,6 +1,8 @@
 #include "serverUtils.h"
 
 int main(){
+    float currentVoltageValue;
+
     // ========== starting server ===========
     int server = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -51,6 +53,7 @@ int main(){
                 std::cout << "Error setting generator settings\n";
                 break;
             }
+            currentVoltageValue = voltageValue;
             if(!PitayaServerUtils::setAcqSettings(dec, gain)){
                 std::cout << "Error setting acquisitor settings\n";
                 break;
@@ -137,10 +140,11 @@ int main(){
                 std::cout << "Error recieving new voltage\n";
                 break;
             }
-            if(!PitayaServerUtils::changeVoltage(newVoltageValue)){
+            if(!PitayaServerUtils::changeVoltage(newVoltageValue, currentVoltageValue)){
                 std::cout << "Error changing the voltage on redpitaya\n";
                 break;
             }
+            currentVoltageValue = newVoltageValue;
         }
 
         else if(cmd == PitayaServerUtils::ACQ_COMMAND){ //CMD FOR ACQUIRE

@@ -294,8 +294,40 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool changeVoltage(float uNewVoltage){
+    bool changeVoltage(float uNewVoltage, float uCurrentVoltageValue){
         std::cout << "| NEW VOLTAGE VALUE: " << uNewVoltage << " |\n";
+        
+        float step = 0.0001;
+        float diff = uNewVoltage - uCurrentVoltageValue;
+        if(diff < 0){
+            step *= -1;
+        }
+        int loops = (diff / step) - 1;
+        float interVoltage = uCurrentVoltageValue;
+        
+        for(int i = 0; i <= loops; i++){
+            interVoltage += step;
+            if(isNegative){
+                if(interVoltage >= 0){
+                    isNegative = false;
+                    if(!processPitayaErrorcode(
+                        rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
+                        "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
+                    )) return false;
+                }
+            }
+            else{
+                if(interVoltage < 0){
+                    isNegative = true;
+                    if(!processPitayaErrorcode(
+                        rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
+                        "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
+                    )) return false;
+                }
+            }
+            rp_GenAmp(RP_CH_1, std::abs(interVoltage));
+        }
+
         if(isNegative){
             if(uNewVoltage >= 0){
                 isNegative = false;
