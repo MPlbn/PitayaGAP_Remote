@@ -2,7 +2,7 @@ import sys
 import time
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
-from PySide6.QtCore import Signal, Qt, QTimer
+from PySide6.QtCore import Signal, Qt, QTimer, QObject, QThread
 from PySide6.QtGui import QIntValidator, QDoubleValidator
 #test
 import pyqtgraph as PGraph
@@ -47,6 +47,7 @@ class SlowGUI(QWidget):
     clearPlotBtnCallback = Signal()
     exitBtnCallback = Signal()
     setBtnCallback = Signal()
+    workerUpdateProgressCallback = Signal(float)
 
     # ========== COMBOBOX CALLBACKS ========== #
     genModeCBCallback = Signal()
@@ -55,8 +56,6 @@ class SlowGUI(QWidget):
         super().__init__()
         # ========== PROGRAM RUNNER ========== #
         self.PRunner = ProgramRunner.ProgramRunner()
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.PRunner.run)
 
         # ========== LAYOUTS ========== #
         self.mainLayout = QGridLayout()
@@ -153,7 +152,7 @@ class SlowGUI(QWidget):
 
         # ========== PROGRESS BAR ========== # 
         self.progressBar = QProgressBar()
-        self.progressBar.setRange(-1.0, 1.0)
+        self.progressBar.setRange(-1000, 1000)
         self.progressBar.setTextVisible(False)
         self.progressBar.setValue(0.0) #temp
 
@@ -297,11 +296,26 @@ class SlowGUI(QWidget):
 
         self.setLayout(self.mainLayout)
 
-    def startPR(self):
-        self.timer.start(0)
+    def start_runner(self):
+        self.thread = QThread()
+        self.worker = RunnerWorker(self.PRunner)
+        self.worker.moveToThread(self.thread)
+        self.worker.cycleDone.connect(self.workerUpdateProgressCallback)
+
+        self.thread.started.connect(self.worker.run)
+
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.thread.deleteLater)
+
+        self.worker.start()
+        self.thread.start()
     
-    def stopPR(self):
-        self.timer.stop()
+    def stop_runner(self):
+            self.worker.stop()
+            self.thread.wait()
+            self.thread.quit()
+
 
 class FastGUI(QWidget):
     # ========== BUTTON CALLBACKS ========== #
@@ -436,7 +450,7 @@ class App(QWidget):
         self.menuGUI = MenuGUI()
         self.slowGUI = SlowGUI()
         self.fastGUI = FastGUI()
-        self.slowGUI.PRunner.setEventFunction(self.pr_handle_event_CBCK)
+        #self.slowGUI.PRunner.setEventFunction(self.pr_handle_event_CBCK)
     
         self.stack.addWidget(self.menuGUI)
         self.stack.addWidget(self.slowGUI)
@@ -462,28 +476,28 @@ class App(QWidget):
         self.slowGUI.exitBtnCallback.connect(self.slow_exit_BTN_CBCK)
         self.slowGUI.setBtnCallback.connect(self.slow_set_BTN_CBCK)
         self.slowGUI.genModeCBCallback.connect(self.slow_genMode_CB_CBCK)
+        self.slowGUI.workerUpdateProgressCallback.connect(self.slow_WORKER_CYCLE_UPDATE_CBCK)
 
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
-
     # ========================= Callbacks ========================= #
     # ============ PROGRAMRUNNER ============ #
-    def pr_handle_event_CBCK(self, uEventType):
-        match uEventType:
-            case EventType.STOP_PLOT:
-                self.slowGUI.acqPlotter.stop()
-                self.slowGUI.genPlotter.stop()
-            case EventType.START_PLOT:
-                self.slowGUI.acqPlotter.start()
-                self.slowGUI.genPlotter.start()
-            case EventType.UPDATE_PROGRESS:
-                self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
-                                                   self.slowGUI.PRunner.AcqDataProcessor.getDataI())                                        
-                self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())   
-                currentGenValue = self.slowGUI.PRunner.Generator.getVoltageValue()
-                self.slowGUI.progressBar.setValue(currentGenValue)
-                self.slowGUI.progressLabel.setText(str(currentGenValue))                 
+    # def pr_handle_event_CBCK(self, uEventType):
+    #     match uEventType:
+    #         case EventType.STOP_PLOT:
+    #             self.slowGUI.acqPlotter.stop()
+    #             self.slowGUI.genPlotter.stop()
+    #         case EventType.START_PLOT:
+    #             self.slowGUI.acqPlotter.start()
+    #             self.slowGUI.genPlotter.start()
+    #         case EventType.UPDATE_PROGRESS:
+    #             self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
+    #                                                self.slowGUI.PRunner.AcqDataProcessor.getDataI())                                        
+    #             self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())   
+    #             currentGenValue = self.slowGUI.PRunner.Generator.getVoltageValue()
+    #             self.slowGUI.progressBar.setValue(currentGenValue)
+    #             self.slowGUI.progressLabel.setText(str(currentGenValue))                 
                                     
     # ============ MENU ============ #
     def menu_F_BTN_CBCK(self):
@@ -501,9 +515,9 @@ class App(QWidget):
         if(self.isConnectedToPitaya):
             self.stack.setCurrentIndex(WindowType.SLOW)
             #self.showFullScreen()
+            self.slowGUI.start_runner()
         else:
             print("ERROR CONNECTING TO PITAYA AND TCP SERVER, TRY AGAIN...")
-        self.slowGUI.startPR()
             
     # ============ FAST GUI ============ #
     def fast_start_BTN_CBCK(self):
@@ -627,7 +641,6 @@ class App(QWidget):
         self.slowGUI.unlockBtn.setEnabled(True)
         self.slowGUI.PRunner.pauseContGenerator()
         
-
     def slow_unlock_BTN_CBCK(self):
         self.slowGUI.unlockBtn.setEnabled(False)
         self.slowGUI.lockBtn.setEnabled(True)
@@ -643,7 +656,7 @@ class App(QWidget):
         self.slowGUI.PRunner.clearPlot()
 
     def slow_exit_BTN_CBCK(self):
-        self.slowGUI.stopPR()
+        self.slowGUI.stop_runner()
         self.slowGUI.PRunner.exit()
         self.slowGUI.PRunner.run()
         if self.isConnectedToPitaya:
@@ -769,6 +782,9 @@ class App(QWidget):
         if(self.slowGUI.PRunner.getContGeneratorPauseState()):
             self.slowGUI.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
+    def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
+        self.slowGUI.progressBar.setValue(int(uVoltage*1000))
+        self.slowGUI.progressLabel.setText(f'{uVoltage*1000:.1f} mV')
     # ======================= End Callbacks ======================= #
 
 # ============= MISC ============= # 
@@ -783,4 +799,25 @@ def run():
     window = App()
     window.show()
     sys.exit(app.exec())
+
+class RunnerWorker(QObject):
+    finished = Signal()
+    cycleDone = Signal(float)
+
+    def __init__(self, uProgramRuner: ProgramRunner.ProgramRunner):
+        super().__init__()
+        self.runner = uProgramRuner
+        self.running = False
+
+    def stop(self):
+        self.running = False
+    
+    def start(self):
+        self.running = True
+
+    def run(self):
+        while self.running:
+            self.runner.run()
+            self.cycleDone.emit(self.runner.Generator.getVoltageValue())
+        self.finished.emit()
 # =========== END MISC =========== # 

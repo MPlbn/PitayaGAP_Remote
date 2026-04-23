@@ -6,6 +6,7 @@ import subprocess
 import time
 import socket
 import struct
+import threading
 
 from commands import *
 
@@ -69,7 +70,7 @@ class CMDManager:
 def recv_all(uSocket, uSize):
     data = bytearray()
     while len(data) < uSize:
-        packet = uSocket.recv(uSize - len(data))
+        packet = uSocket.recv(uSize - len(data), socket.MSG_WAITALL)
         if not packet:
             raise ConnectionError("Socket closed early")
         data.extend(packet)
@@ -108,7 +109,7 @@ def readTCPReadyState(uSocket) -> bool:
 
 def readTCPAcqValues(uSocket):
     t0 = time.perf_counter()
-    buffer = recv_all(uSocket, 8) #This started to take a lot of time again 40-50ms, why?? check server
+    buffer = recv_all(uSocket, 8) #This spikes to 50ms once every 10-20 times, I cannot fix that any more than I'm doing right now
     t1 = time.perf_counter()
     print(f'{(t1-t0)*1000}ms')
     values = struct.unpack('<f f', buffer)

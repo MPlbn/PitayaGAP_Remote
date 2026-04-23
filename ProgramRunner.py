@@ -235,7 +235,7 @@ class ProgramRunner:
                 self.sendSetup()
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.sendEvent(EventType.START_PLOT)
+                #self.sendEvent(EventType.START_PLOT)
                 self.Generator.applyDirection()
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
 
@@ -247,7 +247,7 @@ class ProgramRunner:
                 self.Generator.setRanges(uHRange=self.Generator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #TODO something to check here
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.sendEvent(EventType.START_PLOT)
+                #self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
     
             case ProgramMode.PRE_WORK_ROUTINE:
@@ -256,7 +256,7 @@ class ProgramRunner:
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
-                self.sendEvent(EventType.UPDATE_PROGRESS)
+                #self.sendEvent(EventType.UPDATE_PROGRESS)
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE:
@@ -266,28 +266,28 @@ class ProgramRunner:
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
-                self.sendEvent(EventType.UPDATE_PROGRESS)
+                #self.sendEvent(EventType.UPDATE_PROGRESS)
                             
             case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
                 self.Generator.stopGen(StopType.STOP_KEEP) 
                 self.Acquisitor.stop()
-                self.sendEvent(EventType.STOP_PLOT)
+                #self.sendEvent(EventType.STOP_PLOT)
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.sendEvent(EventType.START_PLOT)
+                #self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.CSV_WORK_ROUTINE_TO_IDLE:
                 self.Generator.stopGen(StopType.STOP_KEEP)
                 self.Acquisitor.stop()
-                self.sendEvent(EventType.STOP_PLOT)
+                #self.sendEvent(EventType.STOP_PLOT)
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
                 self.Generator.startGen()
                 self.Acquisitor.start()
-                self.sendEvent(EventType.START_PLOT)
+                #self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.GEN_STOP:
@@ -297,7 +297,7 @@ class ProgramRunner:
                 if(self.Generator.getPause()):
                     self.Generator.unpause()
                 
-                self.sendEvent(EventType.STOP_PLOT)
+                #self.sendEvent(EventType.STOP_PLOT)
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.EXIT:
@@ -307,7 +307,7 @@ class ProgramRunner:
                 if(self.Generator.getPause()):
                     self.Generator.unpause()
                 
-                self.sendEvent(EventType.STOP_PLOT)
+                #self.sendEvent(EventType.STOP_PLOT)
                 self.disconnectFromServer()
     #   Changing the work routine
     #   newMode: int - new mode to be set
