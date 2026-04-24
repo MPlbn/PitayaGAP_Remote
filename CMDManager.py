@@ -107,7 +107,9 @@ def readTCPReadyState(uSocket) -> bool:
         return True
     return False
 
-def readTCPAcqValues(uSocket):
+def readTCPAcqValues(uSocket): #CHANGE TO triple float buffer TODO
     buffer = recv_all(uSocket, 8) #This spikes to max 50ms once every 10-20 times. With generator.changeVolt() disabled it works fine, without GUI it works fine. I can't find where is the issue
     values = struct.unpack('<f f', buffer)
     return values
+
+#Add functions to sending setup for gen/stepping gen and full logic on send -> ready -> send -> ready TODO
