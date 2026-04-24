@@ -1,6 +1,3 @@
-#ifndef SERVERUTILS_H
-#define SERVERUTILS_H
-
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
@@ -8,6 +5,7 @@
 #include <iostream>
 #include <typeinfo>
 #include <string>
+#include "generate.h"
 #include "rp.h"
 
 /*
@@ -138,6 +136,57 @@ namespace PitayaServerUtils{
         hGain = gain ? RP_HIGH : RP_LOW;
         return true;
         }
+
+    bool receiveGenType(int uClient, GeneratorConstants::GenType& uGenType){
+        int32_t genType;
+        if(!recv_all(uClient, &genType, sizeof(genType))) return false;
+
+        if(genType == 0){ uGenType = GeneratorConstants::GenType::NORMAL; }
+        else if(genType == 1) { uGenType = GeneratorConstants::GenType::STEPPING; }
+        else return false;
+
+        return true;
+    }
+
+    bool receiveGenSettings(int uClient, float& uStartingValue, float& uHRange, float& uLRange, float& uStep, GeneratorConstants::Direction& uDirection){
+        float startingValue;
+        float hRange;
+        float lRange;
+        float step;
+        int32_t direction;
+
+        if(!recv_all(uClient, &startingValue, sizeof(startingValue))) return false;    
+        if(!recv_all(uClient, &hRange, sizeof(hRange))) return false;    
+        if(!recv_all(uClient, &lRange, sizeof(lRange))) return false;    
+        if(!recv_all(uClient, &step, sizeof(step))) return false;    
+        if(!recv_all(uClient, &direction, sizeof(direction))) return false;
+        uStartingValue = startingValue;  
+        uHRange = hRange;  
+        uLRange = lRange;  
+        uStep = step;  
+        if(direction == 0){ uDirection = GeneratorConstants::Direction::POSITIVE; }
+        else if(direction == 1){ uDirection = GeneratorConstants::Direction::NEGATIVE; }
+        else return false;
+        
+        return true;
+    }
+    bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps){
+        float baseVoltage;
+        float limit;
+        float step;
+        int32_t numSteps;
+
+        if(!recv_all(uClient, &baseVoltage, sizeof(baseVoltage))) return false;        
+        if(!recv_all(uClient, &limit, sizeof(limit))) return false;    
+        if(!recv_all(uClient, &step, sizeof(step))) return false;    
+        if(!recv_all(uClient, &numSteps, sizeof(numSteps))) return false;    
+        uBaseVoltage = baseVoltage;
+        uLimit = limit;
+        uStep = step;
+        uNumSteps = numSteps;
+
+        return true;
+    }
 
     bool resetGen(){
         return processPitayaErrorcode(
@@ -372,7 +421,7 @@ namespace PitayaServerUtils{
     }
 
     bool sendVoltageValue(int uClient, float* uBuffer){
-        int sent = send_all(uClient, uBuffer, sizeof(float) * 2);  
+        int sent = send_all(uClient, uBuffer, sizeof(float) * 3);  
         
         if(sent <= 0){
             return false;
@@ -381,5 +430,3 @@ namespace PitayaServerUtils{
         return true;
     }
 }
-
-#endif
