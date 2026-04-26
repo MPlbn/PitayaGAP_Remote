@@ -4,6 +4,7 @@
 #include <cstring>
 #include <iostream>
 #include <typeinfo>
+#include <chrono>
 #include <string>
 #include "generate.h"
 #include "rp.h"
@@ -167,7 +168,7 @@ namespace PitayaServerUtils{
         
         return true;
     }
-    
+
     bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps){
         float baseVoltage;
         float limit;
@@ -215,21 +216,6 @@ namespace PitayaServerUtils{
     }
 
     bool setGenSettings(int uFreq){
-        rp_waveform_t wfType;
-        if(uStartVolVal < 0){
-            isNegative = true;
-            wfType = RP_WAVEFORM_DC_NEG;
-        }
-        else{
-            isNegative = false;
-            wfType = RP_WAVEFORM_DC;
-        }
-
-        if(!processPitayaErrorcode(
-            rp_GenWaveform(RP_CH_1, wfType),
-            "rp_GenWaveform()"
-        )) return false;
-
         if(!processPitayaErrorcode(
             rp_GenFreq(RP_CH_1, uFreq),
             "rp_GenFreq()"
@@ -370,7 +356,7 @@ namespace PitayaServerUtils{
                 if(!processPitayaErrorcode(
                     rp_GenAmp(RP_CH_1, std::abs(interVoltage)),
                     "rp_GenAmp() - intermediate values"
-                )
+                )) return false;
             }
         }
 
@@ -444,7 +430,7 @@ namespace PitayaServerUtils{
     }
 
     bool sendVoltageValue(int uClient, float* uBuffer){
-        int sent = send_all(uClient, uBuffer, sizeof(float) * 3);  
+        int sent = send_all(uClient, uBuffer, sizeof(float) * 3);
         
         if(sent <= 0){
             return false;
@@ -452,4 +438,12 @@ namespace PitayaServerUtils{
     
         return true;
     }
+    void wait(int microseconds){
+        auto start = std::chrono::high_resolution_clock::now();
+
+        while(std::chrono::high_resolution_clock::now() - start < std::chrono::microseconds(microseconds)){
+            //busy wait
+        }
+    }
+
 }

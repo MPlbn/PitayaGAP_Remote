@@ -15,7 +15,7 @@ TARGET = custom_server
 
 # Source directory
 SRCDIR = src
-SRCS = $(SRCDIR)/pitaya_gen_acq_server.cpp $(SRCDIR)/serverUtils.cpp
+SRCS = $(SRCDIR)/pitaya_gen_acq_server.cpp $(SRCDIR)/serverUtils.cpp $(SRCDIR)/generate.cpp
 OBJS := $(SRCS:.cpp=.o)
 
 all: $(TARGET)

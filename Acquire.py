@@ -10,7 +10,7 @@ class Acquisitor:
         self.socket = None
         self.decimation = 1
         self.gain = ACQ_DEFAULT_GAIN
-        self.currentValues = [0.0, 0.0]
+        self.currentValues = [0.0, 0.0, 0.0]
 
     def setSocket(self, uSocket):
         self.socket = uSocket

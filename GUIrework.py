@@ -733,7 +733,6 @@ class App(QWidget):
                                                             tempLRange/MV_TO_V_VALUE, 
                                                             tempStep/MV_TO_V_VALUE, 
                                                             tempDirection, 
-                                                            1000, #Maybe add Freq TODO
                                                             tempStartPoint/MV_TO_V_VALUE)
             
             case GenModeGUI.STEP:
@@ -768,7 +767,6 @@ class App(QWidget):
                                                                 tempStartPoint/MV_TO_V_VALUE, #Maybe different base and startPoint? TODO
                                                                 tempStep/MV_TO_V_VALUE,
                                                                 tempNumOfSteps,
-                                                                1000, #Maybe add Freq TODO
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)
@@ -795,7 +793,7 @@ class App(QWidget):
         self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
                                            self.slowGUI.PRunner.AcqDataProcessor.getDataI())
         self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())
-        #DESYNC get that sorted out TODO
+        
     
     # ======================= End Callbacks ======================= #
 
@@ -828,14 +826,14 @@ class RunnerWorker(QObject):
         self.running = True
 
     def run(self):
-        while self.running:
-            maxWait = 0.002
+        while self.running: #DESYNC WORRY LATER TODO
+            maxWait = 0.2
             t0 = time.perf_counter()
             self.runner.run()
-            self.cycleDone.emit(self.runner.Generator.getVoltageValue())
+            self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
             t1 = time.perf_counter()
             delta = t1 - t0
-            print(f'{(delta)*1000}ms')
+            #print(f'{(delta)*1000}ms')
             if(maxWait - delta >= 0):
                 time.sleep(maxWait - delta)
         self.finished.emit()

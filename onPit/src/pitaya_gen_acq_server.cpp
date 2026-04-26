@@ -88,7 +88,7 @@ int main(){
                 float lRange;
                 GeneratorConstants::Direction direction;
                 if(!PitayaServerUtils::receiveGenSettings(client, startingValue, hRange, lRange, step, direction)){
-                    std::cout << "Error receiving generator settings\n";
+                    std::cout << "Error receiving Cgenerator settings\n";
                     break;
                 }
                 generator.setup(genType, startingValue, hRange, lRange, step, direction);
@@ -96,7 +96,7 @@ int main(){
             else if(genType == GeneratorConstants::GenType::STEPPING){
                 int32_t numSteps;
                 if(!PitayaServerUtils::receiveGenSettings(client, startingValue, hRange, step, numSteps)){
-                    std::cout << "Error receiving generator settings\n";
+                    std::cout << "Error receiving Cgenerator settings\n";
                     break;
                 }
                 generator.setup(genType, startingValue, hRange, step, static_cast<int>(numSteps));
@@ -195,7 +195,7 @@ int main(){
         else if(cmd == PitayaServerUtils::FULL_CYCLE_COMMAND){
             //Generate part
             float newVoltageValue = generator.workRoutine();
-            if(!PitayaServerUtils::changeVoltage(newVoltageValue, currentVoltageValue)){
+            if(!PitayaServerUtils::changeVoltage(newVoltageValue)){
                 std::cout << "Error changing the voltage on redpitaya\n";
                 break;
             }
@@ -203,7 +203,8 @@ int main(){
             //Acq part
             float ch1Val;
             float ch2Val;
-
+            // wait for a small time
+            PitayaServerUtils::wait(1000);
             if(!PitayaServerUtils::triggerAcq()){
                 std::cout << "Error setting the ACQ trigger to CH1\n";
                 break;
@@ -213,6 +214,7 @@ int main(){
                 std::cout << "Error on filling the buffer\n";
                 break;
             }
+
 
             if(!PitayaServerUtils::acquireVoltage(PitayaServerUtils::CH_1, ch1Val)){
                 std::cout << "Error acquiring the voltage from CH1 on redpitaya\n";
@@ -224,7 +226,8 @@ int main(){
                 break;
             }       
 
-            float values[3] = {ch1Val, ch2Val, currentVoltageValue};
+            float values[3] = {ch1Val, ch2Val, newVoltageValue};
+            std::cout << "VOLTAGE VALUES ACQUIRED: " << ch1Val << " | " << ch2Val << " | " << newVoltageValue << "\n";
             if(!PitayaServerUtils::sendVoltageValue(client, values)){ 
                 std::cout << "Error sending the voltage value back to python program\n";
                 break;

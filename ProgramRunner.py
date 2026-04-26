@@ -79,7 +79,6 @@ class ProgramRunner:
             
         isTCPconnected = self.connectToServer()
         if(isTCPconnected):
-            self.Generator.setSocket(self.socket)
             self.Acquisitor.setSocket(self.socket)
         else:
             print('Error connecting: TCP')
@@ -124,13 +123,17 @@ class ProgramRunner:
     #   uFrequency: int - frequency value
     #   uStartingValue: float - starting generator voltage
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue = 0.0):
+    def setContGeneratorParameters(self, uHighRange:float, uLowRange:float, uStep:float, uDirection:str, uStartingValue:float = 0.0):
+        direction = 0
+        if(uDirection == 'kathodic'):
+            direction = 1
+
         CMDManager.executeTCPCommand(self.socket, SETUP_C_GEN_COMMAND)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: setContGeneratorParameters: ready state")
             return
         CMDManager.sendTCPGenMode(self.socket, GenModeGUI.NORMAL)
-        CMDManager.sendTCPCGenSetupValues(self.socket, uStartingValue, uHighRange, uLowRange, uStep, uDirection)
+        CMDManager.sendTCPCGenSetupValues(self.socket, uStartingValue, uHighRange, uLowRange, uStep, direction)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: setSteppingGeneratorParameters: sendValues ready state")
 
@@ -142,7 +145,7 @@ class ProgramRunner:
     #   uFrequency: int - frequency value
     #   uStartingValue: float - starting generator voltage
 
-    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps, uStartingValue = 0.0):
+    def setSteppingGeneratorParameters(self, uLimit:float, uBase:float, uStep:float, uNumOfSteps:int, uStartingValue:float = 0.0):
         CMDManager.executeTCPCommand(self.socket, SETUP_C_GEN_COMMAND)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: setContGeneratorParameters: ready state")
@@ -218,10 +221,13 @@ class ProgramRunner:
 
     def resetGenerator(self):
         CMDManager.executeTCPCommand(self.socket, RESET_GEN_COMMAND)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: resetGenerator()")
 
     def startGenerator(self):
         CMDManager.executeTCPCommand(self.socket, START_GEN_COMMAND)
-
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: startGenerator()")
     #   Flips the step value (*-1) of continouous generator
 
     def flipGenStep(self):

@@ -9,12 +9,13 @@
 #include <cstdint>
 #include <cmath>
 #include <chrono>
+#include "generate.h"
 #include "rp.h"
 
 namespace PitayaServerUtils{
     constexpr int PORT = 5000;
     constexpr char SETUP_COMMAND = 'A';
-    constexpr char SETUP_C_GEN_COMMAND = 'B'
+    constexpr char SETUP_C_GEN_COMMAND = 'B';
     
     constexpr char START_ACQ_COMMAND = 'C';
     constexpr char START_GEN_COMMAND = 'D';
@@ -71,5 +72,7 @@ namespace PitayaServerUtils{
     bool changeVoltage(float uNewVoltage);
     bool acquireVoltage(rp_channel_t uChannel, float& uValue);
     bool sendVoltageValue(int uClient, float* uBuffer);
+
+    void wait(int microseconds);
 }
 #endif
