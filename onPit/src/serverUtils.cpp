@@ -98,17 +98,14 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool receiveSettings(int uClient, float& hStartVolVal, int32_t& hFreq, rp_acq_decimation_t& hDec, rp_pinState_t& hGain){
-        float volt;
+    bool receiveSettings(int uClient, int32_t& hFreq, rp_acq_decimation_t& hDec, rp_pinState_t& hGain){
         int32_t freq;
         int32_t dec;
         uint8_t gain;
-        if(!recv_all(uClient, &volt, sizeof(volt))) return false;
         if(!recv_all(uClient, &freq, sizeof(freq))) return false;
         if(!recv_all(uClient, &dec, sizeof(dec))) return false;
         if(!recv_all(uClient, &gain, sizeof(gain))) return false;
 
-        hStartVolVal = volt;
         hFreq = freq;
         switch(dec){
             case 1: 
@@ -170,6 +167,7 @@ namespace PitayaServerUtils{
         
         return true;
     }
+    
     bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps){
         float baseVoltage;
         float limit;
@@ -216,7 +214,7 @@ namespace PitayaServerUtils{
         );
     }
 
-    bool setGenSettings(float uStartVolVal, int uFreq){
+    bool setGenSettings(int uFreq){
         rp_waveform_t wfType;
         if(uStartVolVal < 0){
             isNegative = true;
@@ -235,11 +233,6 @@ namespace PitayaServerUtils{
         if(!processPitayaErrorcode(
             rp_GenFreq(RP_CH_1, uFreq),
             "rp_GenFreq()"
-        )) return false;
-
-        if(!processPitayaErrorcode(
-            rp_GenAmp(RP_CH_1, uStartVolVal),
-            "rp_GenAmp()"
         )) return false;
 
         return true;
@@ -353,28 +346,32 @@ namespace PitayaServerUtils{
         }
         int loops = (diff / step) - 1;
         float interVoltage = uCurrentVoltageValue;
-        
-        for(int i = 0; i <= loops; i++){
-            interVoltage += step;
-            if(isNegative){
-                if(interVoltage >= 0){
-                    isNegative = false;
-                    if(!processPitayaErrorcode(
-                        rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
-                        "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
-                    )) return false;
+        if(loops > 0){
+            for(int i = 0; i <= loops; i++){
+                interVoltage += step;
+                if(isNegative){
+                    if(interVoltage >= 0){
+                        isNegative = false;
+                        if(!processPitayaErrorcode(
+                            rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
+                            "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
+                        )) return false;
+                    }
                 }
-            }
-            else{
-                if(interVoltage < 0){
-                    isNegative = true;
-                    if(!processPitayaErrorcode(
-                        rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
-                        "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
-                    )) return false;
+                else{
+                    if(interVoltage < 0){
+                        isNegative = true;
+                        if(!processPitayaErrorcode(
+                            rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
+                            "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
+                        )) return false;
+                    }
                 }
+                if(!processPitayaErrorcode(
+                    rp_GenAmp(RP_CH_1, std::abs(interVoltage)),
+                    "rp_GenAmp() - intermediate values"
+                )
             }
-            rp_GenAmp(RP_CH_1, std::abs(interVoltage));
         }
 
         if(isNegative){
@@ -400,7 +397,33 @@ namespace PitayaServerUtils{
             rp_GenAmp(RP_CH_1, std::abs(uNewVoltage)), //change to absolute value + DC_NEG set for values lower than 0
             "rp_GenAmp()"
         )) return false;
+        return true;
+    }
 
+    bool changeVoltage(float uNewVoltage){
+        if(isNegative){
+            if(uNewVoltage >= 0){
+                isNegative = false;
+                if(!processPitayaErrorcode(
+                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
+                    "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
+                )) return false;
+            }
+        }
+        else{
+            if(uNewVoltage < 0){
+                isNegative = true;
+                if(!processPitayaErrorcode(
+                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
+                    "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
+                )) return false;
+            }
+        }
+
+        if(!processPitayaErrorcode(
+            rp_GenAmp(RP_CH_1, std::abs(uNewVoltage)), //change to absolute value + DC_NEG set for values lower than 0
+            "rp_GenAmp()"
+        )) return false;
         return true;
     }
 

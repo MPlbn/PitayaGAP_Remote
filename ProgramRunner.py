@@ -29,7 +29,7 @@ class ProgramRunner:
         self.SCPI_IP = RED_PITAYA_IP
         self.PROGRAM_MODE = ProgramMode.IDLE
         self.socket = None
-        self.Generator = Generate.Generator()
+        self.genPauseState = False
         self.Acquisitor = Acquire.Acquisitor()
         self.isRunningContinous = False
         self.AcqDataProcessor = DataProcessor.AcquisitorDataProcessor()
@@ -37,6 +37,8 @@ class ProgramRunner:
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.IP)
         self.sendEvent = None
+        self.currentCommand = None
+        self.lastMode = None
         # self.stopPlotters = uSignalList[0]      
         # self.startPlotters = uSignalList[1]
         # self.updateProgressElements = uSignalList[2]
@@ -122,12 +124,15 @@ class ProgramRunner:
     #   uFrequency: int - frequency value
     #   uStartingValue: float - starting generator voltage
 
-    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uFrequency, uStartingValue = 0.0):
-        self.Generator.setRanges(uHighRange, uLowRange)
-        self.Generator.setStep(uStep)
-        self.Generator.setDirection(uDirection)
-        self.Generator.setStartingValue(uStartingValue)
-        self.Generator.setFrequency(uFrequency)
+    def setContGeneratorParameters(self, uHighRange, uLowRange, uStep, uDirection, uStartingValue = 0.0):
+        CMDManager.executeTCPCommand(self.socket, SETUP_C_GEN_COMMAND)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: setContGeneratorParameters: ready state")
+            return
+        CMDManager.sendTCPGenMode(self.socket, GenModeGUI.NORMAL)
+        CMDManager.sendTCPCGenSetupValues(self.socket, uStartingValue, uHighRange, uLowRange, uStep, uDirection)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: setSteppingGeneratorParameters: sendValues ready state")
 
     #   Setting generator parameters passed from GUI when in stepping mode
     #   uLimit: float - upper/lower voltage limit which won't be passed while generating
@@ -137,12 +142,16 @@ class ProgramRunner:
     #   uFrequency: int - frequency value
     #   uStartingValue: float - starting generator voltage
 
-    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps, uFrequency, uStartingValue = 0.0):
-        self.Generator.setSteppingRanges(uLimit, uBase)
-        self.Generator.createSteps(uNumOfSteps)
-        self.Generator.setStep(uStep)
-        self.Generator.setFrequency(uFrequency)
-        self.Generator.setStartingValue(uStartingValue)
+    def setSteppingGeneratorParameters(self, uLimit, uBase, uStep, uNumOfSteps, uStartingValue = 0.0):
+        CMDManager.executeTCPCommand(self.socket, SETUP_C_GEN_COMMAND)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: setContGeneratorParameters: ready state")
+            return
+        CMDManager.sendTCPGenMode(self.socket, GenModeGUI.STEP)
+        CMDManager.sendTCPCGenStepSetupValues(self.socket, uBase, uLimit, uStep, uNumOfSteps)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: setSteppingGeneratorParameters: sendValues ready state")
+        
 
     #   Setting acquisitor parameters passed form GUI
     #   uGain: string - gain mode (HV/LV)
@@ -159,38 +168,41 @@ class ProgramRunner:
     #   Pausing generation of continous generator
 
     def pauseContGenerator(self):
-        self.Generator.pause()
+        self.currentCommand = PAUSE_C_GEN_COMMAND
+        self.lastMode = self.PROGRAM_MODE
+        self.genPauseState = True
+        self.changeMode(ProgramMode.GEN_COMMAND_SEND)
 
     #   Unpausing generation of continous generator
 
     def unpauseContGenerator(self):
-        self.Generator.unpause()
+        self.currentCommand = UNPAUSE_C_GEN_COMMAND
+        self.lastMode = self.PROGRAM_MODE
+        self.genPauseState = False
+        self.changeMode(ProgramMode.GEN_COMMAND_SEND)
 
     #   Getter for current generator pause state
 
     def getContGeneratorPauseState(self):
-        return self.Generator.getPause()
+        return self.genPauseState
 
     def sendSetup(self):
-        amplitude = self.Generator.getVoltageValue()
-        frequency = self.Generator.getFreq()
+        frequency = 1000 # default value not changed
         decimation = self.Acquisitor.getDecimation()
         gain = self.Acquisitor.getGain()
 
-        CMDManager.executeTCPCommand(self.socket, CMDManager.SETUP_COMMAND)
+        CMDManager.executeTCPCommand(self.socket, SETUP_COMMAND)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print('error: ProgramRunner.sendSetup:Runing the command')
-        CMDManager.sendTCPSetupValues(self.socket, amplitude, frequency, decimation, gain)
+        CMDManager.sendTCPSetupValues(self.socket, frequency, decimation, gain)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print('error: ProgramRunner.sendSetup:Setting the values')        
 
     # Change program mode to correctly run the CSV file saving
 
     def startSaveProcess(self):
-        if(self.PROGRAM_MODE == ProgramMode.IDLE):
-            self.changeMode(ProgramMode.CSV_WORK_ROUTINE_TO_IDLE)
-        else:
-            self.changeMode(ProgramMode.CSV_WORK_ROUTINE_TO_GEN)
+            self.lastMode = self.PROGRAM_MODE
+            self.changeMode(ProgramMode.CSV_WORK_ROUTINE)
 
     #   Save data to CSV file
     #   dataI: np.array() - Filled with value of the current
@@ -201,13 +213,31 @@ class ProgramRunner:
 
     #   Resets the current voltage value to the set starting voltage value
 
+    def resetGeneratorValue(self):
+        CMDManager.executeTCPCommand(self.socket, RESET_C_GEN_COMMAND)
+
     def resetGenerator(self):
-        self.Generator.resetGenValue()
+        CMDManager.executeTCPCommand(self.socket, RESET_GEN_COMMAND)
+
+    def startGenerator(self):
+        CMDManager.executeTCPCommand(self.socket, START_GEN_COMMAND)
 
     #   Flips the step value (*-1) of continouous generator
 
     def flipGenStep(self):
-        self.Generator.flipDirection()
+        self.currentCommand = FLIP_C_GEN_COMMAND
+        self.lastMode = self.PROGRAM_MODE
+        self.changeMode(ProgramMode.GEN_COMMAND_SEND)
+
+    def stopGen(self, uStopType: StopType):
+        match uStopType:
+            case StopType.STOP_RESET:
+                CMDManager.executeTCPCommand(self.socket, STOP_GEN_COMMAND)
+                CMDManager.executeTCPCommand(self.socket, RESET_C_GEN_COMMAND)
+            case StopType.STOP_KEEP:
+                CMDManager.executeTCPCommand(self.socket, STOP_GEN_COMMAND)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("error: Generator.stop")
 
     #   Main work routine of program runner
 
@@ -216,85 +246,62 @@ class ProgramRunner:
             case ProgramMode.IDLE:
                 pass
 
-            case ProgramMode.CONT_START:
-                self.Generator.changeMode(GeneratorMode.CONT)
-                self.Generator.reset()
+            case ProgramMode.START:
+                self.resetGenerator()
                 self.Acquisitor.reset()
                 self.sendSetup()
-                self.Generator.startGen()
+                self.startGenerator()
                 self.Acquisitor.start()
-                #self.sendEvent(EventType.START_PLOT)
-                self.Generator.applyDirection()
-                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
-
-            case ProgramMode.STEPPING_START:
-                self.Generator.changeMode(GeneratorMode.STEPPING)
-                self.Generator.reset()
-                self.Acquisitor.reset()
-                self.sendSetup()
-                self.Generator.setRanges(uHRange=self.Generator.steppingRanges[0], uLRange=GEN_DEFAULT_VOLTAGE) #TODO something to check here
-                self.Generator.startGen()
-                self.Acquisitor.start()
-                #self.sendEvent(EventType.START_PLOT)
                 self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
     
-            case ProgramMode.PRE_WORK_ROUTINE:
-                self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
+            case ProgramMode.PRE_WORK_ROUTINE: 
+                self.Acquisitor.onlyGatherData()
+                Vbuffer = self.Acquisitor.getCurrentV()
+                Ibuffer = self.Acquisitor.getCurrentI()
+                genVal = self.Acquisitor.getGenVal()
+                self.processDataBuffer(genVal, DataType.GEN)
+                self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
+                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
+
+            case ProgramMode.GEN_WORK_ROUTINE: 
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
+                genVal = self.Acquisitor.getGenVal()
+                self.processDataBuffer(genVal, DataType.GEN)
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
-                #do the queue stuff
-                #push gen to queue
-                #push acq to queue
-                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
-
-            case ProgramMode.GEN_WORK_ROUTINE:
-                self.Generator.workRoutine()
-                self.processDataBuffer(self.Generator.getVoltageValue(), DataType.GEN)
-                self.Acquisitor.workRoutine()
-                Vbuffer = self.Acquisitor.getCurrentV()
-                Ibuffer = self.Acquisitor.getCurrentI()
-                self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
-                #do the queue stuff
-                #push gen to queue
-                #push acq to queue
-                            
-            case ProgramMode.CSV_WORK_ROUTINE_TO_GEN:
-                self.Generator.stopGen(StopType.STOP_KEEP) 
+           
+            case ProgramMode.CSV_WORK_ROUTINE:
+                self.stopGen(StopType.STOP_KEEP) 
                 self.Acquisitor.stop()
                 self.CSVFileManager.createFile()
                 self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
-                self.Generator.startGen()
+                self.startGenerator()
                 self.Acquisitor.start()
-                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
+                self.changeMode(self.lastMode)
 
-            case ProgramMode.CSV_WORK_ROUTINE_TO_IDLE:
-                self.Generator.stopGen(StopType.STOP_KEEP)
-                self.Acquisitor.stop()
-                self.CSVFileManager.createFile()
-                self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
-                self.Generator.startGen()
-                self.Acquisitor.start()
-                self.changeMode(ProgramMode.IDLE)
+            case ProgramMode.GEN_COMMAND_SEND:
+                CMDManager.executeTCPCommand(self.currentCommand)
+                self.changeMode(self.lastMode)
 
             case ProgramMode.GEN_STOP:
-                self.Generator.stopGen(StopType.STOP_RESET)
+                self.stopGen(StopType.STOP_RESET)
                 self.Acquisitor.stop()
 
-                if(self.Generator.getPause()):
-                    self.Generator.unpause()
+                if(self.genPauseState):
+                    self.unpauseContGenerator()
                 
                 self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.EXIT:
-                self.Generator.stopGen(StopType.STOP_RESET)
+                self.stopGen(StopType.STOP_RESET)
                 self.Acquisitor.stop()
                 
-                if(self.Generator.getPause()):
-                    self.Generator.unpause()
+                if(self.genPauseState):
+                    self.unpauseContGenerator()
                 
                 self.disconnectFromServer()
+
     #   Changing the work routine
     #   newMode: int - new mode to be set
 
@@ -308,7 +315,7 @@ class ProgramRunner:
     #   uChangeType: int = modifier to step value
 
     def manualChangeGenVoltage(self, uChangeType):
-        self.Generator.manualChangeVoltage(uChangeType)
+        pass
 
     #   Passing data to data processor processing function
     #   uBuffer: array of floats - buffer = [V, I] for ACQ, buffer = [V] for Gen

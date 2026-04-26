@@ -97,8 +97,21 @@ def sendTCPNewVoltage(uSocket, uValue):
     packet = struct.pack('<f', uValue)
     uSocket.sendall(packet)
 
-def sendTCPSetupValues(uSocket, uValue, uFrequency, uDecimation, uGain):
-    packet = struct.pack('<f i i B', uValue, uFrequency, uDecimation, uGain)
+def sendTCPGenMode(uSocket, uGenMode:GenModeGUI):
+    genMode = int(uGenMode)
+    packet = struct.pack('<i', genMode)
+    uSocket.sendall(packet)
+
+def sendTCPSetupValues(uSocket, uFrequency, uDecimation, uGain):
+    packet = struct.pack('<i i B', uFrequency, uDecimation, uGain)
+    uSocket.sendall(packet)
+
+def sendTCPCGenSetupValues(uSocket, uStartingValue:float, uHRange:float, uLRange:float, uStep:float, uDirection:int):
+    packet = struct.pack('<f f f f i', uStartingValue, uHRange, uLRange, uStep, uDirection)
+    uSocket.sendall(packet)
+
+def sendTCPCGenStepSetupValues(uSocket, uBase:float, uLimit:float, uStep:float, uNumSteps:int):
+    packet = struct.pack('<f f f i', uBase, uLimit, uStep, uNumSteps)   
     uSocket.sendall(packet)
 
 def readTCPReadyState(uSocket) -> bool:
@@ -107,9 +120,9 @@ def readTCPReadyState(uSocket) -> bool:
         return True
     return False
 
-def readTCPAcqValues(uSocket): #CHANGE TO triple float buffer TODO
-    buffer = recv_all(uSocket, 8) #This spikes to max 50ms once every 10-20 times. With generator.changeVolt() disabled it works fine, without GUI it works fine. I can't find where is the issue
-    values = struct.unpack('<f f', buffer)
+def readTCPAcqValues(uSocket): 
+    buffer = recv_all(uSocket, 12) 
+    values = struct.unpack('<f f f', buffer)
     return values
 
 #Add functions to sending setup for gen/stepping gen and full logic on send -> ready -> send -> ready TODO

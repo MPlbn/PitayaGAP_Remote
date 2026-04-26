@@ -1,5 +1,5 @@
 from constants import *
-from commands import ACQ_COMMAND, START_ACQ_COMMAND, RESET_ACQ_COMMAND, STOP_ACQ_COMMAND
+from commands import FULL_CYCLE_COMMAND, START_ACQ_COMMAND, RESET_ACQ_COMMAND, STOP_ACQ_COMMAND, NOGEN_FULL_CYCLE_COMMAND
 from CMDManager import executeTCPCommand, readTCPReadyState, readTCPAcqValues
 import time
 
@@ -50,8 +50,12 @@ class Acquisitor:
         if(not readTCPReadyState(self.socket)):
             print("error: Acquisitor.stop")
 
-    def workRoutine(self):
-        executeTCPCommand(self.socket, ACQ_COMMAND)
+    def onlyGatherData(self):
+        executeTCPCommand(self.socket, NOGEN_FULL_CYCLE_COMMAND)
+        self.currentValues = readTCPAcqValues(self.socket)
+
+    def workRoutine(self): 
+        executeTCPCommand(self.socket, FULL_CYCLE_COMMAND)
         self.currentValues = readTCPAcqValues(self.socket)
 
     def getCurrentV(self):
@@ -59,4 +63,7 @@ class Acquisitor:
 
     def getCurrentI(self):
         return self.currentValues[1]
+    
+    def getGenVal(self):
+        return self.currentValues[2]
         

@@ -37,7 +37,7 @@ class GUI:
         self.setRangesPress()
         match self.genMode:
             case "normal":
-                self.PR.changeMode(ProgramMode.CONT_START)
+                self.PR.changeMode(ProgramMode.START)
             case "stepping":
                 self.PR.changeMode(ProgramMode.STEPPING_START)
         self.startBtn.state(GUI_DISABLED)
@@ -82,7 +82,7 @@ class GUI:
         #Unpausing first
         self.unlockGeneratingPress()
         #Then reset
-        self.PR.resetGenerator()
+        self.PR.resetGeneratorValue()
 
     #   Flip button handling function
 
@@ -267,7 +267,7 @@ class GUI:
 
                 self.PR.setSteppingGeneratorParameters(tempLimit/MV_TO_V_VALUE, tempBase/MV_TO_V_VALUE, tempStep/MV_TO_V_VALUE, tempNumOfSteps, uFrequency=10, uStartingValue=0.0) #TODO NEED FREQ, AMP
         self.PR.setAcquisitorParameters(self.gain) #TODO MAYBE GET DEC
-        self.PR.resetGenerator()
+        self.PR.resetGeneratorValue()
 
         #showing error message
         self.errorLabel.configure(text = tempMessage)

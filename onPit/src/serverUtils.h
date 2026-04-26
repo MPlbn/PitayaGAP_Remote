@@ -31,6 +31,7 @@ namespace PitayaServerUtils{
     constexpr char FLIP_C_GEN_COMMAND = 'L';
 
     constexpr char FULL_CYCLE_COMMAND = 'M';
+    constexpr char NOGEN_FULL_CYCLE_COMMAND = 'N';
 
     constexpr char CLOSE_COMMAND = 'Z';
     
@@ -46,7 +47,7 @@ namespace PitayaServerUtils{
     bool send_all(int sock, const void* buffer, size_t length);
     bool recv_all(int sock, void* buffer, size_t length);
 
-    bool receiveSettings(int uClient, float& uStartVolVal, int32_t& uFreq, rp_acq_decimation_t& uDec, rp_pinState_t& uGain);
+    bool receiveSettings(int uClient, int32_t& hFreq, rp_acq_decimation_t& hDec, rp_pinState_t& hGain);
     bool receiveGenType(int uClient, GeneratorConstants::GenType& uGenType);
     bool receiveGenSettings(int uClient, float& uStartingValue, float& uHRange, float& uLRange, float& uStep, GeneratorConstants::Direction& uDirection);
     bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps);
@@ -54,7 +55,7 @@ namespace PitayaServerUtils{
     bool resetGen();
     bool startGen();
     bool stopGen();
-    bool setGenSettings(float uStartVolVal, int uFreq);
+    bool setGenSettings(int uFreq);
 
     bool resetAcq();
     bool startAcq();
@@ -67,6 +68,7 @@ namespace PitayaServerUtils{
     bool sendReady(int uClient);
     bool receiveNewVoltage(int uClient, float& uValue);
     bool changeVoltage(float uNewVoltage, float uCurrentVoltageValue);
+    bool changeVoltage(float uNewVoltage);
     bool acquireVoltage(rp_channel_t uChannel, float& uValue);
     bool sendVoltageValue(int uClient, float* uBuffer);
 }

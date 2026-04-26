@@ -3,13 +3,12 @@ from enum import Enum, auto, IntEnum
 
 class ProgramMode(Enum):    
     IDLE = auto()
-    CONT_START = auto()
+    START = auto()
     GEN_STOP = auto()
-    GEN_WORK_ROUTINE = auto()
-    STEPPING_START = auto()
     PRE_WORK_ROUTINE = auto()
-    CSV_WORK_ROUTINE_TO_GEN = auto()
-    CSV_WORK_ROUTINE_TO_IDLE = auto()
+    GEN_WORK_ROUTINE = auto()
+    CSV_WORK_ROUTINE = auto()
+    GEN_COMMAND_SEND = auto()
     EXIT = auto()
 
 class GeneratorMode(Enum):
@@ -30,7 +29,7 @@ class EventType(IntEnum):
     UPDATE_PROGRESS = 2
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 9
+LAST_MODE: int = 8
 
 RED_PITAYA_IP = '169.254.49.194' #rp-f0ba38.local'
 PROC_NAME = 'rpsa_client' #add .exe for windows
