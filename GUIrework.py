@@ -827,7 +827,7 @@ class RunnerWorker(QObject):
 
     def run(self):
         while self.running: #DESYNC WORRY LATER TODO
-            maxWait = 0.2
+            maxWait = 1.0
             t0 = time.perf_counter()
             self.runner.run()
             self.cycleDone.emit(self.runner.Acquisitor.getGenVal())

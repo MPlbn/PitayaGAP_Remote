@@ -414,8 +414,8 @@ namespace PitayaServerUtils{
     }
 
     bool acquireVoltage(rp_channel_t uChannel, float& hValue){
-        float buffer[1];
-        uint32_t size = 1;
+        float buffer[20];
+        uint32_t size = 20;
 
 
 
@@ -424,6 +424,9 @@ namespace PitayaServerUtils{
             "rp_AcqGetLatestDataV()"
         )) return false;
 
+        for(int i = 0; i < 150; i++){
+            std::cout<< i << " : " << buffer[i] << "\n";
+        }
         hValue = buffer[0];
 
         return true;

@@ -204,7 +204,7 @@ int main(){
             float ch1Val;
             float ch2Val;
             // wait for a small time
-            PitayaServerUtils::wait(1000);
+            PitayaServerUtils::wait(10000);
             if(!PitayaServerUtils::triggerAcq()){
                 std::cout << "Error setting the ACQ trigger to CH1\n";
                 break;

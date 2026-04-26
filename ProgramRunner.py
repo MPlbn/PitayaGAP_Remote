@@ -11,7 +11,6 @@ import socket
 #import redpitaya_scpi as scpi
 
 #Custom modules
-import Generate
 import Acquire
 import Plotter
 import FileManager
@@ -287,7 +286,7 @@ class ProgramRunner:
                 self.changeMode(self.lastMode)
 
             case ProgramMode.GEN_COMMAND_SEND:
-                CMDManager.executeTCPCommand(self.currentCommand)
+                CMDManager.executeTCPCommand(self.socket, self.currentCommand)
                 self.changeMode(self.lastMode)
 
             case ProgramMode.GEN_STOP:
