@@ -1,6 +1,7 @@
 #include "generate.h"
 #include <cmath>
 #include <vector>
+#include <iostream>
 
 Generator::Generator(){}
 // ---------------- PRIVATE METHODS ------------------
@@ -21,11 +22,11 @@ float Generator::generate(){
                 }
                 case GeneratorConstants::SteppingBounceType::BASE:{
                     step*= -1;
+                    incrementSteppingRange();
                     break;
                 }
                 case GeneratorConstants::SteppingBounceType::LIMIT:{
                     step *= -1;
-                    incrementSteppingRange();
                     break;
                 }
             }
@@ -91,21 +92,19 @@ void Generator::incrementSteppingRange(){
 
 GeneratorConstants::SteppingBounceType Generator::isOutOfBounds(float uValue, float uLimit, float uBase){
     if(uLimit > uBase){
-        if(uValue > uLimit){
+        if(uValue >= uLimit){
             return GeneratorConstants::SteppingBounceType::LIMIT;
         }
-        else if(uValue < uBase){
+        else if(uValue <= uBase){
             return GeneratorConstants::SteppingBounceType::BASE;
         }
     }
     else if(uBase > uLimit){
-        if(uValue > uBase){
+        if(uValue >= uBase){
             return GeneratorConstants::SteppingBounceType::BASE;
-
         }
-        else if(uValue < uLimit){
+        else if(uValue <= uLimit){
             return GeneratorConstants::SteppingBounceType::LIMIT;
-
         }
     }
     return GeneratorConstants::SteppingBounceType::NONE;

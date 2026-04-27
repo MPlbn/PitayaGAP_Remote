@@ -123,7 +123,5 @@ def readTCPReadyState(uSocket) -> bool:
 def readTCPAcqValues(uSocket): 
     buffer = recv_all(uSocket, 12) 
     values = struct.unpack('<f f f', buffer)
-    print(values)
+    #print(values)
     return values
-
-#Add functions to sending setup for gen/stepping gen and full logic on send -> ready -> send -> ready TODO
