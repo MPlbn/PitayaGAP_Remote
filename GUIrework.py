@@ -834,7 +834,7 @@ class RunnerWorker(QObject):
             t1 = time.perf_counter()
             delta = t1 - t0
             #print(f'{(delta)*1000}ms')
-            #if(maxWait - delta >= 0):
-            time.sleep(maxWait)
+            if(maxWait - delta >= 0):
+                time.sleep(maxWait)
         self.finished.emit()
 # =========== END MISC =========== # 

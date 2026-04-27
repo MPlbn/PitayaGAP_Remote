@@ -275,7 +275,6 @@ class ProgramRunner:
 
             case ProgramMode.GEN_WORK_ROUTINE: 
                 self.genWorkRoutine()
-                time.sleep(0.0005)
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
