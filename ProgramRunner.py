@@ -255,6 +255,7 @@ class ProgramRunner:
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
+                print(Vbuffer)
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
                 #do the queue stuff
                 #push gen to queue
