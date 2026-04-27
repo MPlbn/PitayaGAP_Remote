@@ -56,7 +56,7 @@ namespace PitayaServerUtils{
     bool resetGen();
     bool startGen();
     bool stopGen();
-    bool setGenSettings(int uFreq);
+    bool setGenSettings(float uStartVolVal, int uFreq);
 
     bool resetAcq();
     bool startAcq();

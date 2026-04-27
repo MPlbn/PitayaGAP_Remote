@@ -215,10 +215,30 @@ namespace PitayaServerUtils{
         );
     }
 
-    bool setGenSettings(int uFreq){
+    bool setGenSettings(float uStartVolVal, int uFreq){
+        rp_waveform_t wfType;
+        if(uStartVolVal < 0){
+            isNegative = true;
+            wfType = RP_WAVEFORM_DC_NEG;
+        }
+        else{
+            isNegative = false;
+            wfType = RP_WAVEFORM_DC;
+        }
+
+        if(!processPitayaErrorcode(
+            rp_GenWaveform(RP_CH_1, wfType),
+            "rp_GenWaveform()"
+        )) return false;
+
         if(!processPitayaErrorcode(
             rp_GenFreq(RP_CH_1, uFreq),
             "rp_GenFreq()"
+        )) return false;
+
+        if(!processPitayaErrorcode(
+            rp_GenAmp(RP_CH_1, uStartVolVal),
+            "rp_GenAmp()"
         )) return false;
 
         return true;
@@ -265,10 +285,10 @@ namespace PitayaServerUtils{
     }
 
     bool setAcqSettings(rp_acq_decimation_t uDec, rp_pinState_t uGain){
-        // if(!processPitayaErrorcode(
-        //     rp_AcqSetArmKeep(true), // keeps the continuous acquisition
-        //     "rp_AcqSetArmKeep()"
-        // )) return false;
+        if(!processPitayaErrorcode(
+            rp_AcqSetArmKeep(true), // keeps the continuous acquisition
+            "rp_AcqSetArmKeep()"
+        )) return false;
         
         if(!processPitayaErrorcode(
             rp_AcqSetAveraging(false), // averages all samples skipped due to decimation
@@ -424,9 +444,9 @@ namespace PitayaServerUtils{
             "rp_AcqGetLatestDataV()"
         )) return false;
 
-        for(int i = 0; i < 150; i++){
-            std::cout<< i << " : " << buffer[i] << "\n";
-        }
+        // for(int i = 0; i < size; i++){
+        //     std::cout<< i << " : " << buffer[i] << "\n";
+        // }
         hValue = buffer[0];
 
         return true;

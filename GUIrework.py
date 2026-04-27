@@ -827,14 +827,14 @@ class RunnerWorker(QObject):
 
     def run(self):
         while self.running: #DESYNC WORRY LATER TODO
-            maxWait = 1.0
+            maxWait = 0.001
             t0 = time.perf_counter()
             self.runner.run()
             self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
             t1 = time.perf_counter()
             delta = t1 - t0
             #print(f'{(delta)*1000}ms')
-            if(maxWait - delta >= 0):
-                time.sleep(maxWait - delta)
+            #if(maxWait - delta >= 0):
+            time.sleep(maxWait)
         self.finished.emit()
 # =========== END MISC =========== # 

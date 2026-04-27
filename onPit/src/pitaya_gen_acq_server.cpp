@@ -1,5 +1,7 @@
 #include "serverUtils.h"
 #include "generate.h"
+#include <chrono>
+#include <thread>
 
 int main(){
     float currentVoltageValue;
@@ -51,16 +53,12 @@ int main(){
                 std::cout << "Error recieving setup values\n";
                 break;
             }
-            if(!PitayaServerUtils::setGenSettings(freq)){
+            if(!PitayaServerUtils::setGenSettings(currentVoltageValue, freq)){
                 std::cout << "Error setting generator settings\n";
                 break;
             }
             if(!PitayaServerUtils::setAcqSettings(dec, gain)){
                 std::cout << "Error setting acquisitor settings\n";
-                break;
-            }
-            if(!PitayaServerUtils::changeVoltage(currentVoltageValue)){
-                std::cout << "error setting starting voltage\n";
                 break;
             }
             if(!PitayaServerUtils::sendReady(client)){
@@ -207,10 +205,10 @@ int main(){
             //Acq part
             float ch1Val;
             float ch2Val;
-            if(!PitayaServerUtils::startAcq()){
-                std::cout << "Error starting the ACQ\n";
-                break;
-            }
+            // if(!PitayaServerUtils::startAcq()){
+            //     std::cout << "Error starting the ACQ\n";
+            //     break;
+            // }
             if(!PitayaServerUtils::triggerAcq()){
                 std::cout << "Error setting the ACQ trigger\n";
                 break;
@@ -232,10 +230,10 @@ int main(){
                 break;
             }       
 
-            if(!PitayaServerUtils::stopAcq()){
-                std::cout << "Error starting the ACQ\n";
-                break;
-            }
+            // if(!PitayaServerUtils::stopAcq()){
+            //     std::cout << "Error starting the ACQ\n";
+            //     break;
+            // }
 
             float values[3] = {ch1Val, ch2Val, currentVoltageValue};
             std::cout << "VOLTAGE VALUES ACQUIRED: " << ch1Val << " | " << ch2Val << " | " << currentVoltageValue << "\n";
