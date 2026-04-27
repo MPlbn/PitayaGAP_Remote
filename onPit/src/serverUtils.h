@@ -31,8 +31,8 @@ namespace PitayaServerUtils{
     constexpr char RESET_C_GEN_COMMAND = 'K';
     constexpr char FLIP_C_GEN_COMMAND = 'L';
 
-    constexpr char FULL_CYCLE_COMMAND = 'M';
-    constexpr char NOGEN_FULL_CYCLE_COMMAND = 'N';
+    constexpr char GEN_COMMAND = 'M';
+    constexpr char ACQ_COMMAND = 'N';
 
     constexpr char CLOSE_COMMAND = 'Z';
     

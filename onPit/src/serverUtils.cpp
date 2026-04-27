@@ -265,10 +265,10 @@ namespace PitayaServerUtils{
     }
 
     bool setAcqSettings(rp_acq_decimation_t uDec, rp_pinState_t uGain){
-        if(!processPitayaErrorcode(
-            rp_AcqSetArmKeep(true), // keeps the continuous acquisition
-            "rp_AcqSetArmKeep()"
-        )) return false;
+        // if(!processPitayaErrorcode(
+        //     rp_AcqSetArmKeep(true), // keeps the continuous acquisition
+        //     "rp_AcqSetArmKeep()"
+        // )) return false;
         
         if(!processPitayaErrorcode(
             rp_AcqSetAveraging(false), // averages all samples skipped due to decimation
@@ -414,8 +414,8 @@ namespace PitayaServerUtils{
     }
 
     bool acquireVoltage(rp_channel_t uChannel, float& hValue){
-        float buffer[20];
-        uint32_t size = 20;
+        float buffer[1];
+        uint32_t size = 1;
 
 
 

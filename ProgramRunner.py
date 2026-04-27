@@ -244,6 +244,11 @@ class ProgramRunner:
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: Generator.stop")
 
+    def genWorkRoutine(self):
+        CMDManager.executeTCPCommand(self.socket, GEN_COMMAND)
+        if(not CMDManager.readTCPReadyState(self.socket)):
+            print("Error: genWorkRoutine()")
+
     #   Main work routine of program runner
 
     def run(self):
@@ -257,10 +262,10 @@ class ProgramRunner:
                 self.sendSetup()
                 self.startGenerator()
                 self.Acquisitor.start()
-                self.changeMode(ProgramMode.PRE_WORK_ROUTINE)
+                self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
     
             case ProgramMode.PRE_WORK_ROUTINE: 
-                self.Acquisitor.onlyGatherData()
+                self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()
                 genVal = self.Acquisitor.getGenVal()
@@ -269,6 +274,7 @@ class ProgramRunner:
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE: 
+                self.genWorkRoutine()
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
                 Ibuffer = self.Acquisitor.getCurrentI()

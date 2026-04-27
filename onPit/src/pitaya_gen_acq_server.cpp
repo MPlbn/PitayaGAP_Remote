@@ -191,8 +191,7 @@ int main(){
         else if (cmd == PitayaServerUtils::FLIP_C_GEN_COMMAND){
             generator.flip();
         }
-        //possibly manual change volatge also
-        else if(cmd == PitayaServerUtils::FULL_CYCLE_COMMAND){
+        else if(cmd == PitayaServerUtils::GEN_COMMAND){
             //Generate part
             float newVoltageValue = generator.workRoutine();
             if(!PitayaServerUtils::changeVoltage(newVoltageValue)){
@@ -200,13 +199,20 @@ int main(){
                 break;
             }
             currentVoltageValue = newVoltageValue;
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending Ready: Gen command\n";
+            }
+        }
+        else if(cmd == PitayaServerUtils::ACQ_COMMAND){
             //Acq part
             float ch1Val;
             float ch2Val;
-            // wait for a small time
-            PitayaServerUtils::wait(10000);
+            if(!PitayaServerUtils::startAcq()){
+                std::cout << "Error starting the ACQ\n";
+                break;
+            }
             if(!PitayaServerUtils::triggerAcq()){
-                std::cout << "Error setting the ACQ trigger to CH1\n";
+                std::cout << "Error setting the ACQ trigger\n";
                 break;
             }
 
@@ -226,39 +232,13 @@ int main(){
                 break;
             }       
 
-            float values[3] = {ch1Val, ch2Val, newVoltageValue};
-            std::cout << "VOLTAGE VALUES ACQUIRED: " << ch1Val << " | " << ch2Val << " | " << newVoltageValue << "\n";
-            if(!PitayaServerUtils::sendVoltageValue(client, values)){ 
-                std::cout << "Error sending the voltage value back to python program\n";
+            if(!PitayaServerUtils::stopAcq()){
+                std::cout << "Error starting the ACQ\n";
                 break;
             }
-        }
-
-        else if(cmd == PitayaServerUtils::NOGEN_FULL_CYCLE_COMMAND){
-            float ch1Val;
-            float ch2Val;
-
-            if(!PitayaServerUtils::triggerAcq()){
-                std::cout << "Error setting the ACQ trigger to CH1\n";
-                break;
-            }
-
-            if(!PitayaServerUtils::isBufferFilled()){
-                std::cout << "Error on filling the buffer\n";
-                break;
-            }
-
-            if(!PitayaServerUtils::acquireVoltage(PitayaServerUtils::CH_1, ch1Val)){
-                std::cout << "Error acquiring the voltage from CH1 on redpitaya\n";
-                break;
-            }
-
-            if(!PitayaServerUtils::acquireVoltage(PitayaServerUtils::CH_2, ch2Val)){
-                std::cout << "Error acquiring the voltage from CH2 on redpitaya\n";
-                break;
-            }       
 
             float values[3] = {ch1Val, ch2Val, currentVoltageValue};
+            std::cout << "VOLTAGE VALUES ACQUIRED: " << ch1Val << " | " << ch2Val << " | " << currentVoltageValue << "\n";
             if(!PitayaServerUtils::sendVoltageValue(client, values)){ 
                 std::cout << "Error sending the voltage value back to python program\n";
                 break;
