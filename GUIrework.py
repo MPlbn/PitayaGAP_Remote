@@ -621,11 +621,7 @@ class App(QWidget):
         self.slowGUI.exitBtn.setEnabled(True)
         genMode = self.slowGUI.genModeCombobox.currentIndex()
         self.slow_set_BTN_CBCK() # a little jank with genmode twice, but what can You do
-        match genMode:
-            case GenModeGUI.NORMAL:
-                self.slowGUI.PRunner.changeMode(ProgramMode.CONT_START)
-            case GenModeGUI.STEP:
-                self.slowGUI.PRunner.changeMode(ProgramMode.STEPPING_START)
+        self.slowGUI.PRunner.changeMode(ProgramMode.START)
         self.slowGUI.acqPlotter.start()
         self.slowGUI.genPlotter.start()
                 
@@ -641,7 +637,7 @@ class App(QWidget):
 
     def slow_reset_BTN_CBCK(self):
         self.slow_unlock_BTN_CBCK()
-        self.slowGUI.PRunner.resetGenerator()
+        self.slowGUI.PRunner.resetGeneratorValue()
 
     def slow_lock_BTN_CBCK(self):
         self.slowGUI.lockBtn.setEnabled(False)
@@ -737,7 +733,6 @@ class App(QWidget):
                                                             tempLRange/MV_TO_V_VALUE, 
                                                             tempStep/MV_TO_V_VALUE, 
                                                             tempDirection, 
-                                                            1000, #Maybe add Freq TODO
                                                             tempStartPoint/MV_TO_V_VALUE)
             
             case GenModeGUI.STEP:
@@ -772,11 +767,10 @@ class App(QWidget):
                                                                 tempStartPoint/MV_TO_V_VALUE, #Maybe different base and startPoint? TODO
                                                                 tempStep/MV_TO_V_VALUE,
                                                                 tempNumOfSteps,
-                                                                1000, #Maybe add Freq TODO
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)
-            self.slowGUI.PRunner.resetGenerator()
+            self.slowGUI.PRunner.resetGeneratorValue()
             ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
         self.slowGUI.errorLabel.setText(errorText)
@@ -799,7 +793,7 @@ class App(QWidget):
         self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
                                            self.slowGUI.PRunner.AcqDataProcessor.getDataI())
         self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())
-        #DESYNC get that sorted out TODO
+        
     
     # ======================= End Callbacks ======================= #
 
@@ -832,15 +826,15 @@ class RunnerWorker(QObject):
         self.running = True
 
     def run(self):
-        while self.running:
-            maxWait = 0.002
+        while self.running: #DESYNC WORRY LATER TODO
+            maxWait = 0.001
             t0 = time.perf_counter()
             self.runner.run()
-            self.cycleDone.emit(self.runner.Generator.getVoltageValue())
+            self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
             t1 = time.perf_counter()
             delta = t1 - t0
             #print(f'{(delta)*1000}ms')
             if(maxWait - delta >= 0):
-                time.sleep(maxWait - delta)
+                time.sleep(maxWait)
         self.finished.emit()
 # =========== END MISC =========== # 

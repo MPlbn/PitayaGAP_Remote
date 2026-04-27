@@ -1,8 +1,13 @@
 #include "serverUtils.h"
+#include "generate.h"
+#include <chrono>
+#include <thread>
 
 int main(){
     float currentVoltageValue;
 
+
+    Generator generator = Generator();
     // ========== starting server ===========
     int server = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -36,7 +41,6 @@ int main(){
 
         if(cmd == PitayaServerUtils::SETUP_COMMAND){
             int32_t freq;
-            float voltageValue;
             rp_acq_decimation_t dec;
             rp_pinState_t gain;
             
@@ -45,15 +49,14 @@ int main(){
                 break;
             } 
 
-            if(!PitayaServerUtils::receiveSettings(client, voltageValue, freq, dec, gain)){
+            if(!PitayaServerUtils::receiveSettings(client, freq, dec, gain)){
                 std::cout << "Error recieving setup values\n";
                 break;
             }
-            if(!PitayaServerUtils::setGenSettings(voltageValue, freq)){
+            if(!PitayaServerUtils::setGenSettings(currentVoltageValue, freq)){
                 std::cout << "Error setting generator settings\n";
                 break;
             }
-            currentVoltageValue = voltageValue;
             if(!PitayaServerUtils::setAcqSettings(dec, gain)){
                 std::cout << "Error setting acquisitor settings\n";
                 break;
@@ -62,6 +65,46 @@ int main(){
                 std::cout << "Error sending the ready status to client\n";
                 break;
             }              
+
+        }
+
+        else if(cmd == PitayaServerUtils::SETUP_C_GEN_COMMAND){
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            } 
+            GeneratorConstants::GenType genType;
+            if(!PitayaServerUtils::receiveGenType(client, genType)){
+                std::cout << "Error receiving GenType\n";
+                break;
+            }
+
+            float startingValue;
+            float hRange;
+            float step;
+            if(genType == GeneratorConstants::GenType::NORMAL){
+                float lRange;
+                GeneratorConstants::Direction direction;
+                if(!PitayaServerUtils::receiveGenSettings(client, startingValue, hRange, lRange, step, direction)){
+                    std::cout << "Error receiving Cgenerator settings\n";
+                    break;
+                }
+                generator.setup(genType, startingValue, hRange, lRange, step, direction);
+            }
+            else if(genType == GeneratorConstants::GenType::STEPPING){
+                int32_t numSteps;
+                if(!PitayaServerUtils::receiveGenSettings(client, startingValue, hRange, step, numSteps)){
+                    std::cout << "Error receiving Cgenerator settings\n";
+                    break;
+                }
+                generator.setup(genType, startingValue, hRange, step, static_cast<int>(numSteps));
+            }
+            currentVoltageValue = startingValue;
+
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending the ready status to client\n";
+                break;
+            } 
         }
 
         else if(cmd == PitayaServerUtils::START_GEN_COMMAND){
@@ -91,6 +134,7 @@ int main(){
                 std::cout << "Error reseting generator";
                 break;
             }
+            generator.reset();
             if(!PitayaServerUtils::sendReady(client)){
                 std::cout << "Error sending the ready status to client\n";
                 break;
@@ -130,30 +174,43 @@ int main(){
             }            
         }
 
-        else if(cmd == PitayaServerUtils::GEN_COMMAND){ //CMD FOR CHANGE VOLT
-            // if(!PitayaServerUtils::sendReady(client)){
-            //     std::cout << "Error sending the ready status to client\n";
-            //     break;
-            // }
-            float newVoltageValue;
-            if(!PitayaServerUtils::receiveNewVoltage(client, newVoltageValue)){
-                std::cout << "Error recieving new voltage\n";
-                break;
-            }
-            if(!PitayaServerUtils::changeVoltage(newVoltageValue, currentVoltageValue)){
+        else if(cmd == PitayaServerUtils::PAUSE_C_GEN_COMMAND){
+            generator.setPause(true);
+        }
+
+        else if(cmd == PitayaServerUtils::UNPAUSE_C_GEN_COMMAND){
+            generator.setPause(false);
+        }
+
+        else if(cmd == PitayaServerUtils::RESET_C_GEN_COMMAND){
+            generator.reset();
+        }
+
+        else if (cmd == PitayaServerUtils::FLIP_C_GEN_COMMAND){
+            generator.flip();
+        }
+        else if(cmd == PitayaServerUtils::GEN_COMMAND){
+            //Generate part
+            float newVoltageValue = generator.workRoutine();
+            if(!PitayaServerUtils::changeVoltage(newVoltageValue)){
                 std::cout << "Error changing the voltage on redpitaya\n";
                 break;
             }
             currentVoltageValue = newVoltageValue;
+            if(!PitayaServerUtils::sendReady(client)){
+                std::cout << "Error sending Ready: Gen command\n";
+            }
         }
-
-        else if(cmd == PitayaServerUtils::ACQ_COMMAND){ //CMD FOR ACQUIRE
-            auto start = std::chrono::high_resolution_clock::now();
+        else if(cmd == PitayaServerUtils::ACQ_COMMAND){
+            //Acq part
             float ch1Val;
             float ch2Val;
-
+            // if(!PitayaServerUtils::startAcq()){
+            //     std::cout << "Error starting the ACQ\n";
+            //     break;
+            // }
             if(!PitayaServerUtils::triggerAcq()){
-                std::cout << "Error setting the ACQ trigger to CH1\n";
+                std::cout << "Error setting the ACQ trigger\n";
                 break;
             }
 
@@ -161,6 +218,7 @@ int main(){
                 std::cout << "Error on filling the buffer\n";
                 break;
             }
+
 
             if(!PitayaServerUtils::acquireVoltage(PitayaServerUtils::CH_1, ch1Val)){
                 std::cout << "Error acquiring the voltage from CH1 on redpitaya\n";
@@ -172,14 +230,17 @@ int main(){
                 break;
             }       
 
-            float values[2] = {ch1Val, ch2Val};
+            // if(!PitayaServerUtils::stopAcq()){
+            //     std::cout << "Error starting the ACQ\n";
+            //     break;
+            // }
+
+            float values[3] = {ch1Val, ch2Val, currentVoltageValue};
+            std::cout << "VOLTAGE VALUES ACQUIRED: " << ch1Val << " | " << ch2Val << " | " << currentVoltageValue << "\n";
             if(!PitayaServerUtils::sendVoltageValue(client, values)){ 
                 std::cout << "Error sending the voltage value back to python program\n";
                 break;
             }
-            auto end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-            std::cout << "TIME ON ACQ: " << duration.count() << "us\n";
         }
 
         else if(cmd == PitayaServerUtils::CLOSE_COMMAND){ //CMD FOR STOPPING THE SERVER

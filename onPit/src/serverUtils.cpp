@@ -1,13 +1,12 @@
-#ifndef SERVERUTILS_H
-#define SERVERUTILS_H
-
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netinet/tcp.h>
 #include <cstring>
 #include <iostream>
 #include <typeinfo>
+#include <chrono>
 #include <string>
+#include "generate.h"
 #include "rp.h"
 
 /*
@@ -100,17 +99,14 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool receiveSettings(int uClient, float& hStartVolVal, int32_t& hFreq, rp_acq_decimation_t& hDec, rp_pinState_t& hGain){
-        float volt;
+    bool receiveSettings(int uClient, int32_t& hFreq, rp_acq_decimation_t& hDec, rp_pinState_t& hGain){
         int32_t freq;
         int32_t dec;
         uint8_t gain;
-        if(!recv_all(uClient, &volt, sizeof(volt))) return false;
         if(!recv_all(uClient, &freq, sizeof(freq))) return false;
         if(!recv_all(uClient, &dec, sizeof(dec))) return false;
         if(!recv_all(uClient, &gain, sizeof(gain))) return false;
 
-        hStartVolVal = volt;
         hFreq = freq;
         switch(dec){
             case 1: 
@@ -138,6 +134,58 @@ namespace PitayaServerUtils{
         hGain = gain ? RP_HIGH : RP_LOW;
         return true;
         }
+
+    bool receiveGenType(int uClient, GeneratorConstants::GenType& uGenType){
+        int32_t genType;
+        if(!recv_all(uClient, &genType, sizeof(genType))) return false;
+
+        if(genType == 0){ uGenType = GeneratorConstants::GenType::NORMAL; }
+        else if(genType == 1) { uGenType = GeneratorConstants::GenType::STEPPING; }
+        else return false;
+
+        return true;
+    }
+
+    bool receiveGenSettings(int uClient, float& uStartingValue, float& uHRange, float& uLRange, float& uStep, GeneratorConstants::Direction& uDirection){
+        float startingValue;
+        float hRange;
+        float lRange;
+        float step;
+        int32_t direction;
+
+        if(!recv_all(uClient, &startingValue, sizeof(startingValue))) return false;    
+        if(!recv_all(uClient, &hRange, sizeof(hRange))) return false;    
+        if(!recv_all(uClient, &lRange, sizeof(lRange))) return false;    
+        if(!recv_all(uClient, &step, sizeof(step))) return false;    
+        if(!recv_all(uClient, &direction, sizeof(direction))) return false;
+        uStartingValue = startingValue;  
+        uHRange = hRange;  
+        uLRange = lRange;  
+        uStep = step;  
+        if(direction == 0){ uDirection = GeneratorConstants::Direction::POSITIVE; }
+        else if(direction == 1){ uDirection = GeneratorConstants::Direction::NEGATIVE; }
+        else return false;
+        
+        return true;
+    }
+
+    bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps){
+        float baseVoltage;
+        float limit;
+        float step;
+        int32_t numSteps;
+
+        if(!recv_all(uClient, &baseVoltage, sizeof(baseVoltage))) return false;        
+        if(!recv_all(uClient, &limit, sizeof(limit))) return false;    
+        if(!recv_all(uClient, &step, sizeof(step))) return false;    
+        if(!recv_all(uClient, &numSteps, sizeof(numSteps))) return false;    
+        uBaseVoltage = baseVoltage;
+        uLimit = limit;
+        uStep = step;
+        uNumSteps = numSteps;
+
+        return true;
+    }
 
     bool resetGen(){
         return processPitayaErrorcode(
@@ -304,28 +352,32 @@ namespace PitayaServerUtils{
         }
         int loops = (diff / step) - 1;
         float interVoltage = uCurrentVoltageValue;
-        
-        for(int i = 0; i <= loops; i++){
-            interVoltage += step;
-            if(isNegative){
-                if(interVoltage >= 0){
-                    isNegative = false;
-                    if(!processPitayaErrorcode(
-                        rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
-                        "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
-                    )) return false;
+        if(loops > 0){
+            for(int i = 0; i <= loops; i++){
+                interVoltage += step;
+                if(isNegative){
+                    if(interVoltage >= 0){
+                        isNegative = false;
+                        if(!processPitayaErrorcode(
+                            rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
+                            "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
+                        )) return false;
+                    }
                 }
-            }
-            else{
-                if(interVoltage < 0){
-                    isNegative = true;
-                    if(!processPitayaErrorcode(
-                        rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
-                        "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
-                    )) return false;
+                else{
+                    if(interVoltage < 0){
+                        isNegative = true;
+                        if(!processPitayaErrorcode(
+                            rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
+                            "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
+                        )) return false;
+                    }
                 }
+                if(!processPitayaErrorcode(
+                    rp_GenAmp(RP_CH_1, std::abs(interVoltage)),
+                    "rp_GenAmp() - intermediate values"
+                )) return false;
             }
-            rp_GenAmp(RP_CH_1, std::abs(interVoltage));
         }
 
         if(isNegative){
@@ -351,7 +403,33 @@ namespace PitayaServerUtils{
             rp_GenAmp(RP_CH_1, std::abs(uNewVoltage)), //change to absolute value + DC_NEG set for values lower than 0
             "rp_GenAmp()"
         )) return false;
+        return true;
+    }
 
+    bool changeVoltage(float uNewVoltage){
+        if(isNegative){
+            if(uNewVoltage >= 0){
+                isNegative = false;
+                if(!processPitayaErrorcode(
+                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC),
+                    "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC)"
+                )) return false;
+            }
+        }
+        else{
+            if(uNewVoltage < 0){
+                isNegative = true;
+                if(!processPitayaErrorcode(
+                    rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG),
+                    "rp_GenWaveform(RP_CH_1, RP_WAVEFORM_DC_NEG)"
+                )) return false;
+            }
+        }
+
+        if(!processPitayaErrorcode(
+            rp_GenAmp(RP_CH_1, std::abs(uNewVoltage)), //change to absolute value + DC_NEG set for values lower than 0
+            "rp_GenAmp()"
+        )) return false;
         return true;
     }
 
@@ -366,13 +444,16 @@ namespace PitayaServerUtils{
             "rp_AcqGetLatestDataV()"
         )) return false;
 
+        // for(int i = 0; i < size; i++){
+        //     std::cout<< i << " : " << buffer[i] << "\n";
+        // }
         hValue = buffer[0];
 
         return true;
     }
 
     bool sendVoltageValue(int uClient, float* uBuffer){
-        int sent = send_all(uClient, uBuffer, sizeof(float) * 2);  
+        int sent = send_all(uClient, uBuffer, sizeof(float) * 3);
         
         if(sent <= 0){
             return false;
@@ -380,6 +461,12 @@ namespace PitayaServerUtils{
     
         return true;
     }
-}
+    void wait(int microseconds){
+        auto start = std::chrono::high_resolution_clock::now();
 
-#endif
+        while(std::chrono::high_resolution_clock::now() - start < std::chrono::microseconds(microseconds)){
+            //busy wait
+        }
+    }
+
+}

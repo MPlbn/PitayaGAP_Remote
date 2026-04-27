@@ -31,10 +31,10 @@ class GeneratorDataProcessor(DataProcessor):
         self.setDataLimit(MAX_DATA_SIZE_GEN)
         self.setSampleSize(1)
 
-    def processData(self, uNewDataBuffer):
+    def processData(self, uNewData:float):
         if(len(self.dataV) >= self.dataLimit):
             self.dataV = self.dataV[self.sampleSize:]
-        self.dataV = np.append(self.dataV, uNewDataBuffer*MV_TO_V_VALUE)
+        self.dataV = np.append(self.dataV, uNewData*MV_TO_V_VALUE)
 
     def getData(self):
         return self.dataV
