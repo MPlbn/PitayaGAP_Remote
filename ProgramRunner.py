@@ -312,6 +312,7 @@ class ProgramRunner:
                     self.unpauseContGenerator()
                 
                 self.disconnectFromServer()
+                self.changeMode(ProgramMode.IDLE)
 
     #   Changing the work routine
     #   newMode: int - new mode to be set

@@ -322,8 +322,8 @@ class SlowGUI(QWidget):
     
     def stop_runner(self):
             self.worker.stop()
-            self.thread.wait()
             self.thread.quit()
+            self.thread.wait()
 
 
 class FastGUI(QWidget):
@@ -645,7 +645,7 @@ class App(QWidget):
         self.slowGUI.unlockBtn.setEnabled(False)
         self.slowGUI.resetBtn.setEnabled(False)
         self.slowGUI.startBtn.setEnabled(True)
-        self.slowGUI.setBtn.setEnable(True)
+        self.slowGUI.setBtn.setEnabled(True)
         self.slowGUI.PRunner.changeMode(ProgramMode.GEN_STOP)
         self.slowGUI.acqPlotter.stop()
         self.slowGUI.genPlotter.stop()
