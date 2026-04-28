@@ -3,8 +3,8 @@ import time
 from queue import Queue
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
-from PySide6.QtCore import Signal, Qt, QTimer, QObject, QThread
-from PySide6.QtGui import QIntValidator, QDoubleValidator
+from PySide6.QtCore import Signal, Qt, QTimer, QObject, QThread, QRegularExpression
+from PySide6.QtGui import QRegularExpressionValidator
 #test
 import pyqtgraph as PGraph
 import numpy as np
@@ -128,12 +128,18 @@ class SlowGUI(QWidget):
         self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
 
-        self.stepEntry.setValidator(QDoubleValidator())
-        self.hRangeEntry.setValidator(QDoubleValidator())
-        self.lRangeEntry.setValidator(QDoubleValidator())
-        self.startPointEntry.setValidator(QDoubleValidator())
-        self.maxRangeEntry.setValidator(QDoubleValidator())
-        self.numOfStepsEntry.setValidator(QIntValidator())
+        floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
+        intExp = QRegularExpression(r"^-?\d*$")
+
+        floatValidator = QRegularExpressionValidator(floatExp)
+        intValidator = QRegularExpressionValidator(intExp)
+
+        self.stepEntry.setValidator(floatValidator)
+        self.hRangeEntry.setValidator(floatValidator)
+        self.lRangeEntry.setValidator(floatValidator)
+        self.startPointEntry.setValidator(floatValidator)
+        self.maxRangeEntry.setValidator(floatValidator)
+        self.numOfStepsEntry.setValidator(intValidator)
 
         # ========== COMBOBOXES ========== # 
         self.genModeCombobox = QComboBox()
@@ -359,11 +365,17 @@ class FastGUI(QWidget):
         self.freqEntry.setText(str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.setText(str(F_ACQ_DEFAULT_SAMPLES))
 
-        self.hPointEntry.setValidator(QDoubleValidator())
-        self.lPointEntry.setValidator(QDoubleValidator())
-        self.sPointEntry.setValidator(QDoubleValidator())
-        self.freqEntry.setValidator(QIntValidator())
-        self.samplesEntry.setValidator(QIntValidator())
+        floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
+        intExp = QRegularExpression(r"^-?\d*$")
+
+        floatValidator = QRegularExpressionValidator(floatExp)
+        intValidator = QRegularExpressionValidator(intExp)
+
+        self.hPointEntry.setValidator(floatValidator)
+        self.lPointEntry.setValidator(floatValidator)
+        self.sPointEntry.setValidator(floatValidator)
+        self.freqEntry.setValidator(intValidator)
+        self.samplesEntry.setValidator(intValidator)
 
         # ========== COMBOBOXES ========== # 
         self.waveFormCB = QComboBox()
@@ -612,6 +624,7 @@ class App(QWidget):
     # ============ SLOW GUI ============ #
     def slow_start_BTN_CBCK(self):
         self.slowGUI.startBtn.setEnabled(False)
+        self.slowGUI.setBtn.setEnabled(False)
         self.slowGUI.stopBtn.setEnabled(True)
         self.slowGUI.resetBtn.setEnabled(True)
         self.slowGUI.lockBtn.setEnabled(True)
@@ -631,6 +644,7 @@ class App(QWidget):
         self.slowGUI.unlockBtn.setEnabled(False)
         self.slowGUI.resetBtn.setEnabled(False)
         self.slowGUI.startBtn.setEnabled(True)
+        self.slowGUI.setBtn.setEnable(True)
         self.slowGUI.PRunner.changeMode(ProgramMode.GEN_STOP)
         self.slowGUI.acqPlotter.stop()
         self.slowGUI.genPlotter.stop()
