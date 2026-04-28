@@ -1,0 +1,1 @@
+Channel 1: Pos 0 Get: 32768 (0)	Channel 2: Pos 0 Get: 32768 (0)	

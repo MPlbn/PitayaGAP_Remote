@@ -542,6 +542,7 @@ class App(QWidget):
         errorText = ""
         tempWaveForm = self.fastGUI.waveFormCB.currentText()
         tempDec = self.fastGUI.samplesPerSecCB.currentText()
+        tempDec = F_ACQ_DEC_DICT[tempDec]
         tempStateCH1 = self.fastGUI.stateCH1CB.currentText()
         tempStateCH2 = self.fastGUI.stateCH2CB.currentText()
         tempFileType = self.fastGUI.fileTypeCB.currentText()
