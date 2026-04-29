@@ -1,14 +1,10 @@
 import sys
 import time
-from queue import Queue
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
-                               QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout )
-from PySide6.QtCore import Signal, Qt, QTimer, QObject, QThread, QRegularExpression
+                               QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout,
+                                QSizePolicy )
+from PySide6.QtCore import Signal, Qt, QObject, QThread, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
-#test
-import pyqtgraph as PGraph
-import numpy as np
-
 #Custom modules
 from constants import *
 import ProgramRunner
@@ -179,7 +175,7 @@ class SlowGUI(QWidget):
         self.directionLabel = QLabel("Starting direction")
         self.maxRangeLabel = QLabel("Limit value [mV]")
         self.numOfStepsLabel = QLabel("No. of steps")
-        self.errorLabel = QLabel("TEMP ERROR") #to be filled during program
+        self.errorLabel = QLabel("") #to be filled during program
         self.progressLabel = QLabel("TEMP 0.0") #to be filled during program
 
         self.errorLabel.setObjectName("red")
@@ -325,10 +321,10 @@ class SlowGUI(QWidget):
             self.thread.quit()
             self.thread.wait()
 
-
 class FastGUI(QWidget):
     # ========== BUTTON CALLBACKS ========== #
     startBtnCallback = Signal()
+    clearPlotBtnCallback = Signal()
     exitBtnCallback = Signal()
     
     def __init__(self):
@@ -340,16 +336,19 @@ class FastGUI(QWidget):
         self.mainLayout = QGridLayout()
         self.settingsLayout = QGridLayout()
         self.errorLayout = QHBoxLayout()
-        self.buttonsLayout = QVBoxLayout()
+        self.buttonsLayout = QHBoxLayout()
+        self.plotLayout = QVBoxLayout()
 
         # ========== BUTTONS ========== #    
         self.startBtn = QPushButton("RUN")
+        self.clearPlotBtn = QPushButton("CLEAR PLOT")
         self.exitBtn = QPushButton("EXIT")
         
         self.startBtn.setObjectName("green")
         self.exitBtn.setObjectName("red")
 
         self.startBtn.clicked.connect(self.startBtnCallback)
+        self.clearPlotBtn.clicked.connect(self.clearPlotBtnCallback)
         self.exitBtn.clicked.connect(self.exitBtnCallback)
 
         # ========== ENTRIES ========== # 
@@ -407,49 +406,60 @@ class FastGUI(QWidget):
         self.stateCH1Label = QLabel("channel 1 state")
         self.stateCH2Label = QLabel("channel 2 state")
         self.fileTypeLabel = QLabel("data save file format")
-        self.errorLabel = QLabel("TEMP ERROR") # to be filled
+        self.errorLabel = QLabel("") # to be filled
 
         self.errorLabel.setObjectName("red")
 
+        # ========== PLOTS ========== # 
+        self.plotter = Plotter.FAcqPlotter()
+
         # ========== LAYOUT ASSIGNMENT ========== # 
         # GRID SETTINGS --------- .addWidget(xyz, [row], [column], [rowSpan], [columnSpan])
-        self.settingsLayout.addWidget(self.waveFormLabel,       0, 0, 1, 1)
-        self.settingsLayout.addWidget(self.waveFormCB,          0, 1, 1, 1)
-        self.settingsLayout.addWidget(self.hPointLabel,         1, 0, 1, 1)
-        self.settingsLayout.addWidget(self.hPointEntry,         1, 1, 1, 1)
-        self.settingsLayout.addWidget(self.lPointLabel,         2, 0, 1, 1)
-        self.settingsLayout.addWidget(self.lPointEntry,         2, 1, 1, 1)
-        self.settingsLayout.addWidget(self.sPointLabel,         3, 0, 1, 1)
-        self.settingsLayout.addWidget(self.sPointEntry,         3, 1, 1, 1)
-        self.settingsLayout.addWidget(self.freqLabel,           4, 0, 1, 1)
-        self.settingsLayout.addWidget(self.freqEntry,           4, 1, 1, 1)
-        self.settingsLayout.addWidget(self.samplesPerSecLabel,  5, 0, 1, 1)
-        self.settingsLayout.addWidget(self.samplesPerSecCB,     5, 1, 1, 1)
-        self.settingsLayout.addWidget(self.samplesLabel,        6, 0, 1, 1)
-        self.settingsLayout.addWidget(self.samplesEntry,        6, 1, 1, 1)
-        self.settingsLayout.addWidget(self.stateCH1Label,       7, 0, 1, 1)
-        self.settingsLayout.addWidget(self.stateCH1CB,          7, 1, 1, 1)
-        self.settingsLayout.addWidget(self.stateCH2Label,       8, 0, 1, 1)
-        self.settingsLayout.addWidget(self.stateCH2CB,          8, 1, 1, 1)
-        self.settingsLayout.addWidget(self.fileTypeLabel,       9, 0, 1, 1)
-        self.settingsLayout.addWidget(self.fileTypeCB,          9, 1, 1, 1)
+        self.settingsLayout.addWidget(self.waveFormLabel,       0, 0)
+        self.settingsLayout.addWidget(self.waveFormCB,          0, 1)
+        self.settingsLayout.addWidget(self.hPointLabel,         1, 0)
+        self.settingsLayout.addWidget(self.hPointEntry,         1, 1)
+        self.settingsLayout.addWidget(self.lPointLabel,         2, 0)
+        self.settingsLayout.addWidget(self.lPointEntry,         2, 1)
+        self.settingsLayout.addWidget(self.sPointLabel,         3, 0)
+        self.settingsLayout.addWidget(self.sPointEntry,         3, 1)
+        self.settingsLayout.addWidget(self.freqLabel,           4, 0)
+        self.settingsLayout.addWidget(self.freqEntry,           4, 1)
+        self.settingsLayout.addWidget(self.samplesPerSecLabel,  5, 0)
+        self.settingsLayout.addWidget(self.samplesPerSecCB,     5, 1)
+        self.settingsLayout.addWidget(self.samplesLabel,        6, 0)
+        self.settingsLayout.addWidget(self.samplesEntry,        6, 1)
+        self.settingsLayout.addWidget(self.stateCH1Label,       7, 0)
+        self.settingsLayout.addWidget(self.stateCH1CB,          7, 1)
+        self.settingsLayout.addWidget(self.stateCH2Label,       8, 0)
+        self.settingsLayout.addWidget(self.stateCH2CB,          8, 1)
+        self.settingsLayout.addWidget(self.fileTypeLabel,       9, 0)
+        self.settingsLayout.addWidget(self.fileTypeCB,          9, 1)
 
         self.errorLayout.addWidget(self.errorLabel)
 
         self.buttonsLayout.addWidget(self.startBtn)
+        self.buttonsLayout.addWidget(self.clearPlotBtn)
         self.buttonsLayout.addWidget(self.exitBtn)
+        
+        self.plotLayout.addWidget(self.plotter)
 
         #wrapping for main layout
         self.settingsWidgetWrapper = QWidget()
         self.errorWidgetWrapper = QWidget()
         self.buttonsWidgetWrapper = QWidget()
+        self.plotWidgetWrapper = QWidget()
         self.settingsWidgetWrapper.setLayout(self.settingsLayout)
         self.errorWidgetWrapper.setLayout(self.errorLayout)
         self.buttonsWidgetWrapper.setLayout(self.buttonsLayout)
+        self.plotWidgetWrapper.setLayout(self.plotLayout)
 
-        self.mainLayout.addWidget(self.settingsWidgetWrapper,   0, 0, 3, 2)
-        self.mainLayout.addWidget(self.errorWidgetWrapper,      0, 2, 2, 2)
-        self.mainLayout.addWidget(self.buttonsWidgetWrapper,    8, 2, 1, 2)
+        self.settingsWidgetWrapper.setFixedWidth(350)
+
+        self.mainLayout.addWidget(self.settingsWidgetWrapper,   0, 0, 3, 1)
+        self.mainLayout.addWidget(self.errorWidgetWrapper,      0, 1, 2, 1)
+        self.mainLayout.addWidget(self.buttonsWidgetWrapper,    8, 4, 1, 3)
+        self.mainLayout.addWidget(self.plotWidgetWrapper,       0, 2, 8, 8)
 
         self.setLayout(self.mainLayout)
 
@@ -477,6 +487,7 @@ class App(QWidget):
 
 
         self.fastGUI.startBtnCallback.connect(self.fast_start_BTN_CBCK)
+        self.fastGUI.clearPlotBtnCallback.connect(self.fast_clearPlot_BTN_CBCK)
         self.fastGUI.exitBtnCallback.connect(self.fast_exit_BTN_CBCK)
 
 
@@ -496,24 +507,7 @@ class App(QWidget):
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
         self.setLayout(layout)
-    # ========================= Callbacks ========================= #
-    # ============ PROGRAMRUNNER ============ #
-    # def pr_handle_event_CBCK(self, uEventType):
-    #     match uEventType:
-    #         case EventType.STOP_PLOT:
-    #             self.slowGUI.acqPlotter.stop()
-    #             self.slowGUI.genPlotter.stop()
-    #         case EventType.START_PLOT:
-    #             self.slowGUI.acqPlotter.start()
-    #             self.slowGUI.genPlotter.start()
-    #         case EventType.UPDATE_PROGRESS:
-    #             self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
-    #                                                self.slowGUI.PRunner.AcqDataProcessor.getDataI())                                        
-    #             self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())   
-    #             currentGenValue = self.slowGUI.PRunner.Generator.getVoltageValue()
-    #             self.slowGUI.progressBar.setValue(currentGenValue)
-    #             self.slowGUI.progressLabel.setText(str(currentGenValue))                 
-                                    
+    # ========================= Callbacks ========================= #           
     # ============ MENU ============ #
     def menu_F_BTN_CBCK(self):
         #connecting to pitaya
@@ -611,8 +605,15 @@ class App(QWidget):
         else:
             self.fastGUI.errorLabel.setText(errorText)
         
+        data = self.fastGUI.F_PRunner.getLatestData()
+
+        self.fastGUI.plotter.updatePlot(data[0], data[1])
+
         self.fastGUI.startBtn.setEnabled(True)
         
+    def fast_clearPlot_BTN_CBCK(self):
+        self.fastGUI.plotter.clearData()
+
     def fast_exit_BTN_CBCK(self):
         if(not self.isConnectedToPitaya):
             self.fastGUI.F_PRunner.connect()
@@ -841,15 +842,15 @@ class RunnerWorker(QObject):
         self.running = True
 
     def run(self):
-        while self.running: #DESYNC WORRY LATER TODO
-            maxWait = 0.001
+        while self.running:
+            maxWait = 0.001 #1ms
             t0 = time.perf_counter()
             self.runner.run()
             self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
             t1 = time.perf_counter()
             delta = t1 - t0
-            #print(f'{(delta)*1000}ms')
-            if(maxWait - delta >= 0):
-                time.sleep(maxWait)
+            waitVal = maxWait - delta
+            if(waitVal >= 0):
+                time.sleep(waitVal)
         self.finished.emit()
 # =========== END MISC =========== # 

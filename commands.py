@@ -25,9 +25,9 @@ CCMD_START_STREAMING_DAC = [
     '-h', f'{RED_PITAYA_IP}',
     '-f', 'wav', 
     '-d', '', 
-    '-r', 'inf', #tochange
-    '-v'
-    ] #add .exe for windows
+    '-r', 'inf'
+    #'-v'
+    ] 
 def CMD_START_STREAMING_DAC():
     return CCMD_START_STREAMING_DAC.copy()
 
@@ -38,8 +38,8 @@ CCMD_START_STREAMING_ADC = [
     '-f', 'csv', 
     '-d', './dataLogs', 
     '-l', '', 
-    '-m', 'volt',
-    'v'
+    '-m', 'volt'
+    #'-v'
     ]
 def CMD_START_STREAMING_ADC():
     return CCMD_START_STREAMING_ADC.copy()

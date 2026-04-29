@@ -28,8 +28,8 @@ class AcqPlotter(Plotter):
     def __init__(self):
         super().__init__()
         self.setTitle("I/V")
-        self.dataI = [0]
-        self.dataV = [0]
+        self.dataI = []
+        self.dataV = []
         self.curve = self.plot(self.dataV, self.dataI, pen="y")
 
     def updatePlot(self, uDataV, uDataI):
@@ -38,14 +38,50 @@ class AcqPlotter(Plotter):
             self.dataV = uDataV
             self.curve.setData(self.dataV, self.dataI)
 
+    def clear(self):
+        self.dataI = []
+        self.dataV = []
+        self.curve.setData(self.dataV, self.dataI)
+
 class GenPlotter(Plotter):
     def __init__(self):
         super().__init__()
         self.setTitle("Generated values")
-        self.dataV = [0]
+        self.dataV = []
         self.curve = self.plot(self.dataV, pen="y")
 
     def updatePlot(self, uDataV):
         if(self.isRunning):
             self.dataV = uDataV
             self.curve.setData(self.dataV)
+
+    def clear(self):
+        self.dataV = []
+        self.curve.setData(self.dataV)
+
+class FAcqPlotter(Plotter):
+    def __init__(self):
+        super().__init__()
+        self.setTitle("I/V")
+        self.dataI = []
+        self.dataV = []
+        self.curveList = []
+        self.colorIndex = 0
+
+    def updatePlot(self, uDataV, uDataI):
+        self.dataI = uDataI
+        self.dataV = uDataV
+        hue = (self.colorIndex * 37) % 360
+        color = PGraph.intColor(hue)
+        pen = PGraph.mkPen(color)
+
+        self.curveList.append(self.plot(self.dataV, pen=pen))
+        self.colorIndex += 1
+
+    def clearData(self):
+        for curve in self.curveList:
+            self.removeItem(curve)
+
+        self.curveList = []
+        self.dataI = []
+        self.dataV = []

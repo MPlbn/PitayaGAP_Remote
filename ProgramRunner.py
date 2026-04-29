@@ -426,6 +426,7 @@ class FastProgramRunner:
         command = CMD_START_STREAMING_ADC()
         command[5] = str(uFileType)
         command[9] = str(uSamples) 
+        print(command)
         self.CMDManager.executeLocalCommand(command)
 
     #   Running full run for fast samples
@@ -470,13 +471,12 @@ class FastProgramRunner:
     def outputFix(self):
         self.runCleanupGeneration()
 
-    # def showPlot(self, uPath):
-    #     data = self.CSVFileManager.loadFastData(uPath)
-    #     self.Plotter.plot(data)
+    def getLatestData(self):
+        return self.CSVFileManager.loadFastData(self.CSVFileManager.getNewestPath())
+        
 
     def run(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
         self.setup(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
         self.cleanup()
-        #self.showPlot(self.CSVFileManager.getNewestPath())

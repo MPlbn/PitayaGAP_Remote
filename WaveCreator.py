@@ -16,7 +16,6 @@ class WaveCreator:
     def getSampleRate(self) -> int:
         return self.sampleRate
 
-    #it will probably need uamp also
     def create(self, uWaveForm, uHighestVal, uLowestVal, uStartingVal, uFrequency):
 
         t = np.linspace(0, 1, self.fullSize)*2*np.pi
@@ -79,6 +78,3 @@ class WaveCreator:
         np.append(waveform, voltVal)
         return np.int16(waveform)
     
-    def createStepping(self, uBase, uHighPointsList):
-        waveform = 0
-        return np.int16(waveform)
