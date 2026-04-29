@@ -12,11 +12,12 @@ class CSVFileManager():
         self.pathPrefix: str = "DATA"
         self.pathPostfix: str = ".csv"
         self.currentPath: str = ""
+        self.folderPrefix: str = "./saved_csv_datalogs/"
     ### managing CSV data files
     #   saving
     def generatePath(self, uAdditionalNamePart):
         path = datetime.today().strftime('%Y%m%d%H%M%S')
-        return str(uAdditionalNamePart + self.pathPrefix + path + self.pathPostfix)
+        return str(self.folderPrefix + uAdditionalNamePart + self.pathPrefix + path + self.pathPostfix)
 
     def createFile(self, uAdditionalNamePart=""):
         self.currentPath = self.generatePath(uAdditionalNamePart)

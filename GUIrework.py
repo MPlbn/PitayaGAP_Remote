@@ -150,7 +150,7 @@ class SlowGUI(QWidget):
 
         self.genModeCombobox.setCurrentIndex(0)
         self.directionCombobox.setCurrentIndex(0)
-        self.gainCombobox.setCurrentIndex(0)
+        self.gainCombobox.setCurrentIndex(1)
         self.IVRatioCombobox.setCurrentIndex(0)
 
         self.genModeCombobox.currentIndexChanged.connect(self.genModeCBCallback)
