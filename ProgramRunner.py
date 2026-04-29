@@ -6,6 +6,8 @@ import numpy as np
 import time
 import psutil
 import socket
+import os
+import shutil
 
 #Custom modules
 import Acquire
@@ -349,6 +351,7 @@ class FastProgramRunner:
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
+        self.data = [[], []]
 
     def connect(self) -> bool:
         if (self.CMDManager.connectToPitaya() is not None):
@@ -450,10 +453,21 @@ class FastProgramRunner:
                 else:
                     time.sleep(2)
         return isConnected
+    
+    def dataLogsCleanup(self):
+        folder = "dataLogs"
+        for item in os.listdir(folder):
+            item_path = os.path.join(folder, item)
+
+            if(os.path.isfile(item_path) or os.path.islink(item_path)):
+                os.remove(item_path)
+            elif(os.path.isdir(item_path)):
+                shutil.rmtree(item_path)
         
     def cleanup(self):
         self.outputFix()
         self.WAVFileManager.cleanup()
+        self.dataLogsCleanup()
 
     def runCleanupGeneration(self):
         waveformValues = self.WaveCreator.createZero()
@@ -467,13 +481,18 @@ class FastProgramRunner:
         self.runCleanupGeneration()
 
     def getLatestData(self):
-        return self.CSVFileManager.loadFastData(self.CSVFileManager.getNewestPath())
+        return self.data
         
+    def saveToCSV(self):
+        self.data = self.CSVFileManager.rawToVolt()
+        self.CSVFileManager.createFile("FAST_")
+        self.CSVFileManager.saveToFile(self.data[0], self.data[1])
 
     def run(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
         self.setup(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
+        self.saveToCSV()
         self.cleanup()
 
         
