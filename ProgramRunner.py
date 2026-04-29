@@ -7,12 +7,8 @@ import time
 import psutil
 import socket
 
-#Redpitaya module for scpi connection and communication
-#import redpitaya_scpi as scpi
-
 #Custom modules
 import Acquire
-import Plotter
 import FileManager
 import CMDManager
 import WaveCreator
@@ -353,7 +349,6 @@ class FastProgramRunner:
         self.CSVFileManager = FileManager.CSVFileManager()
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
-        #self.Plotter = Plotter.FAcqPlotter()
 
     def connect(self) -> bool:
         if (self.CMDManager.connectToPitaya() is not None):
@@ -480,3 +475,5 @@ class FastProgramRunner:
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
         self.cleanup()
+
+        

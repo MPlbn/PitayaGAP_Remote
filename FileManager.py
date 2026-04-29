@@ -48,6 +48,16 @@ class CSVFileManager():
         filePath = max(filePathList, key=lambda p: p.stat().st_mtime) if filePathList else None
         return filePath
 
+    def rawToVolt(self):
+        path = self.getNewestPath()
+        data = self.loadFastData(path)
+        scale = 1.0 / 32768.0
+        volts = [
+            [sample * scale for sample in data[0]],
+            [sample * scale for sample in data[1]]
+        ]
+        return volts
+
 class WAVFileManager():
     def __init__(self):
         self.pathPrefix: str = "./streaming_app/arb_custom_"

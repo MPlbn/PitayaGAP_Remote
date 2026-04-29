@@ -35,10 +35,10 @@ CCMD_START_STREAMING_ADC = [
     './streaming_app/rpsa_client', 
     '-s', 
     '-h', f'{RED_PITAYA_IP}',
-    '-f', 'bin', 
+    '-f', 'csv', 
     '-d', './dataLogs', 
     '-l', '', 
-    '-m', 'raw'
+    '-m', 'volt'
     #'-v'
     ]
 def CMD_START_STREAMING_ADC():
