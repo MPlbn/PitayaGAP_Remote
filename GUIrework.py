@@ -13,24 +13,51 @@ import Plotter
 class MenuGUI(QWidget):
     fastBtnCallback = Signal()
     slowBtnCallback = Signal()
+    setBtnCallback = Signal()
 
     def __init__(self):
         super().__init__()
 
-        layout = QHBoxLayout()
+        self.buttonLayout = QHBoxLayout()
+        self.ipLayout = QVBoxLayout()
+        self.mainLayout = QVBoxLayout()
 
-        fastBtn = QPushButton("Single Run Fast Generator")
-        slowBtn = QPushButton("Continuous Generator")
+        self.ipLayout.setAlignment(Qt.AlignCenter)
+        self.ipLayout.setSpacing(8)
 
-        fastBtn.clicked.connect(self.fastBtnCallback)
-        slowBtn.clicked.connect(self.slowBtnCallback)
+        self.fastBtn = QPushButton("Single Run Fast Generator")
+        self.slowBtn = QPushButton("Continuous Generator")
+        self.setBtn = QPushButton("SET")
 
-        fastBtn.setFixedSize(400,80)
-        slowBtn.setFixedSize(400,80)
+        self.ipEntry = QLineEdit()
+        self.ipEntry.setText(RED_PITAYA_IP)
 
-        layout.addWidget(fastBtn)
-        layout.addWidget(slowBtn)
-        self.setLayout(layout)
+        self.ipLabel = QLabel("REDPITAYA IP")
+
+        self.fastBtn.clicked.connect(self.fastBtnCallback)
+        self.slowBtn.clicked.connect(self.slowBtnCallback)
+        self.setBtn.clicked.connect(self.setBtnCallback)
+
+        self.fastBtn.setFixedSize(400,80)
+        self.slowBtn.setFixedSize(400,80)
+
+        self.ipLayout.addWidget(self.ipLabel)
+        self.ipLayout.addWidget(self.ipEntry)
+        self.ipLayout.addWidget(self.setBtn)
+
+        self.buttonLayout.addWidget(self.fastBtn)
+        self.buttonLayout.addWidget(self.slowBtn)
+
+        self.ipWidgetWrapper = QWidget()
+        self.buttonWidgetWrapper = QWidget()
+
+        self.ipWidgetWrapper.setLayout(self.ipLayout)
+        self.buttonWidgetWrapper.setLayout(self.buttonLayout)
+
+        self.mainLayout.addWidget(self.buttonWidgetWrapper)
+        self.mainLayout.addWidget(self.ipWidgetWrapper)
+
+        self.setLayout(self.mainLayout)
 
 class SlowGUI(QWidget):
     # ========== BUTTON CALLBACKS ========== #
@@ -51,10 +78,10 @@ class SlowGUI(QWidget):
     # ========== OTHER CALLBACKS ============= #
     workerUpdateProgressCallback = Signal(float)
 
-    def __init__(self):
+    def __init__(self, uIP):
         super().__init__()
         # ========== PROGRAM RUNNER ========== #
-        self.PRunner = ProgramRunner.ProgramRunner()
+        self.PRunner = ProgramRunner.ProgramRunner(uIP)
 
         # ========== LAYOUTS ========== #
         self.mainLayout = QGridLayout()
@@ -328,10 +355,10 @@ class FastGUI(QWidget):
     exitBtnCallback = Signal()
     workerFinishedCallback = Signal()
     
-    def __init__(self):
+    def __init__(self, uIP):
         super().__init__()
         # ========== PROGRAMRUNNER ========== #        
-        self.F_PRunner = ProgramRunner.FastProgramRunner()
+        self.F_PRunner = ProgramRunner.FastProgramRunner(uIP)
 
         # ========== LAYOUTS ========== #
         self.mainLayout = QGridLayout()
@@ -486,14 +513,16 @@ class App(QWidget):
     def __init__(self):
         super().__init__()
 
+        self.rp_ip = RED_PITAYA_IP
+
         self.setWindowTitle("Test")
         self.resize(1000,800)
 
         self.stack = QStackedWidget()
 
         self.menuGUI = MenuGUI()
-        self.slowGUI = SlowGUI()
-        self.fastGUI = FastGUI()
+        self.slowGUI = SlowGUI(self.rp_ip)
+        self.fastGUI = FastGUI(self.rp_ip)
         #self.slowGUI.PRunner.setEventFunction(self.pr_handle_event_CBCK)
     
         self.stack.addWidget(self.menuGUI)
@@ -503,7 +532,7 @@ class App(QWidget):
         # ADD callbacks to the GUIS
         self.menuGUI.fastBtnCallback.connect(self.menu_F_BTN_CBCK)
         self.menuGUI.slowBtnCallback.connect(self.menu_S_BTN_CBCK)
-
+        self.menuGUI.setBtnCallback.connect(self.menu_set_BTN_CBCK)
 
         self.fastGUI.startBtnCallback.connect(self.fast_start_BTN_CBCK)
         self.fastGUI.clearPlotBtnCallback.connect(self.fast_clearPlot_BTN_CBCK)
@@ -550,6 +579,10 @@ class App(QWidget):
         else:
             print("ERROR CONNECTING TO PITAYA AND TCP SERVER, TRY AGAIN...")
             
+    def menu_set_BTN_CBCK(self):
+        self.rp_ip = self.menuGUI.ipEntry.text()
+        self.slowGUI.PRunner.changeIP(self.rp_ip)
+        self.fastGUI.F_PRunner.changeIP(self.rp_ip)
     # ============ FAST GUI ============ #
     def fast_start_BTN_CBCK(self):
         self.fastGUI.startBtn.setEnabled(False)

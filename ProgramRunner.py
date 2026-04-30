@@ -23,7 +23,6 @@ from commands import *
 class ProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
         self.IP = uIP
-        self.SCPI_IP = RED_PITAYA_IP
         self.PROGRAM_MODE = ProgramMode.IDLE
         self.socket = None
         self.genPauseState = False
@@ -36,12 +35,9 @@ class ProgramRunner:
         self.sendEvent = None
         self.currentCommand = None
         self.lastMode = None
-        # self.stopPlotters = uSignalList[0]      
-        # self.startPlotters = uSignalList[1]
-        # self.updateProgressElements = uSignalList[2]
 
-    def setEventFunction(self, uEventHandlerFunction):
-        self.sendEvent = uEventHandlerFunction
+    def changeIP(self, uIP):
+        self.IP = uIP
 
     #   Connect to pitaya via ssh
 
@@ -96,7 +92,7 @@ class ProgramRunner:
         isConnected = False
         for _ in range(5):
             try:
-                sock = socket.create_connection((RED_PITAYA_IP, 5000))
+                sock = socket.create_connection((self.IP, 5000))
                 isConnected = True
                 break
             except ConnectionRefusedError:
@@ -359,6 +355,9 @@ class FastProgramRunner:
         self.CMDManager = CMDManager.CMDManager(self.ip)
         self.WaveCreator = WaveCreator.WaveCreator()
         self.data = [[], []]
+
+    def changeIP(self, uIP):
+        self.IP = uIP
 
     def connect(self) -> bool:
         if (self.CMDManager.connectToPitaya() is not None):
