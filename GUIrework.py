@@ -631,10 +631,7 @@ class App(QWidget):
             self.fastGUI.progressBar.setValue(20)
         else:
             self.fastGUI.errorLabel.setText(errorText)
-        
-
-
-        
+          
     def fast_clearPlot_BTN_CBCK(self):
         self.fastGUI.plotter.clearData()
 
@@ -678,7 +675,7 @@ class App(QWidget):
         self.slowGUI.stopBtn.setEnabled(False)
         self.slowGUI.lockBtn.setEnabled(False)        
         self.slowGUI.unlockBtn.setEnabled(False)
-        self.slowGUI.resetBtn.setEnabled(False)
+        #self.slowGUI.resetBtn.setEnabled(False)
         self.slowGUI.startBtn.setEnabled(True)
         self.slowGUI.setBtn.setEnabled(True)
         self.slowGUI.PRunner.changeMode(ProgramMode.GEN_STOP)
@@ -710,7 +707,9 @@ class App(QWidget):
         self.slowGUI.genPlotter.start()
 
     def slow_clearPlot_BTN_CBCK(self):
-        self.slowGUI.PRunner.clearPlot()
+        self.slowGUI.genPlotter.clearData()
+        self.slowGUI.acqPlotter.clearData()
+        self.slowGUI.PRunner.clearData()
 
     def slow_exit_BTN_CBCK(self):
         self.slowGUI.stop_runner()
@@ -820,7 +819,7 @@ class App(QWidget):
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)
-            self.slowGUI.PRunner.resetGeneratorValue()
+            #self.slowGUI.PRunner.resetGeneratorValue()
             ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
         self.slowGUI.errorLabel.setText(errorText)

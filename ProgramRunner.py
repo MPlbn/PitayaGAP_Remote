@@ -181,6 +181,13 @@ class ProgramRunner:
         self.genPauseState = False
         self.changeMode(ProgramMode.GEN_COMMAND_SEND)
 
+    def clearData(self):
+        self.lastMode = self.PROGRAM_MODE
+        self.changeMode(ProgramMode.IDLE)
+        self.AcqDataProcessor.clear()
+        self.GenDataProcessor.clear()
+
+        self.changeMode(self.lastMode)
     #   Getter for current generator pause state
 
     def getContGeneratorPauseState(self):

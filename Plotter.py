@@ -38,7 +38,7 @@ class AcqPlotter(Plotter):
             self.dataV = uDataV
             self.curve.setData(self.dataV, self.dataI)
 
-    def clear(self):
+    def clearData(self):
         self.dataI = []
         self.dataV = []
         self.curve.setData(self.dataV, self.dataI)
@@ -55,7 +55,7 @@ class GenPlotter(Plotter):
             self.dataV = uDataV
             self.curve.setData(self.dataV)
 
-    def clear(self):
+    def clearData(self):
         self.dataV = []
         self.curve.setData(self.dataV)
 

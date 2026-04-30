@@ -24,6 +24,10 @@ class DataProcessor(ABC):
     def processData(self, uNewDataBuffer):
         pass
 
+    @abstractmethod
+    def clear(self):
+        pass
+
 class GeneratorDataProcessor(DataProcessor):
     def __init__(self):
         super().__init__()
@@ -38,6 +42,9 @@ class GeneratorDataProcessor(DataProcessor):
 
     def getData(self):
         return self.dataV
+    
+    def clear(self):
+        self.dataV = []
     
 class AcquisitorDataProcessor(DataProcessor):
     def __init__(self):
@@ -60,6 +67,10 @@ class AcquisitorDataProcessor(DataProcessor):
     
     def getDataI(self):
         return self.dataI
+    
+    def clear(self):
+        self.dataV = []
+        self.dataI = []
     
 def processRatio(uRatio: str) -> float:
     numerator, denominator = map(int, uRatio.split('/'))
