@@ -326,6 +326,7 @@ class FastGUI(QWidget):
     startBtnCallback = Signal()
     clearPlotBtnCallback = Signal()
     exitBtnCallback = Signal()
+    workerFinishedCallback = Signal()
     
     def __init__(self):
         super().__init__()
@@ -412,6 +413,12 @@ class FastGUI(QWidget):
 
         # ========== PLOTS ========== # 
         self.plotter = Plotter.FAcqPlotter()
+        
+        # ======= PROGRESS BAR ====== # 
+        self.progressBar = QProgressBar()
+        self.progressBar.setRange(0, 100)
+        self.progressBar.setTextVisible(True)
+        self.progressBar.setValue(0.0)
 
         # ========== LAYOUT ASSIGNMENT ========== # 
         # GRID SETTINGS --------- .addWidget(xyz, [row], [column], [rowSpan], [columnSpan])
@@ -435,6 +442,7 @@ class FastGUI(QWidget):
         self.settingsLayout.addWidget(self.stateCH2CB,          8, 1)
         self.settingsLayout.addWidget(self.fileTypeLabel,       9, 0)
         self.settingsLayout.addWidget(self.fileTypeCB,          9, 1)
+        self.settingsLayout.addWidget(self.progressBar,         10,0, 1, 2)
 
         self.errorLayout.addWidget(self.errorLabel)
 
@@ -463,6 +471,17 @@ class FastGUI(QWidget):
 
         self.setLayout(self.mainLayout)
 
+    def run_runner(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
+        self.thread = QThread()
+        self.worker = FastRunnerWorker(self.F_PRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType)
+        self.worker.moveToThread(self.thread)
+        self.worker.finished.connect(self.workerFinishedCallback)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.worker.finished.connect(self.thread.deleteLater)
+        self.thread.started.connect(self.worker.run)
+        self.thread.start()
+
 class App(QWidget):
     def __init__(self):
         super().__init__()
@@ -490,6 +509,8 @@ class App(QWidget):
         self.fastGUI.clearPlotBtnCallback.connect(self.fast_clearPlot_BTN_CBCK)
         self.fastGUI.exitBtnCallback.connect(self.fast_exit_BTN_CBCK)
 
+        self.fastGUI.workerFinishedCallback.connect(self.fast_WORKER_FINISHED_CBCK)
+
 
         self.slowGUI.startBtnCallback.connect(self.slow_start_BTN_CBCK)
         self.slowGUI.stopBtnCallback.connect(self.slow_stop_BTN_CBCK)
@@ -502,6 +523,7 @@ class App(QWidget):
         self.slowGUI.exitBtnCallback.connect(self.slow_exit_BTN_CBCK)
         self.slowGUI.setBtnCallback.connect(self.slow_set_BTN_CBCK)
         self.slowGUI.genModeCBCallback.connect(self.slow_genMode_CB_CBCK)
+
         self.slowGUI.workerUpdateProgressCallback.connect(self.slow_WORKER_CYCLE_UPDATE_CBCK)
 
         layout = QVBoxLayout()
@@ -531,6 +553,9 @@ class App(QWidget):
     # ============ FAST GUI ============ #
     def fast_start_BTN_CBCK(self):
         self.fastGUI.startBtn.setEnabled(False)
+        self.fastGUI.clearPlotBtn.setEnabled(False)
+        self.fastGUI.progressBar.setFormat("")
+        self.fastGUI.progressBar.setValue(0)
         
         errorFlag = False
         errorText = ""
@@ -601,15 +626,14 @@ class App(QWidget):
             tempHPoint /= MV_TO_V_VALUE
             tempLPoint /= MV_TO_V_VALUE
             tempSPoint /= MV_TO_V_VALUE
-            self.fastGUI.F_PRunner.run(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
+            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
+            self.fastGUI.progressBar.setFormat("running the streaming service...") #set value and text
+            self.fastGUI.progressBar.setValue(20)
         else:
             self.fastGUI.errorLabel.setText(errorText)
         
-        data = self.fastGUI.F_PRunner.getLatestData()
 
-        self.fastGUI.plotter.updatePlot(data[0], data[1])
 
-        self.fastGUI.startBtn.setEnabled(True)
         
     def fast_clearPlot_BTN_CBCK(self):
         self.fastGUI.plotter.clearData()
@@ -622,6 +646,16 @@ class App(QWidget):
         self.isConnectedToPitaya = False
         self.stack.setCurrentIndex(WindowType.MENU)
         self.resize(1000,800) 
+
+    def fast_WORKER_FINISHED_CBCK(self):
+        data = self.fastGUI.F_PRunner.getLatestData()
+        self.fastGUI.progressBar.setFormat("Gathering data...")
+        self.fastGUI.progressBar.setValue(80)
+        self.fastGUI.plotter.updatePlot(data[0], data[1])
+        self.fastGUI.progressBar.setFormat("Done!")
+        self.fastGUI.progressBar.setValue(100)
+        self.fastGUI.startBtn.setEnabled(True)
+        self.fastGUI.clearPlotBtn.setEnabled(True)
 
     # ============ SLOW GUI ============ #
     def slow_start_BTN_CBCK(self):
@@ -853,4 +887,25 @@ class RunnerWorker(QObject):
             if(waitVal >= 0):
                 time.sleep(waitVal)
         self.finished.emit()
+
+class FastRunnerWorker(QObject):
+    finished = Signal()
+    def __init__(self, uProgramRunner: ProgramRunner.FastProgramRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
+        super().__init__()
+        self.runner = uProgramRunner
+        self.waveform = uWaveForm
+        self.hPoint = uHighPoint
+        self.lPoint = uLowPoint
+        self.sPoint = uStartPoint
+        self.freq = uFrequency
+        self.dec = uDecimation
+        self.samples = uSamples
+        self.ch1 = uCH1
+        self.ch2 = uCH2
+        self.filetype = uFileType 
+    
+    def run(self):
+        self.runner.run(self.waveform, self.hPoint, self.lPoint, self.sPoint, self.freq, self.dec, self.samples, self.ch1, self.ch2, self.filetype)
+        self.finished.emit()
+
 # =========== END MISC =========== # 
