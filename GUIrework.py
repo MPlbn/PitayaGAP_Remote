@@ -909,7 +909,7 @@ class RunnerWorker(QObject):
 
     def run(self):
         while self.running:
-            maxWait = 0.001 #1ms
+            maxWait = MAX_WAIT #1ms
             t0 = time.perf_counter()
             self.runner.run()
             self.cycleDone.emit(self.runner.Acquisitor.getGenVal())

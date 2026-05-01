@@ -41,6 +41,9 @@ class ProgramRunner:
 
     #   Connect to pitaya via ssh
 
+    def cleanOldServer(self): #TODO
+        pass
+
     def connect(self):
         if (self.CMDManager.connectToPitaya() is not None):
             return True
@@ -67,6 +70,7 @@ class ProgramRunner:
                     time.sleep(2)
         if(isConnected):
             time.sleep(1)
+            self.cleanOldServer()
             self.startCustomServer()
             self.disconnect()
             
