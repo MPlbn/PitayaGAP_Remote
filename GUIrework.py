@@ -33,6 +33,7 @@ class MenuGUI(QWidget):
         self.ipEntry.setText(RED_PITAYA_IP)
 
         self.ipLabel = QLabel("REDPITAYA IP")
+        self.errorLabel = QLabel("") #to be potentially filled
 
         self.fastBtn.clicked.connect(self.fastBtnCallback)
         self.slowBtn.clicked.connect(self.slowBtnCallback)
@@ -55,6 +56,7 @@ class MenuGUI(QWidget):
         self.buttonWidgetWrapper.setLayout(self.buttonLayout)
 
         self.mainLayout.addWidget(self.buttonWidgetWrapper)
+        self.mainLayout.addWidget(self.errorLabel)
         self.mainLayout.addWidget(self.ipWidgetWrapper)
 
         self.setLayout(self.mainLayout)
@@ -143,6 +145,7 @@ class SlowGUI(QWidget):
         self.startPointEntry = QLineEdit()
         self.maxRangeEntry = QLineEdit()
         self.numOfStepsEntry = QLineEdit()
+        self.maxWaitEntry = QLineEdit()
 
         self.stepEntry.setText(str(GEN_DEFAULT_STEP))
         self.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
@@ -150,6 +153,7 @@ class SlowGUI(QWidget):
         self.startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
         self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
+        self.maxWaitEntry.setText(str(MAX_WAIT))
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
         intExp = QRegularExpression(r"^-?\d*$")
@@ -163,6 +167,7 @@ class SlowGUI(QWidget):
         self.startPointEntry.setValidator(floatValidator)
         self.maxRangeEntry.setValidator(floatValidator)
         self.numOfStepsEntry.setValidator(intValidator)
+        self.maxWaitEntry.setValidator(floatValidator)
 
         # ========== COMBOBOXES ========== # 
         self.genModeCombobox = QComboBox()
@@ -203,7 +208,8 @@ class SlowGUI(QWidget):
         self.maxRangeLabel = QLabel("Limit value [mV]")
         self.numOfStepsLabel = QLabel("No. of steps")
         self.errorLabel = QLabel("") #to be filled during program
-        self.progressLabel = QLabel("TEMP 0.0") #to be filled during program
+        self.progressLabel = QLabel("") #to be filled during program
+        self.maxWaitLabel = QLabel("loop time [s]")
 
         self.errorLabel.setObjectName("red")
         self.progressLabel.setObjectName("blue")
@@ -270,6 +276,8 @@ class SlowGUI(QWidget):
         self.commonSettingsLayout.addWidget(self.IVRatioCombobox, 2, 1,   1, 1)
         self.commonSettingsLayout.addWidget(self.gainLabel,       3, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.gainCombobox,    3, 1,   1, 1)
+        self.commonSettingsLayout.addWidget(self.maxWaitLabel,    4, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.maxWaitEntry,    4, 1,   1, 1)
         
         #wrapping for settingsLayout
         self.stackerSettingsWidgetWrapper = QWidget()
@@ -285,8 +293,8 @@ class SlowGUI(QWidget):
         self.buttonsLayout.addWidget(self.startBtn,       0, 0,   1, 1)
         self.buttonsLayout.addWidget(self.stopBtn,        0, 1,   1, 1)
         self.buttonsLayout.addWidget(self.resetBtn,       0, 2,   1, 1)
-        self.buttonsLayout.addWidget(self.lockBtn,       1, 0,   1, 1)
-        self.buttonsLayout.addWidget(self.unlockBtn,     1, 1,   1, 1)
+        self.buttonsLayout.addWidget(self.lockBtn,        1, 0,   1, 1)
+        self.buttonsLayout.addWidget(self.unlockBtn,      1, 1,   1, 1)
         self.buttonsLayout.addWidget(self.flipBtn,        1, 2,   1, 1)
         self.buttonsLayout.addWidget(self.saveToCSVBtn,   2, 0,   1, 1)
         self.buttonsLayout.addWidget(self.clearPlotBtn,   2, 1,   1, 1)
@@ -567,8 +575,10 @@ class App(QWidget):
             self.fastGUI.F_PRunner.runStreamingServer()
             self.stack.setCurrentIndex(WindowType.FAST)
             #self.showFullScreen()
+            self.menuGUI.errorLabel.setText("")
         else:
-            print("ERROR CONNECTING TO PITAYA, TRY AGIAN...")
+            error = f"ERROR CONNECTING TO PITAYA [{self.fastGUI.F_PRunner.ip}], TRY AGIAN..."
+            self.menuGUI.errorLabel.setText(error)
 
     def menu_S_BTN_CBCK(self):
         self.isConnectedToPitaya = self.slowGUI.PRunner.startupRoutine()
@@ -576,8 +586,10 @@ class App(QWidget):
             self.stack.setCurrentIndex(WindowType.SLOW)
             #self.showFullScreen()
             self.slowGUI.start_runner()
+            self.menuGUI.errorLabel.setText("")
         else:
-            print("ERROR CONNECTING TO PITAYA AND TCP SERVER, TRY AGAIN...")
+            error = f"ERROR CONNECTING TO PITAYA [{self.slowGUI.PRunner.ip}] OR TCP SERVER, TRY AGAIN..."
+            self.menuGUI.errorLabel.setText(error)
             
     def menu_set_BTN_CBCK(self):
         self.rp_ip = self.menuGUI.ipEntry.text()
@@ -761,6 +773,16 @@ class App(QWidget):
         tempStartPoint = self.slowGUI.startPointEntry.text()
         tempIVratio = self.slowGUI.IVRatioCombobox.currentText()
         tempGain = self.slowGUI.gainCombobox.currentText()
+        tempMaxWait = self.slowGUI.maxWaitEntry.text()
+
+        if(tempMaxWait == ""):
+            tempMaxWait = MAX_WAIT
+            self.slowGUI.maxWaitEntry.setText(str(MAX_WAIT))
+        else:
+            tempMaxWait = float(tempMaxWait)
+        if(tempMaxWait > 1 or tempMaxWait < 0.001):
+            errorFlag = True
+            errorText += f'Invalid field: Max wait: max wait is out of range. The value must be between {0.001} and {1}\n'
 
         if(tempStep == ""):
             tempStep = GEN_DEFAULT_STEP
@@ -770,7 +792,7 @@ class App(QWidget):
         if(tempStep > GEN_MAX_STEP or tempStep < 0):
             errorFlag = True
             errorText += f'Invalid field: Step: step value is out of range. The value must be between {0} and {GEN_MAX_STEP}\n'
-        #common settings
+
         if(tempStartPoint == ""):
             tempStartPoint = GEN_DEFAULT_VOLTAGE
             self.slowGUI.stepEntry.setText(str(GEN_DEFAULT_VOLTAGE))
@@ -855,6 +877,7 @@ class App(QWidget):
             #self.slowGUI.PRunner.resetGeneratorValue()
             ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
+            self.slowGUI.worker.setMaxWait(tempMaxWait)
         self.slowGUI.errorLabel.setText(errorText)
                     
     def slow_genMode_CB_CBCK(self):
@@ -900,6 +923,7 @@ class RunnerWorker(QObject):
         super().__init__()
         self.runner = uProgramRuner
         self.running = False
+        self.maxWait = MAX_WAIT
 
     def stop(self):
         self.running = False
@@ -907,15 +931,17 @@ class RunnerWorker(QObject):
     def start(self):
         self.running = True
 
+    def setMaxWait(self, uMaxWait):
+        self.maxWait = uMaxWait
+
     def run(self):
         while self.running:
-            maxWait = MAX_WAIT #1ms
             t0 = time.perf_counter()
             self.runner.run()
             self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
             t1 = time.perf_counter()
             delta = t1 - t0
-            waitVal = maxWait - delta
+            waitVal = self.maxWait - delta
             if(waitVal >= 0):
                 time.sleep(waitVal)
         self.finished.emit()

@@ -22,7 +22,7 @@ from commands import *
 
 class ProgramRunner:
     def __init__(self, uIP = RED_PITAYA_IP):
-        self.IP = uIP
+        self.ip = uIP
         self.PROGRAM_MODE = ProgramMode.IDLE
         self.socket = None
         self.genPauseState = False
@@ -31,13 +31,13 @@ class ProgramRunner:
         self.AcqDataProcessor = DataProcessor.AcquisitorDataProcessor()
         self.GenDataProcessor = DataProcessor.GeneratorDataProcessor()
         self.CSVFileManager = FileManager.CSVFileManager()
-        self.CMDManager = CMDManager.CMDManager(self.IP)
+        self.CMDManager = CMDManager.CMDManager(self.ip)
         self.sendEvent = None
         self.currentCommand = None
         self.lastMode = None
 
     def changeIP(self, uIP):
-        self.IP = uIP
+        self.ip = uIP
 
     #   Connect to pitaya via ssh
 
@@ -62,7 +62,7 @@ class ProgramRunner:
         if(not isConnected):
             print('Error, cannot connect...')
             for i in range(0,10):
-                print(f' [{i}]Trying to connect to {self.IP} ...')
+                print(f' [{i}]Trying to connect to {self.ip} ...')
                 isConnected = self.connect()
                 if(isConnected):
                     break
@@ -96,7 +96,7 @@ class ProgramRunner:
         isConnected = False
         for _ in range(5):
             try:
-                sock = socket.create_connection((self.IP, 5000))
+                sock = socket.create_connection((self.ip, 5000))
                 isConnected = True
                 break
             except ConnectionRefusedError:
@@ -361,7 +361,7 @@ class FastProgramRunner:
         self.data = [[], []]
 
     def changeIP(self, uIP):
-        self.IP = uIP
+        self.ip = uIP
 
     def connect(self) -> bool:
         if (self.CMDManager.connectToPitaya() is not None):
