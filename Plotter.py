@@ -28,20 +28,32 @@ class AcqPlotter(Plotter):
     def __init__(self):
         super().__init__()
         self.setTitle("I/V")
+        self.gridEnabled = False
         self.dataI = []
         self.dataV = []
-        self.curve = self.plot(self.dataV, self.dataI, pen="y")
+        self.curve = self.plot(self.dataV, self.dataI, pen = 'y')
+        self.marker = PGraph.ScatterPlotItem(size = 10, brush = 'r')
+        self.addItem(self.marker)
 
-    def updatePlot(self, uDataV, uDataI):
+    def updateData(self, uDataV, uDataI):
         if(self.isRunning):
             self.dataI = uDataI
             self.dataV = uDataV
             self.curve.setData(self.dataV, self.dataI)
 
+            self.marker.setData(self.dataV[-1], self.dataI[-1])
+
     def clearData(self):
         self.dataI = []
         self.dataV = []
         self.curve.setData(self.dataV, self.dataI)
+
+    def changeGridShow(self):
+        if(self.gridEnabled):
+            self.gridEnabled = False
+        else:
+            self.gridEnabled = True
+        self.getPlotItem().showGrid(x = self.gridEnabled, y = self.gridEnabled)
 
 class GenPlotter(Plotter):
     def __init__(self):
@@ -50,7 +62,7 @@ class GenPlotter(Plotter):
         self.dataV = []
         self.curve = self.plot(self.dataV, pen="y")
 
-    def updatePlot(self, uDataV):
+    def updateData(self, uDataV):
         if(self.isRunning):
             self.dataV = uDataV
             self.curve.setData(self.dataV)

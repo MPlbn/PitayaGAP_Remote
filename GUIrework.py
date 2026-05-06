@@ -73,6 +73,7 @@ class SlowGUI(QWidget):
     clearPlotBtnCallback = Signal()
     exitBtnCallback = Signal()
     setBtnCallback = Signal()
+    gridBtnCallback = Signal()
 
     # ========== COMBOBOX CALLBACKS ========== #
     genModeCBCallback = Signal()
@@ -97,6 +98,7 @@ class SlowGUI(QWidget):
         self.plotLayout = QVBoxLayout()
         self.genPlotLayout = QVBoxLayout()
         self.errorLayout = QVBoxLayout()
+        self.gatheredLayout = QVBoxLayout()
 
         # ========== BUTTONS ========== #    
         self.startBtn = QPushButton("START")
@@ -109,11 +111,13 @@ class SlowGUI(QWidget):
         self.clearPlotBtn = QPushButton("CLEAR PLOT")
         self.exitBtn = QPushButton("EXIT")
         self.setBtn = QPushButton("SET")
+        self.gridBtn = QPushButton("GRID")
 
         self.startBtn.setObjectName("green")
         self.stopBtn.setObjectName("red")
         self.exitBtn.setObjectName("red")
         self.setBtn.setObjectName("smallClassic")
+        self.gridBtn.setObjectName("smallClassic")
 
         self.startBtn.clicked.connect(self.startBtnCallback)
         self.stopBtn.clicked.connect(self.stopBtnCallback)
@@ -125,6 +129,7 @@ class SlowGUI(QWidget):
         self.clearPlotBtn.clicked.connect(self.clearPlotBtnCallback)
         self.exitBtn.clicked.connect(self.exitBtnCallback)
         self.setBtn.clicked.connect(self.setBtnCallback)
+        self.gridBtn.clicked.connect(self.gridBtnCallback)
 
 
         self.startBtn.setEnabled(True)
@@ -137,6 +142,7 @@ class SlowGUI(QWidget):
         self.clearPlotBtn.setEnabled(False)
         self.exitBtn.setEnabled(True)
         self.setBtn.setEnabled(True)
+        self.gridBtn.setEnabled(True)
 
         # ========== ENTRIES ========== # 
         self.stepEntry = QLineEdit()
@@ -210,12 +216,18 @@ class SlowGUI(QWidget):
         self.errorLabel = QLabel("") #to be filled during program
         self.progressLabel = QLabel("") #to be filled during program
         self.maxWaitLabel = QLabel("loop time [s]")
+        self.gatheredILabel = QLabel("I: ") # to be filled during program 
+        self.gatheredVLabel = QLabel("V: ") # to be filled during program
 
         self.errorLabel.setObjectName("red")
         self.progressLabel.setObjectName("blue")
+        self.gatheredILabel.setObjectName("blue")
+        self.gatheredVLabel.setObjectName("blue")
 
         self.errorLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.progressLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.gatheredILabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.gatheredVLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # ========== LAYOUT ASSIGNMENT ========== # 
         # mainLayout = QGridLayout()                DONE 
@@ -304,10 +316,14 @@ class SlowGUI(QWidget):
         self.progressLayout.addWidget(self.progressBar)
 
         self.plotLayout.addWidget(self.acqPlotter)
+        self.plotLayout.addWidget(self.gridBtn)
 
         self.genPlotLayout.addWidget(self.genPlotter)
 
         self.errorLayout.addWidget(self.errorLabel)
+
+        self.gatheredLayout.addWidget(self.gatheredILabel)
+        self.gatheredLayout.addWidget(self.gatheredVLabel)
 
         #wrapping for mainLayout
         self.settingsWidgetWrapper = QWidget()
@@ -316,12 +332,14 @@ class SlowGUI(QWidget):
         self.plotWidgetWrapper = QWidget()
         self.genPlotWidgetWrapper = QWidget()
         self.errorWidgetWrapper = QWidget()
+        self.gatheredWidgetWrapper = QWidget()
         self.settingsWidgetWrapper.setLayout(self.settingsLayout)
         self.buttonsWidgetWrapper.setLayout(self.buttonsLayout)
         self.progressWidgetWrapper.setLayout(self.progressLayout)
         self.plotWidgetWrapper.setLayout(self.plotLayout)
         self.genPlotWidgetWrapper.setLayout(self.genPlotLayout)
         self.errorWidgetWrapper.setLayout(self.errorLayout)
+        self.gatheredWidgetWrapper.setLayout(self.gatheredLayout)
 
         self.mainLayout.addWidget(self.settingsWidgetWrapper, 0, 0,   5, 2) #1
         self.mainLayout.addWidget(self.progressWidgetWrapper, 5, 0,   1, 3) #7
@@ -329,6 +347,7 @@ class SlowGUI(QWidget):
         self.mainLayout.addWidget(self.errorWidgetWrapper,    6, 3,   2, 2)
         self.mainLayout.addWidget(self.plotWidgetWrapper,     0, 5,   6, 5)
         self.mainLayout.addWidget(self.buttonsWidgetWrapper,  6, 5,   2, 5)
+        #self.mainLayout.addWidget(self.gatheredWidgetWrapper, x, x    x, x) TODO
 
         for i in range(9):
             self.mainLayout.setRowStretch(i, 1)
@@ -559,6 +578,7 @@ class App(QWidget):
         self.slowGUI.clearPlotBtnCallback.connect(self.slow_clearPlot_BTN_CBCK)
         self.slowGUI.exitBtnCallback.connect(self.slow_exit_BTN_CBCK)
         self.slowGUI.setBtnCallback.connect(self.slow_set_BTN_CBCK)
+        self.slowGUI.gridBtnCallback.connect(self.slow_grid_BTN_CBCK)
         self.slowGUI.genModeCBCallback.connect(self.slow_genMode_CB_CBCK)
 
         self.slowGUI.workerUpdateProgressCallback.connect(self.slow_WORKER_CYCLE_UPDATE_CBCK)
@@ -879,7 +899,10 @@ class App(QWidget):
             self.slowGUI.acqPlotter.setRatio(ratio)
             self.slowGUI.worker.setMaxWait(tempMaxWait)
         self.slowGUI.errorLabel.setText(errorText)
-                    
+
+    def slow_grid_BTN_CBCK(self):
+        self.slowGUI.acqPlotter.changeGridShow()
+
     def slow_genMode_CB_CBCK(self):
         currentIndex = self.slowGUI.genModeCombobox.currentIndex()
         self.slowGUI.stackerSettingsLayout.setCurrentIndex(currentIndex)       
@@ -895,9 +918,12 @@ class App(QWidget):
     def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
         self.slowGUI.progressBar.setValue(int(uVoltage*1000))
         self.slowGUI.progressLabel.setText(f'{uVoltage*1000:.1f} mV')
-        self.slowGUI.acqPlotter.updatePlot(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
+        self.slowGUI.gatheredVLabel.setText(f'V: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataV()} mV')
+        self.slowGUI.gatheredILabel.setText(f'I: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataI()} mA')
+        self.slowGUI.acqPlotter.updateData(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
                                            self.slowGUI.PRunner.AcqDataProcessor.getDataI())
-        self.slowGUI.genPlotter.updatePlot(self.slowGUI.PRunner.GenDataProcessor.getData())
+        self.slowGUI.genPlotter.updateData(self.slowGUI.PRunner.GenDataProcessor.getData())
+        #maybe change plotters to append new stuff instead of taking whole data
         
     
     # ======================= End Callbacks ======================= #

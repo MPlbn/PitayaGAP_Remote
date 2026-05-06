@@ -68,6 +68,12 @@ class AcquisitorDataProcessor(DataProcessor):
     def getDataI(self):
         return self.dataI
     
+    def getLatestDataV(self):
+        return self.dataV[-1]
+
+    def getLatestDataI(self):
+        return self.dataI[-1]
+    
     def clear(self):
         self.dataV = []
         self.dataI = []
