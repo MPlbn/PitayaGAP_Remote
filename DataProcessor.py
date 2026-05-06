@@ -53,13 +53,17 @@ class AcquisitorDataProcessor(DataProcessor):
         self.dataI = []
         self.setDataLimit(MAX_DATA_SIZE)
         self.setSampleSize(ACQ_SAMPLE_SIZE)
+        self.resistance = DEFAULT_RESISTANCE
 
     def processData(self, uNewDataBuffer):
+        #add resistance calculations to I buffer I = U/R
         if(len(self.dataV) >= self.dataLimit):
             self.dataV = self.dataV[self.sampleSize:]
         self.dataV = np.append(self.dataV, uNewDataBuffer[0]*MV_TO_V_VALUE)
         if(len(self.dataI) >= self.dataLimit):
             self.dataI = self.dataI[self.sampleSize:]
+        for data in self.dataI:
+            data /= self.resistance
         self.dataI = np.append(self.dataI, uNewDataBuffer[1]*MV_TO_V_VALUE)
 
     def getDataV(self):
@@ -78,6 +82,9 @@ class AcquisitorDataProcessor(DataProcessor):
         self.dataV = []
         self.dataI = []
     
+    def setResistance(self, uResistance:float):
+        self.resistance = uResistance
+
 def processRatio(uRatio: str) -> float:
     numerator, denominator = map(int, uRatio.split('/'))
     result: float = numerator/denominator 

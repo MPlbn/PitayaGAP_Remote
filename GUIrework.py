@@ -152,6 +152,7 @@ class SlowGUI(QWidget):
         self.maxRangeEntry = QLineEdit()
         self.numOfStepsEntry = QLineEdit()
         self.maxWaitEntry = QLineEdit()
+        self.resistanceEntry = QLineEdit()
 
         self.stepEntry.setText(str(GEN_DEFAULT_STEP))
         self.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
@@ -160,6 +161,7 @@ class SlowGUI(QWidget):
         self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
         self.maxWaitEntry.setText(str(MAX_WAIT))
+        self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
         intExp = QRegularExpression(r"^-?\d*$")
@@ -174,6 +176,7 @@ class SlowGUI(QWidget):
         self.maxRangeEntry.setValidator(floatValidator)
         self.numOfStepsEntry.setValidator(intValidator)
         self.maxWaitEntry.setValidator(floatValidator)
+        self.resistanceEntry.setValidator(floatValidator)
 
         # ========== COMBOBOXES ========== # 
         self.genModeCombobox = QComboBox()
@@ -218,6 +221,7 @@ class SlowGUI(QWidget):
         self.maxWaitLabel = QLabel("loop time [s]")
         self.gatheredILabel = QLabel("I: ") # to be filled during program 
         self.gatheredVLabel = QLabel("V: ") # to be filled during program
+        self.resistanceEntry = QLabel("Resistance [ohm]")
 
         self.errorLabel.setObjectName("red")
         self.progressLabel.setObjectName("blue")
@@ -290,7 +294,9 @@ class SlowGUI(QWidget):
         self.commonSettingsLayout.addWidget(self.gainCombobox,    3, 1,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitLabel,    4, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitEntry,    4, 1,   1, 1)
-        
+        self.commonSettingsLayout.addWidget(self.reisistanceLabel,5, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.resistanceEntry, 5, 1,   1, 1)
+
         #wrapping for settingsLayout
         self.stackerSettingsWidgetWrapper = QWidget()
         self.commonSettingsWidgetWrapper = QWidget()
@@ -794,6 +800,16 @@ class App(QWidget):
         tempIVratio = self.slowGUI.IVRatioCombobox.currentText()
         tempGain = self.slowGUI.gainCombobox.currentText()
         tempMaxWait = self.slowGUI.maxWaitEntry.text()
+        #TODO ADD RESISTANCE 
+
+        if(tempResistance == ""):
+            tempResistance = DEFAULT_RESISTANCE
+            self.slowGUI.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        else:
+            tempResistance = float(tempResistance)
+        if(tempResistance < 0):
+            errorFlag = True
+            errorText += f'Invalid field: Resistance: value cannot be lower than {0.0}\n'
 
         if(tempMaxWait == ""):
             tempMaxWait = MAX_WAIT
@@ -898,6 +914,7 @@ class App(QWidget):
             ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
             self.slowGUI.worker.setMaxWait(tempMaxWait)
+            self.slowGUI.PRunner.AcqDataProcessor.setResistance(tempResistance)
         self.slowGUI.errorLabel.setText(errorText)
 
     def slow_grid_BTN_CBCK(self):
