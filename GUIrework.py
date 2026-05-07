@@ -933,6 +933,7 @@ class App(QWidget):
             self.slowGUI.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
     def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
+        self.slowGUI.worker.lockPR()
         self.slowGUI.progressBar.setValue(int(uVoltage*1000))
         self.slowGUI.progressLabel.setText(f'{uVoltage*1000:.1f} mV')
         self.slowGUI.gatheredVLabel.setText(f'V: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataV()} mV')
@@ -940,6 +941,7 @@ class App(QWidget):
         self.slowGUI.acqPlotter.updateData(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
                                            self.slowGUI.PRunner.AcqDataProcessor.getDataI())
         self.slowGUI.genPlotter.updateData(self.slowGUI.PRunner.GenDataProcessor.getData())
+        self.slowGUI.worker.unlockPR()
         #maybe change plotters to append new stuff instead of taking whole data
         
     
@@ -967,6 +969,7 @@ class RunnerWorker(QObject):
         self.runner = uProgramRuner
         self.running = False
         self.maxWait = MAX_WAIT
+        self.isLocked = False
 
     def stop(self):
         self.running = False
@@ -979,15 +982,22 @@ class RunnerWorker(QObject):
 
     def run(self):
         while self.running:
-            t0 = time.perf_counter()
-            self.runner.run()
-            self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
-            t1 = time.perf_counter()
-            delta = t1 - t0
-            waitVal = self.maxWait - delta
-            if(waitVal >= 0):
-                time.sleep(waitVal)
+            if(not self.isLocked):
+                t0 = time.perf_counter()
+                self.runner.run()
+                self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
+                t1 = time.perf_counter()
+                delta = t1 - t0
+                waitVal = self.maxWait - delta
+                if(waitVal >= 0):
+                    time.sleep(waitVal)
         self.finished.emit()
+    
+    def lockPR(self):
+        self.isLocked = True
+
+    def unlockPR(self):
+        self.isLocked = False
 
 class FastRunnerWorker(QObject):
     finished = Signal()
