@@ -7,7 +7,6 @@ class ProgramMode(Enum):
     GEN_STOP = auto()
     PRE_WORK_ROUTINE = auto()
     GEN_WORK_ROUTINE = auto()
-    CSV_WORK_ROUTINE = auto()
     GEN_COMMAND_SEND = auto()
     EXIT = auto()
 
@@ -29,7 +28,7 @@ class EventType(IntEnum):
     UPDATE_PROGRESS = 2
 
 FIRST_MODE: int = 1
-LAST_MODE: int = 8
+LAST_MODE: int = 7
 
 RED_PITAYA_IP = '169.254.49.194' #rp-f0ba38.local'
 PROC_NAME = 'rpsa_client' #add .exe for windows

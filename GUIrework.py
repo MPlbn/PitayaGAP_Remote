@@ -69,7 +69,6 @@ class SlowGUI(QWidget):
     lockBtnCallback = Signal()
     unlockBtnCallback = Signal()
     flipBtnCallback = Signal()
-    saveToCSVBtnCallback = Signal()
     clearPlotBtnCallback = Signal()
     exitBtnCallback = Signal()
     setBtnCallback = Signal()
@@ -107,7 +106,6 @@ class SlowGUI(QWidget):
         self.lockBtn = QPushButton("LOCK")
         self.unlockBtn = QPushButton("UNLOCK")
         self.flipBtn = QPushButton("FLIP")
-        self.saveToCSVBtn = QPushButton("SAVE TO CSV")
         self.clearPlotBtn = QPushButton("CLEAR PLOT")
         self.exitBtn = QPushButton("EXIT")
         self.setBtn = QPushButton("SET")
@@ -125,7 +123,6 @@ class SlowGUI(QWidget):
         self.lockBtn.clicked.connect(self.lockBtnCallback)
         self.unlockBtn.clicked.connect(self.unlockBtnCallback)
         self.flipBtn.clicked.connect(self.flipBtnCallback)
-        self.saveToCSVBtn.clicked.connect(self.saveToCSVBtnCallback)
         self.clearPlotBtn.clicked.connect(self.clearPlotBtnCallback)
         self.exitBtn.clicked.connect(self.exitBtnCallback)
         self.setBtn.clicked.connect(self.setBtnCallback)
@@ -138,7 +135,6 @@ class SlowGUI(QWidget):
         self.lockBtn.setEnabled(False)
         self.unlockBtn.setEnabled(False)
         self.flipBtn.setEnabled(False)
-        self.saveToCSVBtn.setEnabled(False)
         self.clearPlotBtn.setEnabled(False)
         self.exitBtn.setEnabled(True)
         self.setBtn.setEnabled(True)
@@ -314,7 +310,6 @@ class SlowGUI(QWidget):
         self.buttonsLayout.addWidget(self.lockBtn,        1, 0,   1, 1)
         self.buttonsLayout.addWidget(self.unlockBtn,      1, 1,   1, 1)
         self.buttonsLayout.addWidget(self.flipBtn,        1, 2,   1, 1)
-        self.buttonsLayout.addWidget(self.saveToCSVBtn,   2, 0,   1, 1)
         self.buttonsLayout.addWidget(self.clearPlotBtn,   2, 1,   1, 1)
         self.buttonsLayout.addWidget(self.exitBtn,        2, 2,   1, 1)
 
@@ -580,7 +575,6 @@ class App(QWidget):
         self.slowGUI.lockBtnCallback.connect(self.slow_lock_BTN_CBCK)
         self.slowGUI.unlockBtnCallback.connect(self.slow_unlock_BTN_CBCK)
         self.slowGUI.flipBtnCallback.connect(self.slow_flip_BTN_CBCK)
-        self.slowGUI.saveToCSVBtnCallback.connect(self.slow_saveToCSV_BTN_CBCK)
         self.slowGUI.clearPlotBtnCallback.connect(self.slow_clearPlot_BTN_CBCK)
         self.slowGUI.exitBtnCallback.connect(self.slow_exit_BTN_CBCK)
         self.slowGUI.setBtnCallback.connect(self.slow_set_BTN_CBCK)
@@ -733,7 +727,6 @@ class App(QWidget):
         self.slowGUI.resetBtn.setEnabled(True)
         self.slowGUI.lockBtn.setEnabled(True)
         self.slowGUI.flipBtn.setEnabled(True)
-        self.slowGUI.saveToCSVBtn.setEnabled(True)
         self.slowGUI.clearPlotBtn.setEnabled(True)
         self.slowGUI.exitBtn.setEnabled(True)
         genMode = self.slowGUI.genModeCombobox.currentIndex()
@@ -769,13 +762,6 @@ class App(QWidget):
 
     def slow_flip_BTN_CBCK(self):
         self.slowGUI.PRunner.flipGenStep()
-
-    def slow_saveToCSV_BTN_CBCK(self):
-        self.slowGUI.acqPlotter.stop()
-        self.slowGUI.genPlotter.stop()
-        self.slowGUI.PRunner.startSaveProcess()
-        self.slowGUI.acqPlotter.start()
-        self.slowGUI.genPlotter.start()
 
     def slow_clearPlot_BTN_CBCK(self):
         self.slowGUI.genPlotter.clearData()

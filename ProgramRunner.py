@@ -214,17 +214,6 @@ class ProgramRunner:
 
     # Change program mode to correctly run the CSV file saving
 
-    def startSaveProcess(self):
-            self.lastMode = self.PROGRAM_MODE
-            self.changeMode(ProgramMode.CSV_WORK_ROUTINE)
-
-    #   Save data to CSV file
-    #   dataI: np.array() - Filled with value of the current
-    #   dataV: np.array() - Filled with value of the voltages
-
-    def saveDataToCSV(self, dataI = [], dataV = []):
-        self.CSVFileManager.saveToFile(uVData=dataV, uIData=dataI)
-
     #   Resets the current voltage value to the set starting voltage value
 
     def resetGeneratorValue(self):
@@ -291,7 +280,6 @@ class ProgramRunner:
                     self.CSVFileManager.createFile()
                 self.csvRowsCount += 1
                 self.CSVFileManager.addToFile(self.AcqDataProcessor.getLatestDataV(), self.AcqDataProcessor.getLatestDataI())
-                    
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE: 
@@ -307,15 +295,6 @@ class ProgramRunner:
                     self.CSVFileManager.createFile()
                 self.csvRowsCount += 1
                 self.CSVFileManager.addToFile(self.AcqDataProcessor.getLatestDataV(), self.AcqDataProcessor.getLatestDataI())
-           
-            case ProgramMode.CSV_WORK_ROUTINE:
-                self.stopGen(StopType.STOP_KEEP) 
-                self.Acquisitor.stop()
-                self.CSVFileManager.createFile()
-                self.saveDataToCSV(dataV=self.AcqDataProcessor.getDataV(), dataI=self.AcqDataProcessor.getDataI())
-                self.startGenerator()
-                self.Acquisitor.start()
-                self.changeMode(self.lastMode)
 
             case ProgramMode.GEN_COMMAND_SEND:
                 CMDManager.executeTCPCommand(self.socket, self.currentCommand)
