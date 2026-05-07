@@ -221,7 +221,7 @@ class SlowGUI(QWidget):
         self.maxWaitLabel = QLabel("loop time [s]")
         self.gatheredILabel = QLabel("I: ") # to be filled during program 
         self.gatheredVLabel = QLabel("V: ") # to be filled during program
-        self.resistanceEntry = QLabel("Resistance [ohm]")
+        self.resistanceLabel = QLabel("Resistance [ohm]")
 
         self.errorLabel.setObjectName("red")
         self.progressLabel.setObjectName("blue")
@@ -294,7 +294,7 @@ class SlowGUI(QWidget):
         self.commonSettingsLayout.addWidget(self.gainCombobox,    3, 1,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitLabel,    4, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitEntry,    4, 1,   1, 1)
-        self.commonSettingsLayout.addWidget(self.reisistanceLabel,5, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.resistanceLabel,5, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.resistanceEntry, 5, 1,   1, 1)
 
         #wrapping for settingsLayout
@@ -353,7 +353,7 @@ class SlowGUI(QWidget):
         self.mainLayout.addWidget(self.errorWidgetWrapper,    6, 3,   2, 2)
         self.mainLayout.addWidget(self.plotWidgetWrapper,     0, 5,   6, 5)
         self.mainLayout.addWidget(self.buttonsWidgetWrapper,  6, 5,   2, 5)
-        #self.mainLayout.addWidget(self.gatheredWidgetWrapper, x, x    x, x) TODO
+        self.mainLayout.addWidget(self.gatheredWidgetWrapper, 0, 3,   2, 2) 
 
         for i in range(9):
             self.mainLayout.setRowStretch(i, 1)
@@ -800,7 +800,7 @@ class App(QWidget):
         tempIVratio = self.slowGUI.IVRatioCombobox.currentText()
         tempGain = self.slowGUI.gainCombobox.currentText()
         tempMaxWait = self.slowGUI.maxWaitEntry.text()
-        #TODO ADD RESISTANCE 
+        tempResistance = self.slowGUI.resistanceEntry.text()
 
         if(tempResistance == ""):
             tempResistance = DEFAULT_RESISTANCE
@@ -904,7 +904,7 @@ class App(QWidget):
                     errorText += f'Invalid field: Starting Point Value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE} and cannot go beyond Max range\n'
                 if(not errorFlag):
                     self.slowGUI.PRunner.setSteppingGeneratorParameters(tempMaxRange/MV_TO_V_VALUE,
-                                                                tempStartPoint/MV_TO_V_VALUE, #Maybe different base and startPoint? TODO
+                                                                tempStartPoint/MV_TO_V_VALUE, 
                                                                 tempStep/MV_TO_V_VALUE,
                                                                 tempNumOfSteps,
                                                                 tempStartPoint/MV_TO_V_VALUE)

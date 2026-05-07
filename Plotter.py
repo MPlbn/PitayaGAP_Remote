@@ -41,7 +41,8 @@ class AcqPlotter(Plotter):
             self.dataV = uDataV
             self.curve.setData(self.dataV, self.dataI)
 
-            self.marker.setData(self.dataV[-1], self.dataI[-1])
+            if(len(self.dataV) > 0 and len(self.dataI) > 0):
+                self.marker.setData([self.dataV[-1]], [self.dataI[-1]])
 
     def clearData(self):
         self.dataI = []

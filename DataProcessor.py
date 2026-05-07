@@ -49,21 +49,23 @@ class GeneratorDataProcessor(DataProcessor):
 class AcquisitorDataProcessor(DataProcessor):
     def __init__(self):
         super().__init__()
-        self.dataV = []
-        self.dataI = []
+        self.dataV = np.array([])
+        self.dataI = np.array([])
         self.setDataLimit(MAX_DATA_SIZE)
         self.setSampleSize(ACQ_SAMPLE_SIZE)
         self.resistance = DEFAULT_RESISTANCE
+        self.CdataV = np.array([])
+        self.CdataI = np.array([])
+        self.isLocked = False
 
     def processData(self, uNewDataBuffer):
-        #add resistance calculations to I buffer I = U/R
         if(len(self.dataV) >= self.dataLimit):
             self.dataV = self.dataV[self.sampleSize:]
         self.dataV = np.append(self.dataV, uNewDataBuffer[0]*MV_TO_V_VALUE)
         if(len(self.dataI) >= self.dataLimit):
             self.dataI = self.dataI[self.sampleSize:]
-        for data in self.dataI:
-            data /= self.resistance
+        if(self.resistance > 0.0):
+            uNewDataBuffer[1] /= self.resistance
         self.dataI = np.append(self.dataI, uNewDataBuffer[1]*MV_TO_V_VALUE)
 
     def getDataV(self):
@@ -73,10 +75,16 @@ class AcquisitorDataProcessor(DataProcessor):
         return self.dataI
     
     def getLatestDataV(self):
-        return self.dataV[-1]
+        if(self.dataV.size > 0):
+            return self.dataV[-1]
+        return [0.0]
+            
+            
 
     def getLatestDataI(self):
-        return self.dataI[-1]
+        if(self.dataI.size > 0):
+            return self.dataI[-1]
+        return [0.0]
     
     def clear(self):
         self.dataV = []

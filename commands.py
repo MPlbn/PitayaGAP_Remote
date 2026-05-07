@@ -46,6 +46,7 @@ def CMD_START_STREAMING_ADC():
 
 CMD_LIST_PROCESS = "pgrep -af streaming-server"
 CMD_LIST_PROCESS_SCPI = "pgrep -af scpi-server"
+CMD_LIST_PROCESS_CUSTOM = "pgrep -af custom_server"
 
 
 SETUP_COMMAND = b'A'

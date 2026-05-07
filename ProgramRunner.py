@@ -41,8 +41,13 @@ class ProgramRunner:
 
     #   Connect to pitaya via ssh
 
-    def cleanOldServer(self): #TODO
-        pass
+    def cleanOldServer(self):
+        #kill the process on pitaya
+        self.CMDManager.executeCommand(CMD_LIST_PROCESS_CUSTOM)
+        output = self.CMDManager.getOutput()
+        pids = [int(line.split()[0]) for line in output.strip().splitlines()]
+        for pid in pids:
+            self.CMDManager.executeCommand(f'{CMD_STOP_PROCESS}+{pid}')
 
     def connect(self):
         if (self.CMDManager.connectToPitaya() is not None):
@@ -100,6 +105,7 @@ class ProgramRunner:
                 isConnected = True
                 break
             except ConnectionRefusedError:
+                self.cleanOldServer()
                 time.sleep(0.5)
 
         if(isConnected):
