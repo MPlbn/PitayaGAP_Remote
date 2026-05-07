@@ -15,8 +15,8 @@ QPushButton {
 QPushButton#smallClassic {
     min-height: 40px;
     max-height: 40px;
-    min-width: 100px;
-    max-width: 150px;
+    min-width: 70px;
+    max-width: 100px;
 }
 
 QPushButton#green {

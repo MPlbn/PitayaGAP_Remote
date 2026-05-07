@@ -155,6 +155,7 @@ class ProgramRunner:
             print("error: setContGeneratorParameters: ready state")
             return
         CMDManager.sendTCPGenMode(self.socket, GenModeGUI.STEP)
+        #here add to send the stepping number, then send steppings TODO
         CMDManager.sendTCPCGenStepSetupValues(self.socket, uBase, uLimit, uStep, uNumOfSteps)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: setSteppingGeneratorParameters: sendValues ready state")

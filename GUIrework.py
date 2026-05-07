@@ -2,7 +2,7 @@ import sys
 import time
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout,
-                                QSizePolicy )
+                                QSizePolicy, QListWidget )
 from PySide6.QtCore import Signal, Qt, QObject, QThread, QRegularExpression
 from PySide6.QtGui import QRegularExpressionValidator
 #Custom modules
@@ -73,6 +73,8 @@ class SlowGUI(QWidget):
     exitBtnCallback = Signal()
     setBtnCallback = Signal()
     gridBtnCallback = Signal()
+    stepAddBtnCallback = Signal()
+    stepClearBtnCallback = Signal()
 
     # ========== COMBOBOX CALLBACKS ========== #
     genModeCBCallback = Signal()
@@ -82,6 +84,8 @@ class SlowGUI(QWidget):
 
     def __init__(self, uIP):
         super().__init__()
+        # ========== STEPPING POINTS ========= #
+        self.steppingPoints = []
         # ========== PROGRAM RUNNER ========== #
         self.PRunner = ProgramRunner.ProgramRunner(uIP)
 
@@ -98,6 +102,7 @@ class SlowGUI(QWidget):
         self.genPlotLayout = QVBoxLayout()
         self.errorLayout = QVBoxLayout()
         self.gatheredLayout = QVBoxLayout()
+        self.stepBtnLayout = QHBoxLayout()
 
         # ========== BUTTONS ========== #    
         self.startBtn = QPushButton("START")
@@ -110,12 +115,16 @@ class SlowGUI(QWidget):
         self.exitBtn = QPushButton("EXIT")
         self.setBtn = QPushButton("SET")
         self.gridBtn = QPushButton("GRID")
+        self.stepAddBtn = QPushButton("ADD")
+        self.stepClearBtn = QPushButton("CLEAR")
 
         self.startBtn.setObjectName("green")
         self.stopBtn.setObjectName("red")
         self.exitBtn.setObjectName("red")
         self.setBtn.setObjectName("smallClassic")
         self.gridBtn.setObjectName("smallClassic")
+        self.stepAddBtn.setObjectName("smallClassic")
+        self.stepClearBtn.setObjectName("smallClassic")
 
         self.startBtn.clicked.connect(self.startBtnCallback)
         self.stopBtn.clicked.connect(self.stopBtnCallback)
@@ -127,6 +136,8 @@ class SlowGUI(QWidget):
         self.exitBtn.clicked.connect(self.exitBtnCallback)
         self.setBtn.clicked.connect(self.setBtnCallback)
         self.gridBtn.clicked.connect(self.gridBtnCallback)
+        self.stepAddBtn.clicked.connect(self.stepAddBtnCallback)
+        self.stepClearBtn.clicked.connect(self.stepClearBtnCallback)
 
 
         self.startBtn.setEnabled(True)
@@ -146,18 +157,18 @@ class SlowGUI(QWidget):
         self.lRangeEntry = QLineEdit()
         self.startPointEntry = QLineEdit()
         self.maxRangeEntry = QLineEdit()
-        self.numOfStepsEntry = QLineEdit()
         self.maxWaitEntry = QLineEdit()
         self.resistanceEntry = QLineEdit()
+        self.steppingPointEntry = QLineEdit()
 
         self.stepEntry.setText(str(GEN_DEFAULT_STEP))
         self.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
         self.startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
-        self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
-        self.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
+        self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE)))
         self.maxWaitEntry.setText(str(MAX_WAIT))
         self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        self.steppingPointEntry.setText("")
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
         intExp = QRegularExpression(r"^-?\d*$")
@@ -170,9 +181,9 @@ class SlowGUI(QWidget):
         self.lRangeEntry.setValidator(floatValidator)
         self.startPointEntry.setValidator(floatValidator)
         self.maxRangeEntry.setValidator(floatValidator)
-        self.numOfStepsEntry.setValidator(intValidator)
         self.maxWaitEntry.setValidator(floatValidator)
         self.resistanceEntry.setValidator(floatValidator)
+        self.steppingPointEntry.setValidator(floatValidator)
 
         # ========== COMBOBOXES ========== # 
         self.genModeCombobox = QComboBox()
@@ -211,13 +222,14 @@ class SlowGUI(QWidget):
         self.startPointLabel = QLabel("Starting value [mV]") #used instead of base label and used for normal
         self.directionLabel = QLabel("Starting direction")
         self.maxRangeLabel = QLabel("Limit value [mV]")
-        self.numOfStepsLabel = QLabel("No. of steps")
         self.errorLabel = QLabel("") #to be filled during program
         self.progressLabel = QLabel("") #to be filled during program
         self.maxWaitLabel = QLabel("loop time [s]")
         self.gatheredILabel = QLabel("I: ") # to be filled during program 
         self.gatheredVLabel = QLabel("V: ") # to be filled during program
         self.resistanceLabel = QLabel("Resistance [ohm]")
+        self.steppingPointLabel = QLabel("Intermediate point [mV]")
+        self.steppingPointsListLabel = QLabel("Intermediate points list")
 
         self.errorLabel.setObjectName("red")
         self.progressLabel.setObjectName("blue")
@@ -228,6 +240,9 @@ class SlowGUI(QWidget):
         self.progressLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.gatheredILabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.gatheredVLabel.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # ========== LIST ========== # 
+        self.steppingPointsList = QListWidget()
 
         # ========== LAYOUT ASSIGNMENT ========== # 
         # mainLayout = QGridLayout()                DONE 
@@ -258,11 +273,20 @@ class SlowGUI(QWidget):
 
         
         # GRID SETTINGS --------- .addWidget(xyz, [row], [column], [rowSpan], [columnSpan])
+        self.stepBtnLayout.addWidget(self.stepAddBtn)
+        self.stepBtnLayout.addWidget(self.stepClearBtn)
 
-        self.steppingSettingsLayout.addWidget(self.maxRangeLabel,     0, 0,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.maxRangeEntry,     0, 1,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.numOfStepsLabel,   1, 0,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.numOfStepsEntry,   1, 1,   1, 1)
+        self.stepBtnWidgetWrapper = QWidget()
+        self.stepBtnWidgetWrapper.setLayout(self.stepBtnLayout)
+
+
+        self.steppingSettingsLayout.addWidget(self.maxRangeLabel,        0, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.maxRangeEntry,        0, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.numOfStepsLabel,      1, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.numOfStepsEntry,      1, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.steppingPointLabel,   2, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.steppingPointEntry,   2, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.stepBtnWidgetWrapper, 3, 0,   1, 1)              
 
         self.normalSettingsLayout.addWidget(self.hRangeLabel,         0, 0,   1, 1)
         self.normalSettingsLayout.addWidget(self.hRangeEntry,         0, 1,   1, 1)
@@ -276,6 +300,7 @@ class SlowGUI(QWidget):
         self.normalSettingsWidgetWrapper = QWidget()
         self.steppingSettingsWidgetWrapper.setLayout(self.steppingSettingsLayout)
         self.normalSettingsWidgetWrapper.setLayout(self.normalSettingsLayout)
+
 
         self.stackerSettingsLayout.addWidget(self.normalSettingsWidgetWrapper) #index 0
         self.stackerSettingsLayout.addWidget(self.steppingSettingsWidgetWrapper) #index 1
@@ -300,7 +325,7 @@ class SlowGUI(QWidget):
         self.commonSettingsWidgetWrapper.setLayout(self.commonSettingsLayout) 
 
         self.settingsLayout.addWidget(self.genModeCombobox,               0, 1,   1, 2)
-        self.settingsLayout.addWidget(self.stackerSettingsWidgetWrapper,  1, 0,   4, 4)
+        self.settingsLayout.addWidget(self.stackerSettingsWidgetWrapper,  1, 0,   3, 4)
         self.settingsLayout.addWidget(self.commonSettingsWidgetWrapper,   4, 0,   4, 4)
         self.settingsLayout.addWidget(self.setBtn,                        8, 1,   1, 2)
 
@@ -323,6 +348,8 @@ class SlowGUI(QWidget):
 
         self.errorLayout.addWidget(self.errorLabel)
 
+        self.gatheredLayout.addWidget(self.steppingPointsListLabel)
+        self.gatheredLayout.addWidget(self.steppingPointsList)
         self.gatheredLayout.addWidget(self.gatheredILabel)
         self.gatheredLayout.addWidget(self.gatheredVLabel)
 
@@ -348,7 +375,7 @@ class SlowGUI(QWidget):
         self.mainLayout.addWidget(self.errorWidgetWrapper,    6, 3,   2, 2)
         self.mainLayout.addWidget(self.plotWidgetWrapper,     0, 5,   6, 5)
         self.mainLayout.addWidget(self.buttonsWidgetWrapper,  6, 5,   2, 5)
-        self.mainLayout.addWidget(self.gatheredWidgetWrapper, 0, 3,   2, 2) 
+        self.mainLayout.addWidget(self.gatheredWidgetWrapper, 0, 3,   3, 2) 
 
         for i in range(9):
             self.mainLayout.setRowStretch(i, 1)
@@ -580,6 +607,9 @@ class App(QWidget):
         self.slowGUI.setBtnCallback.connect(self.slow_set_BTN_CBCK)
         self.slowGUI.gridBtnCallback.connect(self.slow_grid_BTN_CBCK)
         self.slowGUI.genModeCBCallback.connect(self.slow_genMode_CB_CBCK)
+        self.slowGUI.stepAddBtnCallback.connect(self.slow_stepAdd_BTN_CBCK)
+        self.slowGUI.stepClearBtnCallback.connect(self.slow_stepClear_BTN_CBCK)
+        self.slowGUI.steppingPointsList.itemDoubleClicked.connect(self.slow_stepRemove_LST_CBCK)
 
         self.slowGUI.workerUpdateProgressCallback.connect(self.slow_WORKER_CYCLE_UPDATE_CBCK)
 
@@ -863,17 +893,7 @@ class App(QWidget):
                                                             tempStartPoint/MV_TO_V_VALUE)
             
             case GenModeGUI.STEP:
-                tempNumOfSteps = self.slowGUI.numOfStepsEntry.text()
                 tempMaxRange = self.slowGUI.maxRangeEntry.text()
-
-                if(tempNumOfSteps == ""):
-                    tempNumOfSteps = GEN_DEFAULT_NUM_STEPS
-                    self.slowGUI.numOfStepsEntry.setText(str(GEN_DEFAULT_NUM_STEPS))
-                else:
-                    tempNumOfSteps = int(tempNumOfSteps)
-                if(tempNumOfSteps > GEN_MAX_NUM_STEPS or tempNumOfSteps <= 0):
-                    errorFlag = True
-                    errorText += f'Invalid field: Number of steps: value must be between {1} and {GEN_MAX_NUM_STEPS}\ns'
 
                 if(tempMaxRange == ""):
                     tempMaxRange = GEN_DEFAULT_HRANGE
@@ -893,7 +913,7 @@ class App(QWidget):
                     self.slowGUI.PRunner.setSteppingGeneratorParameters(tempMaxRange/MV_TO_V_VALUE,
                                                                 tempStartPoint/MV_TO_V_VALUE, 
                                                                 tempStep/MV_TO_V_VALUE,
-                                                                tempNumOfSteps,
+                                                                tempNumOfSteps, #TODO CHANGES TO SET STEPPING GENERATOR PARAMETERS
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)
@@ -904,6 +924,7 @@ class App(QWidget):
             self.slowGUI.PRunner.AcqDataProcessor.setResistance(tempResistance)
         self.slowGUI.errorLabel.setText(errorText)
         self.slowGUI.worker.unlockPR()
+
 
     def slow_grid_BTN_CBCK(self):
         self.slowGUI.acqPlotter.changeGridShow()
@@ -919,6 +940,22 @@ class App(QWidget):
     def slow_DOWN_KEY_CBCK(self):
         if(self.slowGUI.PRunner.getContGeneratorPauseState()):
             self.slowGUI.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
+
+    #TODO do the functions and add elements to GUI
+
+    def slow_stepAdd_BTN_CBCK(self):
+        steppingPoint = self.slowGUI.steppingPointEntry.text()
+        print("happening")
+        if(steppingPoint != ""):
+            self.slowGUI.steppingPointsList.addItem(steppingPoint)
+
+    def slow_stepRemove_LST_CBCK(self, item):
+            row = self.slowGUI.steppingPointsList.row(item)
+            self.slowGUI.steppingPointsList.takeItem(row)
+
+    def slow_stepClear_BTN_CBCK(self):
+        self.slowGUI.steppingPointsList.clear()
+
 
     def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
         self.slowGUI.worker.lockPR()
