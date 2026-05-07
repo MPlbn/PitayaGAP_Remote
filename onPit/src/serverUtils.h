@@ -51,7 +51,9 @@ namespace PitayaServerUtils{
     bool receiveSettings(int uClient, int32_t& hFreq, rp_acq_decimation_t& hDec, rp_pinState_t& hGain);
     bool receiveGenType(int uClient, GeneratorConstants::GenType& uGenType);
     bool receiveGenSettings(int uClient, float& uStartingValue, float& uHRange, float& uLRange, float& uStep, GeneratorConstants::Direction& uDirection);
-    bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps);
+    bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uStep);
+    bool receivePointsNumber(int uClient, int32_t& uPointsNumber);
+    bool receivePoints(int uClient, std::vector<float>& uPoints, int32_t uPointsNumber);
 
     bool resetGen();
     bool startGen();
@@ -65,7 +67,6 @@ namespace PitayaServerUtils{
     bool stopAcq();
     bool setAcqSettings(rp_acq_decimation_t uDec, rp_pinState_t uGain);
 
-    //bool sendPleaseKindlyRepeatTheLastData(int uClient);
     bool sendReady(int uClient);
     bool receiveNewVoltage(int uClient, float& uValue);
     bool changeVoltage(float uNewVoltage, float uCurrentVoltageValue);

@@ -149,14 +149,14 @@ class ProgramRunner:
     #   uFrequency: int - frequency value
     #   uStartingValue: float - starting generator voltage
 
-    def setSteppingGeneratorParameters(self, uLimit:float, uBase:float, uStep:float, uNumOfSteps:int, uStartingValue:float = 0.0):
+    def setSteppingGeneratorParameters(self, uBase:float, uStep:float, uPoints:list):
         CMDManager.executeTCPCommand(self.socket, SETUP_C_GEN_COMMAND)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: setContGeneratorParameters: ready state")
             return
         CMDManager.sendTCPGenMode(self.socket, GenModeGUI.STEP)
-        #here add to send the stepping number, then send steppings TODO
-        CMDManager.sendTCPCGenStepSetupValues(self.socket, uBase, uLimit, uStep, uNumOfSteps)
+        CMDManager.sendTCPCGenStepPoints(self.socket, uPoints)
+        CMDManager.sendTCPCGenStepSetupValues(self.socket, uBase, uStep)
         if(not CMDManager.readTCPReadyState(self.socket)):
             print("error: setSteppingGeneratorParameters: sendValues ready state")
         

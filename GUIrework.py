@@ -165,7 +165,7 @@ class SlowGUI(QWidget):
         self.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
         self.startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
-        self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE)))
+        self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.maxWaitEntry.setText(str(MAX_WAIT))
         self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
         self.steppingPointEntry.setText("")
@@ -893,27 +893,40 @@ class App(QWidget):
                                                             tempStartPoint/MV_TO_V_VALUE)
             
             case GenModeGUI.STEP:
-                tempMaxRange = self.slowGUI.maxRangeEntry.text()
-
-                if(tempMaxRange == ""):
-                    tempMaxRange = GEN_DEFAULT_HRANGE
-                    self.slowGUI.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
-                else:
-                    tempMaxRange = float(tempMaxRange)
-                if(tempMaxRange > GEN_MAX_RANGE or tempMaxRange < GEN_MIN_RANGE):
-                    errorFlag = True
-                    errorText += f'Invalid field: Max range: value must be between {GEN_MIN_RANGE} and {GEN_MAX_RANGE}\n'
+                tempList = []
+                tempDirList = []
+                count = self.slowGUI.steppingPointsList.count()
                 
-                if((tempMaxRange >= 0 and tempStartPoint > tempMaxRange)
-                    or (tempMaxRange < 0 and tempStartPoint < tempMaxRange)
-                    or tempStartPoint > GEN_MAX_RANGE or tempStartPoint < GEN_MIN_RANGE):
+                if(tempStartPoint > GEN_MAX_RANGE or tempStartPoint < GEN_MIN_RANGE):
                     errorFlag = True
-                    errorText += f'Invalid field: Starting Point Value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE} and cannot go beyond Max range\n'
+                    errorText += f'Invalid field: Starting Point Value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE}\n'
+                
+                if(count > 0):
+                    for i in range(count):
+                        item = self.slowGUI.steppingPointsList.item(i)
+                        value = float(item.text())
+                        if(value > GEN_MAX_RANGE or value < GEN_MIN_RANGE):
+                            errorFlag = True
+                            errorText += f'Invalid point value: value cannot exceed bounds {GEN_MIN_RANGE} to {GEN_MAX_RANGE}\n'
+                        elif(value == tempStartPoint):
+                            errorFlag = True
+                            errorText += f'Invalid point value: value cannot be equal to base value\n'
+                        else:
+                            tempList.append(value)
+                            tempDirList.append(value > tempStartPoint)
+
+                    if(not all(direction == tempDirList[0] for direction in tempDirList)):
+                        errorFlag = True
+                        errorText += f'Invalid points values: values must be either all bigger or all smaller than base value\n'
+
+                else:
+                    errorFlag = True
+                    errorText += f'Invalid intermediate points: the number of points cannot be 0\n'
+                
                 if(not errorFlag):
-                    self.slowGUI.PRunner.setSteppingGeneratorParameters(tempMaxRange/MV_TO_V_VALUE,
-                                                                tempStartPoint/MV_TO_V_VALUE, 
+                    self.slowGUI.PRunner.setSteppingGeneratorParameters(tempStartPoint/MV_TO_V_VALUE, 
                                                                 tempStep/MV_TO_V_VALUE,
-                                                                tempNumOfSteps, #TODO CHANGES TO SET STEPPING GENERATOR PARAMETERS
+                                                                tempList,
                                                                 tempStartPoint/MV_TO_V_VALUE)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)

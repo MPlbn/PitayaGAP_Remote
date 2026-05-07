@@ -92,12 +92,24 @@ int main(){
                 generator.setup(genType, startingValue, hRange, lRange, step, direction);
             }
             else if(genType == GeneratorConstants::GenType::STEPPING){
-                int32_t numSteps;
-                if(!PitayaServerUtils::receiveGenSettings(client, startingValue, hRange, step, numSteps)){
+                int32_t pointsNumber;
+                if(!PitayaServerUtils::receivePointNumber(client, pointsNumber)){
+                    std::cout << "Error receiving number of points\n";
+                    break;
+                }
+
+                std::vector<float> points;
+
+                if(!PitayaServerUtils::receivePoints(client, points, pointsNumber)){
+                    std::cout << "Error receiving points\n";
+                    break;
+                }
+
+                if(!PitayaServerUtils::receiveGenSettings(client, startingValue, step)){
                     std::cout << "Error receiving Cgenerator settings\n";
                     break;
                 }
-                generator.setup(genType, startingValue, hRange, step, static_cast<int>(numSteps));
+                generator.setup(genType, startingValue, step, points);
             }
             currentVoltageValue = startingValue;
 

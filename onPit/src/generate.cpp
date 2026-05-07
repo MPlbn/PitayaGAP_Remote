@@ -6,23 +6,7 @@
 Generator::Generator(){}
 // ---------------- PRIVATE METHODS ------------------
 float Generator::generate(){
-    float tempValue = voltageValue + step;
-    // if(inAdjustment){
-    //     switch(genMode){
-    //         case GeneratorConstants::GenType::NORMAL:{
-    //             if(tempValue <= highRange && tempValue >= lowRange){
-    //                 inAdjustment = false;
-    //             }
-    //         }
-    //         case GeneratorConstants::GenType::STEPPING:{
-    //             GeneratorConstants::SteppingBounceType bounceType = isOutOfBounds(tempValue, steppingRanges[steppingIndex], base);
-    //             if(bounceType == GeneratorConstants::SteppingBounceType::NONE){
-    //                 inAdjustment = false;
-    //             }
-    //         }
-    //     }
-    // }
-    
+    float tempValue = voltageValue + step;    
     switch(genMode){
         case GeneratorConstants::GenType::NORMAL:{
             if(tempValue > highRange || tempValue < lowRange){
@@ -61,10 +45,6 @@ void Generator::setRanges(float uHRange, float uLRange){
     lowRange = uLRange;
 }
 
-void Generator::setLimit(float uLimit){
-    limit = uLimit;
-}
-
 void Generator::setStep(float uStep){
     step = uStep;
 }
@@ -81,18 +61,10 @@ void Generator::setVoltageValue(float uVoltage){
     voltageValue = uVoltage;
 }
 
-void Generator::createSteps(int uNumOfSteps){
+void Generator::setPoints(std::vector<float> uPoints){
     steppingRanges.clear();
-    float fullSize = limit - base;
-    float stepSize = fullSize / uNumOfSteps;
-    float stepValue = base;
-    for(int i = 0; i < uNumOfSteps - 1; i++){
-        stepValue += stepSize;
-        steppingRanges.push_back(stepValue);
-    }
-    steppingRanges.push_back(limit);
+    steppingRanges = uPoints;
     steppingIndex = 0;
-    steppingLevelStepValue = 1;
 }
 
 void Generator::setDirection(GeneratorConstants::Direction uDirection){
@@ -141,26 +113,25 @@ void Generator::setup(GeneratorConstants::GenType uMode, float uStartingVoltage,
     
 }
 
-void Generator::setup(GeneratorConstants::GenType uMode, float uBaseVoltage, float uLimit, float uStep, int uNumSteps){
+void Generator::setup(GeneratorConstants::GenType uMode, float uBaseVoltage, float uStep, std::vector<float> uPoints){
     setMode(uMode);
     setBase(uBaseVoltage);
-    setLimit(uLimit);
     setStep(uStep);
-    if(uBaseVoltage > uLimit){
-        if(voltageValue < uLimit || voltageValue > uBaseVoltage){
+    setPoints(uPoints);
+    if(uBaseVoltage > steppingRanges[0]){
+        if(voltageValue < steppingRanges[0] || voltageValue > uBaseVoltage){
             setVoltageValue(uBaseVoltage);
         }
         setDirection(GeneratorConstants::Direction::NEGATIVE);
     
     }
     else{
-        if(voltageValue > uLimit || voltageValue < uBaseVoltage){
+        if(voltageValue > steppingRanges[0] || voltageValue < uBaseVoltage){
             setVoltageValue(uBaseVoltage);
         }
         setDirection(GeneratorConstants::Direction::POSITIVE);
         
     }
-    createSteps(uNumSteps);
 }
 
 float Generator::workRoutine(){

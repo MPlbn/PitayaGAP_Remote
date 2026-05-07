@@ -57,12 +57,11 @@ class Generator{
     float generate();
     void setMode(GeneratorConstants::GenType uNewMode);
     void setRanges(float uHRange, float uLRange);
-    void setLimit(float uLimit);
     void setStep(float uStep);
     void setBase(float uBase);
     void setResetVoltage(float uVoltage);
     void setVoltageValue(float uVoltage);
-    void createSteps(int uNumOfSteps);
+    void setPoints(std::vector<float> uPoints);
     void setDirection(GeneratorConstants::Direction uDirection);
     void incrementSteppingRange();
     GeneratorConstants::SteppingBounceType isOutOfBounds(float uValue, float uLimit, float uBase);
@@ -70,7 +69,7 @@ class Generator{
     public:
     Generator();
     void setup(GeneratorConstants::GenType uMode, float uStartingVoltage, float uHRange, float uLRange, float uStep, GeneratorConstants::Direction uDirection);
-    void setup(GeneratorConstants::GenType uMode, float uBaseVoltage, float uLimit, float uStep, int uNumSteps);
+    void setup(GeneratorConstants::GenType uMode, float uBaseVoltage, float uStep, std::vector<float> uPoints);
     float workRoutine();
     void reset();
     void setPause(bool uPaused);

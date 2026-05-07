@@ -169,21 +169,33 @@ namespace PitayaServerUtils{
         return true;
     }
 
-    bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uLimit, float& uStep, int32_t& uNumSteps){
+    bool receiveGenSettings(int uClient, float& uBaseVoltage, float& uStep){
         float baseVoltage;
-        float limit;
         float step;
-        int32_t numSteps;
+
 
         if(!recv_all(uClient, &baseVoltage, sizeof(baseVoltage))) return false;        
-        if(!recv_all(uClient, &limit, sizeof(limit))) return false;    
         if(!recv_all(uClient, &step, sizeof(step))) return false;    
-        if(!recv_all(uClient, &numSteps, sizeof(numSteps))) return false;    
         uBaseVoltage = baseVoltage;
-        uLimit = limit;
         uStep = step;
-        uNumSteps = numSteps;
 
+        return true;
+    }
+
+    bool receivePointsNumber(int uClient, int32_t& uPointsNumber){
+        int32_t pointsNumber;
+
+        if(!recv_all(uClient, &pointsNumber, sizeof(pointsNumber))) return false;
+        uPointsNumber = pointsNumber;
+        return true;
+    }
+
+    bool receivePoints(int uClient, std::vector<float>& uPoints, int32_t uPointsNumber){
+        float point;
+        for(int32_t i = 0; i < uPointsNumber; i++){
+            if(!recv_all(uClient, &point, sizeof(point))) return false;
+            uPoints.push_back(point);
+        }  
         return true;
     }
 

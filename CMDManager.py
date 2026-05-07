@@ -110,8 +110,17 @@ def sendTCPCGenSetupValues(uSocket, uStartingValue:float, uHRange:float, uLRange
     packet = struct.pack('<f f f f i', uStartingValue, uHRange, uLRange, uStep, uDirection)
     uSocket.sendall(packet)
 
-def sendTCPCGenStepSetupValues(uSocket, uBase:float, uLimit:float, uStep:float, uNumSteps:int):
-    packet = struct.pack('<f f f i', uBase, uLimit, uStep, uNumSteps)   
+#sends number of points then sends the points
+def sendTCPCGenStepPoints(uSocket, uPoints:list):
+    size = len(uPoints)
+    packet = struct.pack('<i', size)
+    uSocket.sendall(packet)
+    for point in uPoints:
+        packet = struct.pack('<f', point)
+        uSocket.sendall(packet)
+
+def sendTCPCGenStepSetupValues(uSocket, uBase:float, uStep:float):
+    packet = struct.pack('<f f', uBase, uStep)   
     uSocket.sendall(packet)
 
 def readTCPReadyState(uSocket) -> bool:
