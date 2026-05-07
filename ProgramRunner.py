@@ -35,6 +35,7 @@ class ProgramRunner:
         self.sendEvent = None
         self.currentCommand = None
         self.lastMode = None
+        self.csvRowsCount = 0
 
     def changeIP(self, uIP):
         self.ip = uIP
@@ -274,6 +275,8 @@ class ProgramRunner:
                 self.sendSetup()
                 self.startGenerator()
                 self.Acquisitor.start()
+                self.CSVFileManager.createFile()
+                self.csvRowsCount += 1
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
     
             case ProgramMode.PRE_WORK_ROUTINE: 
@@ -283,6 +286,12 @@ class ProgramRunner:
                 genVal = self.Acquisitor.getGenVal()
                 self.processDataBuffer(genVal, DataType.GEN)
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
+                if(self.csvRowsCount >= CSV_MAX_ROWSIZE):
+                    self.csvRowsCount = 1
+                    self.CSVFileManager.createFile()
+                self.csvRowsCount += 1
+                self.CSVFileManager.addToFile(self.AcqDataProcessor.getLatestDataV(), self.AcqDataProcessor.getLatestDataI())
+                    
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
             case ProgramMode.GEN_WORK_ROUTINE: 
@@ -293,6 +302,11 @@ class ProgramRunner:
                 genVal = self.Acquisitor.getGenVal()
                 self.processDataBuffer(genVal, DataType.GEN)
                 self.processDataBuffer([Vbuffer, Ibuffer], DataType.ACQ)
+                if(self.csvRowsCount >= CSV_MAX_ROWSIZE):
+                    self.csvRowsCount = 1
+                    self.CSVFileManager.createFile()
+                self.csvRowsCount += 1
+                self.CSVFileManager.addToFile(self.AcqDataProcessor.getLatestDataV(), self.AcqDataProcessor.getLatestDataI())
            
             case ProgramMode.CSV_WORK_ROUTINE:
                 self.stopGen(StopType.STOP_KEEP) 

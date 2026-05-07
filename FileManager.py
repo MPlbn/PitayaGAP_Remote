@@ -21,18 +21,24 @@ class CSVFileManager():
 
     def createFile(self, uAdditionalNamePart=""):
         self.currentPath = self.generatePath(uAdditionalNamePart)
-        with open(self.currentPath, 'w', newline='') as emptyCSV:
-            pass
+        with open(self.currentPath, 'w', newline='') as csvFile:
+            writer = csv.writer(csvFile, delimiter=';', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+            writer.writerow(["Voltage", "Current"])
     
+    def addToFile(self, uVData:float, uIData:float):
+        with open(self.currentPath, 'a', newline='') as csvFile:
+            writer = csv.writer(csvFile, delimiter=';', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+            writer.writerow([uVData, uIData])
+
     def saveToFile(self, uVData, uIData = [], uIsMock = False):
         if(uIsMock):
             with open(self.currentPath, 'a', newline='') as csvFile:
-                writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+                writer = csv.writer(csvFile, delimiter=';', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
                 for i in range(0, len(uVData)):
                     writer.writerow([uVData[i], uVData[i]])
         else:
             with open(self.currentPath, 'a', newline='') as csvFile:
-                writer = csv.writer(csvFile, delimiter=' ', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
+                writer = csv.writer(csvFile, delimiter=';', quotechar='|', quoting=csv.QUOTE_NONNUMERIC)
                 for i in range(0, len(uVData)):
                     writer.writerow([uVData[i], uIData[i]])
 
