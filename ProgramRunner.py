@@ -269,6 +269,7 @@ class ProgramRunner:
 
             case ProgramMode.START:
                 self.resetGenerator()
+                self.resetGeneratorValue()
                 self.Acquisitor.reset()
                 self.sendSetup()
                 self.startGenerator()
@@ -307,23 +308,21 @@ class ProgramRunner:
                 self.changeMode(self.lastMode)
 
             case ProgramMode.GEN_STOP:
-                self.stopGen(StopType.STOP_RESET)
-                self.Acquisitor.stop()
-
                 if(self.genPauseState):
                     self.unpauseContGenerator()
-                
-                self.changeMode(ProgramMode.IDLE)
+                else:    
+                    self.stopGen(StopType.STOP_RESET)
+                    self.Acquisitor.stop()
+                    self.changeMode(ProgramMode.IDLE)
 
             case ProgramMode.EXIT:
-                self.stopGen(StopType.STOP_RESET)
-                self.Acquisitor.stop()
-                
                 if(self.genPauseState):
                     self.unpauseContGenerator()
-                
-                self.disconnectFromServer()
-                self.changeMode(ProgramMode.IDLE)
+                else:    
+                    self.stopGen(StopType.STOP_RESET)
+                    self.Acquisitor.stop()
+                    self.disconnectFromServer()
+                    self.changeMode(ProgramMode.IDLE)
 
     #   Changing the work routine
     #   newMode: int - new mode to be set

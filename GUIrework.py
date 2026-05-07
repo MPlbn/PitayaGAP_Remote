@@ -728,7 +728,7 @@ class App(QWidget):
     # ============ SLOW GUI ============ #
     def slow_start_BTN_CBCK(self):
         self.slowGUI.startBtn.setEnabled(False)
-        self.slowGUI.setBtn.setEnabled(False)
+        #self.slowGUI.setBtn.setEnabled(False)
         self.slowGUI.stopBtn.setEnabled(True)
         self.slowGUI.resetBtn.setEnabled(True)
         self.slowGUI.lockBtn.setEnabled(True)
@@ -792,6 +792,7 @@ class App(QWidget):
         self.resize(1000,800)         
 
     def slow_set_BTN_CBCK(self):
+        self.slowGUI.worker.lockPR()
         errorFlag = False
         errorText = ""
         genMode = self.slowGUI.genModeCombobox.currentIndex()
@@ -916,6 +917,7 @@ class App(QWidget):
             self.slowGUI.worker.setMaxWait(tempMaxWait)
             self.slowGUI.PRunner.AcqDataProcessor.setResistance(tempResistance)
         self.slowGUI.errorLabel.setText(errorText)
+        self.slowGUI.worker.unlockPR()
 
     def slow_grid_BTN_CBCK(self):
         self.slowGUI.acqPlotter.changeGridShow()

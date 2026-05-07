@@ -38,7 +38,7 @@ class AcqPlotter(Plotter):
     def updateData(self, uDataV, uDataI):
         if(self.isRunning):
             self.dataI = uDataI
-            self.dataV = uDataV
+            self.dataV = uDataV * self.ratio 
             self.curve.setData(self.dataV, self.dataI)
 
             if(len(self.dataV) > 0 and len(self.dataI) > 0):

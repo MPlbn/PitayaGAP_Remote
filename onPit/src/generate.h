@@ -52,6 +52,7 @@ class Generator{
     float limit = GeneratorConstants::DEFAULT_HRANGE;
     GeneratorConstants::Direction direction = GeneratorConstants::DEFAULT_DIRECTION;
     std::vector<float> steppingRanges;
+    bool inAdjustment = false;
         
     float generate();
     void setMode(GeneratorConstants::GenType uNewMode);

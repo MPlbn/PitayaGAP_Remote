@@ -7,6 +7,22 @@ Generator::Generator(){}
 // ---------------- PRIVATE METHODS ------------------
 float Generator::generate(){
     float tempValue = voltageValue + step;
+    // if(inAdjustment){
+    //     switch(genMode){
+    //         case GeneratorConstants::GenType::NORMAL:{
+    //             if(tempValue <= highRange && tempValue >= lowRange){
+    //                 inAdjustment = false;
+    //             }
+    //         }
+    //         case GeneratorConstants::GenType::STEPPING:{
+    //             GeneratorConstants::SteppingBounceType bounceType = isOutOfBounds(tempValue, steppingRanges[steppingIndex], base);
+    //             if(bounceType == GeneratorConstants::SteppingBounceType::NONE){
+    //                 inAdjustment = false;
+    //             }
+    //         }
+    //     }
+    // }
+    
     switch(genMode){
         case GeneratorConstants::GenType::NORMAL:{
             if(tempValue > highRange || tempValue < lowRange){
@@ -32,6 +48,7 @@ float Generator::generate(){
             }
         }
     }
+    
     return voltageValue += step;
 }
 
@@ -115,10 +132,13 @@ GeneratorConstants::SteppingBounceType Generator::isOutOfBounds(float uValue, fl
 void Generator::setup(GeneratorConstants::GenType uMode, float uStartingVoltage, float uHRange, float uLRange, float uStep, GeneratorConstants::Direction uDirection){
     setMode(uMode);
     setResetVoltage(uStartingVoltage);
-    setVoltageValue(uStartingVoltage);
     setRanges(uHRange, uLRange);
     setStep(uStep);
+    if(voltageValue > uHRange || voltageValue < uLRange){
+        setVoltageValue(uStartingVoltage);
+    }
     setDirection(uDirection);
+    
 }
 
 void Generator::setup(GeneratorConstants::GenType uMode, float uBaseVoltage, float uLimit, float uStep, int uNumSteps){
@@ -127,10 +147,18 @@ void Generator::setup(GeneratorConstants::GenType uMode, float uBaseVoltage, flo
     setLimit(uLimit);
     setStep(uStep);
     if(uBaseVoltage > uLimit){
+        if(voltageValue < uLimit || voltageValue > uBaseVoltage){
+            setVoltageValue(uBaseVoltage);
+        }
         setDirection(GeneratorConstants::Direction::NEGATIVE);
+    
     }
     else{
+        if(voltageValue > uLimit || voltageValue < uBaseVoltage){
+            setVoltageValue(uBaseVoltage);
+        }
         setDirection(GeneratorConstants::Direction::POSITIVE);
+        
     }
     createSteps(uNumSteps);
 }
@@ -168,6 +196,7 @@ float Generator::workRoutine(){
 
 void Generator::reset(){
     resetFlag = true;
+    inAdjustment = false;
 }
 
 void Generator::setPause(bool uPaused){
