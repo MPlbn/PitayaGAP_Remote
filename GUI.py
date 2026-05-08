@@ -156,7 +156,6 @@ class SlowGUI(QWidget):
         self.hRangeEntry = QLineEdit()
         self.lRangeEntry = QLineEdit()
         self.startPointEntry = QLineEdit()
-        self.maxRangeEntry = QLineEdit()
         self.maxWaitEntry = QLineEdit()
         self.resistanceEntry = QLineEdit()
         self.steppingPointEntry = QLineEdit()
@@ -165,22 +164,18 @@ class SlowGUI(QWidget):
         self.hRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
         self.startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
-        self.maxRangeEntry.setText(str(GEN_DEFAULT_HRANGE))
         self.maxWaitEntry.setText(str(MAX_WAIT))
         self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
         self.steppingPointEntry.setText("")
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
-        intExp = QRegularExpression(r"^-?\d*$")
 
         floatValidator = QRegularExpressionValidator(floatExp)
-        intValidator = QRegularExpressionValidator(intExp)
 
         self.stepEntry.setValidator(floatValidator)
         self.hRangeEntry.setValidator(floatValidator)
         self.lRangeEntry.setValidator(floatValidator)
         self.startPointEntry.setValidator(floatValidator)
-        self.maxRangeEntry.setValidator(floatValidator)
         self.maxWaitEntry.setValidator(floatValidator)
         self.resistanceEntry.setValidator(floatValidator)
         self.steppingPointEntry.setValidator(floatValidator)
@@ -221,7 +216,6 @@ class SlowGUI(QWidget):
         self.lRangeLabel = QLabel("Low peak value [mV]")
         self.startPointLabel = QLabel("Starting value [mV]") #used instead of base label and used for normal
         self.directionLabel = QLabel("Starting direction")
-        self.maxRangeLabel = QLabel("Limit value [mV]")
         self.errorLabel = QLabel("") #to be filled during program
         self.progressLabel = QLabel("") #to be filled during program
         self.maxWaitLabel = QLabel("loop time [s]")
@@ -279,12 +273,9 @@ class SlowGUI(QWidget):
         self.stepBtnWidgetWrapper = QWidget()
         self.stepBtnWidgetWrapper.setLayout(self.stepBtnLayout)
 
-
-        self.steppingSettingsLayout.addWidget(self.maxRangeLabel,        0, 0,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.maxRangeEntry,        0, 1,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.steppingPointLabel,   1, 0,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.steppingPointEntry,   1, 1,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.stepBtnWidgetWrapper, 2, 0,   1, 1)              
+        self.steppingSettingsLayout.addWidget(self.steppingPointLabel,   0, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.steppingPointEntry,   0, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.stepBtnWidgetWrapper, 1, 0,   1, 1)              
 
         self.normalSettingsLayout.addWidget(self.hRangeLabel,         0, 0,   1, 1)
         self.normalSettingsLayout.addWidget(self.hRangeEntry,         0, 1,   1, 1)
@@ -313,7 +304,7 @@ class SlowGUI(QWidget):
         self.commonSettingsLayout.addWidget(self.gainCombobox,    3, 1,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitLabel,    4, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitEntry,    4, 1,   1, 1)
-        self.commonSettingsLayout.addWidget(self.resistanceLabel,5, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.resistanceLabel, 5, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.resistanceEntry, 5, 1,   1, 1)
 
         #wrapping for settingsLayout
@@ -576,7 +567,6 @@ class App(QWidget):
         self.menuGUI = MenuGUI()
         self.slowGUI = SlowGUI(self.rp_ip)
         self.fastGUI = FastGUI(self.rp_ip)
-        #self.slowGUI.PRunner.setEventFunction(self.pr_handle_event_CBCK)
     
         self.stack.addWidget(self.menuGUI)
         self.stack.addWidget(self.slowGUI)
@@ -592,7 +582,6 @@ class App(QWidget):
         self.fastGUI.exitBtnCallback.connect(self.fast_exit_BTN_CBCK)
 
         self.fastGUI.workerFinishedCallback.connect(self.fast_WORKER_FINISHED_CBCK)
-
 
         self.slowGUI.startBtnCallback.connect(self.slow_start_BTN_CBCK)
         self.slowGUI.stopBtnCallback.connect(self.slow_stop_BTN_CBCK)
@@ -643,10 +632,9 @@ class App(QWidget):
         self.rp_ip = self.menuGUI.ipEntry.text()
         self.slowGUI.PRunner.changeIP(self.rp_ip)
         self.fastGUI.F_PRunner.changeIP(self.rp_ip)
+
     # ============ FAST GUI ============ #
     def fast_start_BTN_CBCK(self):
-        self.fastGUI.startBtn.setEnabled(False)
-        self.fastGUI.clearPlotBtn.setEnabled(False)
         self.fastGUI.progressBar.setFormat("")
         self.fastGUI.progressBar.setValue(0)
         
@@ -936,7 +924,6 @@ class App(QWidget):
         self.slowGUI.errorLabel.setText(errorText)
         self.slowGUI.worker.unlockPR()
 
-
     def slow_grid_BTN_CBCK(self):
         self.slowGUI.acqPlotter.changeGridShow()
 
@@ -963,7 +950,6 @@ class App(QWidget):
 
     def slow_stepClear_BTN_CBCK(self):
         self.slowGUI.steppingPointsList.clear()
-
 
     def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
         self.slowGUI.worker.lockPR()

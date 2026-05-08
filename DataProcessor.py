@@ -87,8 +87,8 @@ class AcquisitorDataProcessor(DataProcessor):
         return 0.0
     
     def clear(self):
-        self.dataV = []
-        self.dataI = []
+        self.dataV = np.array([])
+        self.dataI = np.array([])
     
     def setResistance(self, uResistance:float):
         self.resistance = uResistance
