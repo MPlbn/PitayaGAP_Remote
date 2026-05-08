@@ -282,11 +282,9 @@ class SlowGUI(QWidget):
 
         self.steppingSettingsLayout.addWidget(self.maxRangeLabel,        0, 0,   1, 1)
         self.steppingSettingsLayout.addWidget(self.maxRangeEntry,        0, 1,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.numOfStepsLabel,      1, 0,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.numOfStepsEntry,      1, 1,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.steppingPointLabel,   2, 0,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.steppingPointEntry,   2, 1,   1, 1)
-        self.steppingSettingsLayout.addWidget(self.stepBtnWidgetWrapper, 3, 0,   1, 1)              
+        self.steppingSettingsLayout.addWidget(self.steppingPointLabel,   1, 0,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.steppingPointEntry,   1, 1,   1, 1)
+        self.steppingSettingsLayout.addWidget(self.stepBtnWidgetWrapper, 2, 0,   1, 1)              
 
         self.normalSettingsLayout.addWidget(self.hRangeLabel,         0, 0,   1, 1)
         self.normalSettingsLayout.addWidget(self.hRangeEntry,         0, 1,   1, 1)
@@ -809,6 +807,7 @@ class App(QWidget):
 
     def slow_set_BTN_CBCK(self):
         self.slowGUI.worker.lockPR()
+        time.sleep(0.005)
         errorFlag = False
         errorText = ""
         genMode = self.slowGUI.genModeCombobox.currentIndex()
@@ -926,8 +925,7 @@ class App(QWidget):
                 if(not errorFlag):
                     self.slowGUI.PRunner.setSteppingGeneratorParameters(tempStartPoint/MV_TO_V_VALUE, 
                                                                 tempStep/MV_TO_V_VALUE,
-                                                                tempList,
-                                                                tempStartPoint/MV_TO_V_VALUE)
+                                                                tempList)
         if(not errorFlag):
             self.slowGUI.PRunner.setAcquisitorParameters(tempGain)
             #self.slowGUI.PRunner.resetGeneratorValue()
@@ -954,11 +952,8 @@ class App(QWidget):
         if(self.slowGUI.PRunner.getContGeneratorPauseState()):
             self.slowGUI.PRunner.manualChangeGenVoltage(GUI_DECREMENT_STEP)
 
-    #TODO do the functions and add elements to GUI
-
     def slow_stepAdd_BTN_CBCK(self):
         steppingPoint = self.slowGUI.steppingPointEntry.text()
-        print("happening")
         if(steppingPoint != ""):
             self.slowGUI.steppingPointsList.addItem(steppingPoint)
 
@@ -974,8 +969,8 @@ class App(QWidget):
         self.slowGUI.worker.lockPR()
         self.slowGUI.progressBar.setValue(int(uVoltage*1000))
         self.slowGUI.progressLabel.setText(f'{uVoltage*1000:.1f} mV')
-        self.slowGUI.gatheredVLabel.setText(f'V: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataV()} mV')
-        self.slowGUI.gatheredILabel.setText(f'I: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataI()} mA')
+        self.slowGUI.gatheredVLabel.setText(f'V: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataV():.4f} mV')
+        self.slowGUI.gatheredILabel.setText(f'I: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataI():.4f} mA')
         self.slowGUI.acqPlotter.updateData(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
                                            self.slowGUI.PRunner.AcqDataProcessor.getDataI())
         self.slowGUI.genPlotter.updateData(self.slowGUI.PRunner.GenDataProcessor.getData())

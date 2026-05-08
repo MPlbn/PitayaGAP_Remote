@@ -93,7 +93,7 @@ int main(){
             }
             else if(genType == GeneratorConstants::GenType::STEPPING){
                 int32_t pointsNumber;
-                if(!PitayaServerUtils::receivePointNumber(client, pointsNumber)){
+                if(!PitayaServerUtils::receivePointsNumber(client, pointsNumber)){
                     std::cout << "Error receiving number of points\n";
                     break;
                 }

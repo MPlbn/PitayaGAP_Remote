@@ -77,14 +77,14 @@ class AcquisitorDataProcessor(DataProcessor):
     def getLatestDataV(self):
         if(self.dataV.size > 0):
             return self.dataV[-1]
-        return [0.0]
+        return 0.0
             
             
 
     def getLatestDataI(self):
         if(self.dataI.size > 0):
             return self.dataI[-1]
-        return [0.0]
+        return 0.0
     
     def clear(self):
         self.dataV = []

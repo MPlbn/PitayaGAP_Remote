@@ -46,7 +46,12 @@ void Generator::setRanges(float uHRange, float uLRange){
 }
 
 void Generator::setStep(float uStep){
-    step = uStep;
+    if(step < 0){
+        step = uStep * -1;
+    }
+    else{
+        step = uStep;
+    }
 }
 
 void Generator::setBase(float uBase){
@@ -80,6 +85,7 @@ void Generator::incrementSteppingRange(){
 }
 
 GeneratorConstants::SteppingBounceType Generator::isOutOfBounds(float uValue, float uLimit, float uBase){
+    std::cout << "value: " << uValue << "| limit: " << uLimit << "| base: " << uBase << "\n";
     if(uLimit > uBase){
         if(uValue >= uLimit){
             return GeneratorConstants::SteppingBounceType::LIMIT;
@@ -167,7 +173,6 @@ float Generator::workRoutine(){
 
 void Generator::reset(){
     resetFlag = true;
-    inAdjustment = false;
 }
 
 void Generator::setPause(bool uPaused){

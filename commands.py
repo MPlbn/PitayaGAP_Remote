@@ -38,7 +38,7 @@ CCMD_START_STREAMING_ADC = [
     '-f', 'csv', 
     '-d', './dataLogs', 
     '-l', '', 
-    '-m', 'volt'
+    '-m', 'raw'
     #'-v'
     ]
 def CMD_START_STREAMING_ADC():

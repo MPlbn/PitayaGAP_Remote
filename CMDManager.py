@@ -116,7 +116,7 @@ def sendTCPCGenStepPoints(uSocket, uPoints:list):
     packet = struct.pack('<i', size)
     uSocket.sendall(packet)
     for point in uPoints:
-        packet = struct.pack('<f', point)
+        packet = struct.pack('<f', point/MV_TO_V_VALUE)
         uSocket.sendall(packet)
 
 def sendTCPCGenStepSetupValues(uSocket, uBase:float, uStep:float):

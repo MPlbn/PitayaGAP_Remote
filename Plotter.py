@@ -88,7 +88,7 @@ class FAcqPlotter(Plotter):
         color = PGraph.intColor(hue)
         pen = PGraph.mkPen(color)
 
-        self.curveList.append(self.plot(self.dataV, pen=pen))
+        self.curveList.append(self.plot(self.dataV, self.dataI, pen=pen))
         self.colorIndex += 1
 
     def clearData(self):

@@ -1,6 +1,6 @@
 import os
 os.sched_setaffinity(0, {2})
 
-import GUIrework
+import GUI
 
-GUIrework.run()
+GUI.run()

@@ -49,10 +49,8 @@ class Generator{
     int steppingIndex = 0;
     int steppingLevelStepValue = 1;
     float base = GeneratorConstants::DEFAULT_VOLTAGE;
-    float limit = GeneratorConstants::DEFAULT_HRANGE;
     GeneratorConstants::Direction direction = GeneratorConstants::DEFAULT_DIRECTION;
     std::vector<float> steppingRanges;
-    bool inAdjustment = false;
         
     float generate();
     void setMode(GeneratorConstants::GenType uNewMode);
