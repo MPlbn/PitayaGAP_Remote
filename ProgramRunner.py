@@ -494,7 +494,8 @@ class FastProgramRunner:
         
     def saveToCSV(self, uResistance):
         self.data = self.CSVFileManager.rawToVolt()
-        self.data *= uResistance
+        if(uResistance > 0):
+            self.data /= uResistance
         self.CSVFileManager.createFile("FAST_")
         self.CSVFileManager.saveToFile(self.data[0], self.data[1])
 
