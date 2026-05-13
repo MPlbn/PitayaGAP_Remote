@@ -429,12 +429,14 @@ class FastGUI(QWidget):
         self.sPointEntry = QLineEdit()
         self.freqEntry = QLineEdit()
         self.samplesEntry = QLineEdit()
+        self.resistanceEntry = QLineEdit()
 
         self.hPointEntry.setText(str(F_GEN_DEFAULT_HPOINT))
         self.lPointEntry.setText(str(F_GEN_DEFAULT_LPOINT))
         self.sPointEntry.setText(str(F_GEN_DEFAULT_SPOINT))
         self.freqEntry.setText(str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.setText(str(F_ACQ_DEFAULT_SAMPLES))
+        self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
         intExp = QRegularExpression(r"^-?\d*$")
@@ -447,6 +449,7 @@ class FastGUI(QWidget):
         self.sPointEntry.setValidator(floatValidator)
         self.freqEntry.setValidator(intValidator)
         self.samplesEntry.setValidator(intValidator)
+        self.resistanceEntry.setValidator(floatValidator)
 
         # ========== COMBOBOXES ========== # 
         self.waveFormCB = QComboBox()
@@ -479,6 +482,7 @@ class FastGUI(QWidget):
         self.stateCH2Label = QLabel("channel 2 state")
         self.fileTypeLabel = QLabel("data save file format")
         self.errorLabel = QLabel("") # to be filled
+        self.resistanceLabel = QLabel("Resistance [Ohm]")
 
         self.errorLabel.setObjectName("red")
 
@@ -513,7 +517,9 @@ class FastGUI(QWidget):
         self.settingsLayout.addWidget(self.stateCH2CB,          8, 1)
         self.settingsLayout.addWidget(self.fileTypeLabel,       9, 0)
         self.settingsLayout.addWidget(self.fileTypeCB,          9, 1)
-        self.settingsLayout.addWidget(self.progressBar,         10,0, 1, 2)
+        self.settingsLayout.addWidget(self.resistanceLabel,     10,0)
+        self.settingsLayout.addWidget(self.resistanceEntry,     10,1)
+        self.settingsLayout.addWidget(self.progressBar,         11,0, 1, 2)
 
         self.errorLayout.addWidget(self.errorLabel)
 
@@ -542,9 +548,9 @@ class FastGUI(QWidget):
 
         self.setLayout(self.mainLayout)
 
-    def run_runner(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
+    def run_runner(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance):
         self.thread = QThread()
-        self.worker = FastRunnerWorker(self.F_PRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType)
+        self.worker = FastRunnerWorker(self.F_PRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance)
         self.worker.moveToThread(self.thread)
         self.worker.finished.connect(self.workerFinishedCallback)
         self.worker.finished.connect(self.thread.quit)
@@ -702,12 +708,22 @@ class App(QWidget):
             errorFlag = True
             errorText += f'Invalid field: Samples: Number of samples is out of range. The value must be between {F_ACQ_SAMPLES_UP_LIMIT} and {F_ACQ_SAMPLES_DOWN_LIMIT}'
 
+        tempResistance = self.fastGUI.resistanceEntry.text()
+        if(tempResistance == ""):
+            tempResistance = DEFAULT_RESISTANCE
+            self.fastGUI.resistanceEntry.setText(DEFAULT_RESISTANCE)
+        else:
+            tempResistance = float(tempResistance)
+        if(tempResistance < 0):
+            errorFlag = True
+            errorText += f'Invalid field: Resistance: Resistance value cannot be lower than 0\n'
+
         if(not errorFlag):
             self.fastGUI.errorLabel.setText("")
             tempHPoint /= MV_TO_V_VALUE
             tempLPoint /= MV_TO_V_VALUE
             tempSPoint /= MV_TO_V_VALUE
-            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType)
+            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType, tempResistance)
             self.fastGUI.progressBar.setFormat("running the streaming service...") #set value and text
             self.fastGUI.progressBar.setValue(20)
         else:
@@ -1020,7 +1036,7 @@ class RunnerWorker(QObject):
 
 class FastRunnerWorker(QObject):
     finished = Signal()
-    def __init__(self, uProgramRunner: ProgramRunner.FastProgramRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
+    def __init__(self, uProgramRunner: ProgramRunner.FastProgramRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance):
         super().__init__()
         self.runner = uProgramRunner
         self.waveform = uWaveForm
@@ -1033,9 +1049,10 @@ class FastRunnerWorker(QObject):
         self.ch1 = uCH1
         self.ch2 = uCH2
         self.filetype = uFileType 
+        self.resistance = uResistance
     
     def run(self):
-        self.runner.run(self.waveform, self.hPoint, self.lPoint, self.sPoint, self.freq, self.dec, self.samples, self.ch1, self.ch2, self.filetype)
+        self.runner.run(self.waveform, self.hPoint, self.lPoint, self.sPoint, self.freq, self.dec, self.samples, self.ch1, self.ch2, self.filetype, self.resistance)
         self.finished.emit()
 
 # =========== END MISC =========== # 

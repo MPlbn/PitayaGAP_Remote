@@ -63,7 +63,7 @@ class CSVFileManager():
             [sample * scale for sample in data[0]],
             [sample * scale for sample in data[1]]
         ]
-        return volts
+        return np.array(volts)
 
 class WAVFileManager():
     def __init__(self):

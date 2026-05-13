@@ -492,16 +492,17 @@ class FastProgramRunner:
     def getLatestData(self):
         return self.data
         
-    def saveToCSV(self):
+    def saveToCSV(self, uResistance):
         self.data = self.CSVFileManager.rawToVolt()
+        self.data *= uResistance
         self.CSVFileManager.createFile("FAST_")
         self.CSVFileManager.saveToFile(self.data[0], self.data[1])
 
-    def run(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType):
+    def run(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance):
         self.setup(uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uCH1, uCH2)
         self.runGeneration()
         self.runAcquisition(uSamples, uFileType)
-        self.saveToCSV()
+        self.saveToCSV(uResistance)
         self.cleanup()
 
         
