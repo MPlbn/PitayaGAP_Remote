@@ -511,15 +511,15 @@ class FastGUI(QWidget):
         self.settingsLayout.addWidget(self.samplesPerSecCB,     5, 1)
         self.settingsLayout.addWidget(self.samplesLabel,        6, 0)
         self.settingsLayout.addWidget(self.samplesEntry,        6, 1)
-        self.settingsLayout.addWidget(self.stateCH1Label,       7, 0)
-        self.settingsLayout.addWidget(self.stateCH1CB,          7, 1)
-        self.settingsLayout.addWidget(self.stateCH2Label,       8, 0)
-        self.settingsLayout.addWidget(self.stateCH2CB,          8, 1)
-        self.settingsLayout.addWidget(self.fileTypeLabel,       9, 0)
-        self.settingsLayout.addWidget(self.fileTypeCB,          9, 1)
-        self.settingsLayout.addWidget(self.resistanceLabel,     10,0)
-        self.settingsLayout.addWidget(self.resistanceEntry,     10,1)
-        self.settingsLayout.addWidget(self.progressBar,         11,0, 1, 2)
+        # self.settingsLayout.addWidget(self.stateCH1Label,       7, 0)
+        # self.settingsLayout.addWidget(self.stateCH1CB,          7, 1)
+        # self.settingsLayout.addWidget(self.stateCH2Label,       8, 0)
+        # self.settingsLayout.addWidget(self.stateCH2CB,          8, 1)
+        self.settingsLayout.addWidget(self.fileTypeLabel,       7, 0)
+        self.settingsLayout.addWidget(self.fileTypeCB,          7, 1)
+        self.settingsLayout.addWidget(self.resistanceLabel,     8,0)
+        self.settingsLayout.addWidget(self.resistanceEntry,     8,1)
+        self.settingsLayout.addWidget(self.progressBar,         9,0, 1, 2)
 
         self.errorLayout.addWidget(self.errorLabel)
 
@@ -649,8 +649,8 @@ class App(QWidget):
         tempWaveForm = self.fastGUI.waveFormCB.currentText()
         tempDec = self.fastGUI.samplesPerSecCB.currentText()
         tempDec = F_ACQ_DEC_DICT[tempDec]
-        tempStateCH1 = self.fastGUI.stateCH1CB.currentText()
-        tempStateCH2 = self.fastGUI.stateCH2CB.currentText()
+        #tempStateCH1 = self.fastGUI.stateCH1CB.currentText()
+        #tempStateCH2 = self.fastGUI.stateCH2CB.currentText()
         tempFileType = self.fastGUI.fileTypeCB.currentText()
 
         tempHPoint = self.fastGUI.hPointEntry.text()
@@ -723,7 +723,7 @@ class App(QWidget):
             tempHPoint /= MV_TO_V_VALUE
             tempLPoint /= MV_TO_V_VALUE
             tempSPoint /= MV_TO_V_VALUE
-            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, tempStateCH1, tempStateCH2, tempFileType, tempResistance)
+            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, "ON", "ON", tempFileType, tempResistance)
             self.fastGUI.progressBar.setFormat("running the streaming service...") #set value and text
             self.fastGUI.progressBar.setValue(20)
         else:

@@ -28,6 +28,8 @@ class AcqPlotter(Plotter):
     def __init__(self):
         super().__init__()
         self.setTitle("I/V")
+        self.setLabel('left', 'Current [A]')
+        self.setLabel('bottom', 'Voltage [mV]')
         self.gridEnabled = False
         self.dataI = []
         self.dataV = []
@@ -60,6 +62,8 @@ class GenPlotter(Plotter):
     def __init__(self):
         super().__init__()
         self.setTitle("Generated values")
+        self.setLabel('left', 'Voltage [mV]')
+        self.getAxis('bottom').setStyle(showValues=False)
         self.dataV = []
         self.curve = self.plot(self.dataV, pen="y")
 
@@ -76,6 +80,8 @@ class FAcqPlotter(Plotter):
     def __init__(self):
         super().__init__()
         self.setTitle("I/V")
+        self.setLabel('left', 'Current [A]')
+        self.setLabel('bottom', 'Voltage [mV]')
         self.dataI = []
         self.dataV = []
         self.curveList = []
