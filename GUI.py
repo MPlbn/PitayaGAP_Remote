@@ -157,7 +157,8 @@ class SlowGUI(QWidget):
         self.lRangeEntry = QLineEdit()
         self.startPointEntry = QLineEdit()
         self.maxWaitEntry = QLineEdit()
-        self.resistanceEntry = QLineEdit()
+        #self.resistanceEntry = QLineEdit()
+        self.calibRatioEntry = QLineEdit()
         self.steppingPointEntry = QLineEdit()
 
         self.stepEntry.setText(str(GEN_DEFAULT_STEP))
@@ -165,19 +166,23 @@ class SlowGUI(QWidget):
         self.lRangeEntry.setText(str(GEN_DEFAULT_LRANGE))
         self.startPointEntry.setText(str(GEN_DEFAULT_VOLTAGE))
         self.maxWaitEntry.setText(str(MAX_WAIT))
-        self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        #self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        self.calibRatioEntry.setText(str(DEFAULT_CALIBRATIO))
         self.steppingPointEntry.setText("")
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
+        posFloatExp = QRegularExpression(r"^\d*(\.\d{0,3})?$")
 
         floatValidator = QRegularExpressionValidator(floatExp)
+        posFloatValidator = QRegularExpressionValidator(posFloatExp)
 
         self.stepEntry.setValidator(floatValidator)
         self.hRangeEntry.setValidator(floatValidator)
         self.lRangeEntry.setValidator(floatValidator)
         self.startPointEntry.setValidator(floatValidator)
         self.maxWaitEntry.setValidator(floatValidator)
-        self.resistanceEntry.setValidator(floatValidator)
+        #self.resistanceEntry.setValidator(floatValidator)
+        self.calibRatioEntry.setValidator(posFloatValidator)
         self.steppingPointEntry.setValidator(floatValidator)
 
         # ========== COMBOBOXES ========== # 
@@ -221,7 +226,8 @@ class SlowGUI(QWidget):
         self.maxWaitLabel = QLabel("loop time [s]")
         self.gatheredILabel = QLabel("I: ") # to be filled during program 
         self.gatheredVLabel = QLabel("V: ") # to be filled during program
-        self.resistanceLabel = QLabel("Resistance [ohm]")
+        #self.resistanceLabel = QLabel("Resistance [ohm]")
+        self.calibRatioLabel = QLabel("Calibration ratio value")
         self.steppingPointLabel = QLabel("Intermediate point [mV]")
         self.steppingPointsListLabel = QLabel("Intermediate points list")
 
@@ -304,8 +310,10 @@ class SlowGUI(QWidget):
         self.commonSettingsLayout.addWidget(self.gainCombobox,    3, 1,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitLabel,    4, 0,   1, 1)
         self.commonSettingsLayout.addWidget(self.maxWaitEntry,    4, 1,   1, 1)
-        self.commonSettingsLayout.addWidget(self.resistanceLabel, 5, 0,   1, 1)
-        self.commonSettingsLayout.addWidget(self.resistanceEntry, 5, 1,   1, 1)
+        #self.commonSettingsLayout.addWidget(self.resistanceLabel, 5, 0,   1, 1)
+        #self.commonSettingsLayout.addWidget(self.resistanceEntry, 5, 1,   1, 1)
+        self.commonSettingsLayout.addWidget(self.calibRatioLabel, 5, 0,   1, 1)
+        self.commonSettingsLayout.addWidget(self.calibRatioEntry, 5, 1,   1, 1)
 
         #wrapping for settingsLayout
         self.stackerSettingsWidgetWrapper = QWidget()
@@ -429,19 +437,23 @@ class FastGUI(QWidget):
         self.sPointEntry = QLineEdit()
         self.freqEntry = QLineEdit()
         self.samplesEntry = QLineEdit()
-        self.resistanceEntry = QLineEdit()
+        #self.resistanceEntry = QLineEdit()
+        self.calibRatioEntry = QLineEdit()
 
         self.hPointEntry.setText(str(F_GEN_DEFAULT_HPOINT))
         self.lPointEntry.setText(str(F_GEN_DEFAULT_LPOINT))
         self.sPointEntry.setText(str(F_GEN_DEFAULT_SPOINT))
         self.freqEntry.setText(str(F_GEN_DEFAULT_FREQ))
         self.samplesEntry.setText(str(F_ACQ_DEFAULT_SAMPLES))
-        self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        #self.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        self.calibRatioEntry.setText(str(DEFAULT_CALIBRATIO))
 
         floatExp = QRegularExpression(r"^-?\d*(\.\d{0,3})?$")
+        posFloatExp = QRegularExpression(r"^\d*(\.\d{0,3})?$")
         intExp = QRegularExpression(r"^-?\d*$")
 
         floatValidator = QRegularExpressionValidator(floatExp)
+        posFloatValidator = QRegularExpressionValidator(posFloatExp)
         intValidator = QRegularExpressionValidator(intExp)
 
         self.hPointEntry.setValidator(floatValidator)
@@ -449,7 +461,8 @@ class FastGUI(QWidget):
         self.sPointEntry.setValidator(floatValidator)
         self.freqEntry.setValidator(intValidator)
         self.samplesEntry.setValidator(intValidator)
-        self.resistanceEntry.setValidator(floatValidator)
+        #self.resistanceEntry.setValidator(floatValidator)
+        self.calibRatioEntry.setValidator(posFloatValidator)
 
         # ========== COMBOBOXES ========== # 
         self.waveFormCB = QComboBox()
@@ -482,7 +495,8 @@ class FastGUI(QWidget):
         self.stateCH2Label = QLabel("channel 2 state")
         self.fileTypeLabel = QLabel("data save file format")
         self.errorLabel = QLabel("") # to be filled
-        self.resistanceLabel = QLabel("Resistance [Ohm]")
+        #self.resistanceLabel = QLabel("Resistance [Ohm]")
+        self.calibRatioLabel = QLabel("Calibration Ratio value")
 
         self.errorLabel.setObjectName("red")
 
@@ -511,14 +525,16 @@ class FastGUI(QWidget):
         self.settingsLayout.addWidget(self.samplesPerSecCB,     5, 1)
         self.settingsLayout.addWidget(self.samplesLabel,        6, 0)
         self.settingsLayout.addWidget(self.samplesEntry,        6, 1)
-        # self.settingsLayout.addWidget(self.stateCH1Label,       7, 0)
-        # self.settingsLayout.addWidget(self.stateCH1CB,          7, 1)
-        # self.settingsLayout.addWidget(self.stateCH2Label,       8, 0)
-        # self.settingsLayout.addWidget(self.stateCH2CB,          8, 1)
+        # self.settingsLayout.addWidget(self.stateCH1Label,     7, 0)
+        # self.settingsLayout.addWidget(self.stateCH1CB,        7, 1)
+        # self.settingsLayout.addWidget(self.stateCH2Label,     8, 0)
+        # self.settingsLayout.addWidget(self.stateCH2CB,        8, 1)
         self.settingsLayout.addWidget(self.fileTypeLabel,       7, 0)
         self.settingsLayout.addWidget(self.fileTypeCB,          7, 1)
-        self.settingsLayout.addWidget(self.resistanceLabel,     8,0)
-        self.settingsLayout.addWidget(self.resistanceEntry,     8,1)
+        # self.settingsLayout.addWidget(self.resistanceLabel,   8, 0)
+        # self.settingsLayout.addWidget(self.resistanceEntry,   8, 1)
+        self.settingsLayout.addWidget(self.calibRatioLabel,     8, 0)
+        self.settingsLayout.addWidget(self.calibRatioEntry,     8, 1)
         self.settingsLayout.addWidget(self.progressBar,         9,0, 1, 2)
 
         self.errorLayout.addWidget(self.errorLabel)
@@ -548,9 +564,9 @@ class FastGUI(QWidget):
 
         self.setLayout(self.mainLayout)
 
-    def run_runner(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance):
+    def run_runner(self, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uCalibRatio):
         self.thread = QThread()
-        self.worker = FastRunnerWorker(self.F_PRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance)
+        self.worker = FastRunnerWorker(self.F_PRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uCalibRatio)
         self.worker.moveToThread(self.thread)
         self.worker.finished.connect(self.workerFinishedCallback)
         self.worker.finished.connect(self.thread.quit)
@@ -565,7 +581,7 @@ class App(QWidget):
 
         self.rp_ip = RED_PITAYA_IP
 
-        self.setWindowTitle("Test")
+        self.setWindowTitle("Red Pitaya Generation-Acquisition program")
         self.resize(1000,800)
 
         self.stack = QStackedWidget()
@@ -701,29 +717,39 @@ class App(QWidget):
         tempSamples = self.fastGUI.samplesEntry.text()
         if(tempSamples == ""):
             tempSamples = F_ACQ_DEFAULT_SAMPLES
-            self.fastGUI.samplesEntry.setText(F_ACQ_DEFAULT_SAMPLES)
+            self.fastGUI.samplesEntry.setText(str(F_ACQ_DEFAULT_SAMPLES))
         else:
             tempSamples = int(tempSamples)
         if(tempSamples > F_ACQ_SAMPLES_UP_LIMIT or tempSamples < F_ACQ_SAMPLES_DOWN_LIMIT):
             errorFlag = True
             errorText += f'Invalid field: Samples: Number of samples is out of range. The value must be between {F_ACQ_SAMPLES_UP_LIMIT} and {F_ACQ_SAMPLES_DOWN_LIMIT}'
 
-        tempResistance = self.fastGUI.resistanceEntry.text()
-        if(tempResistance == ""):
-            tempResistance = DEFAULT_RESISTANCE
-            self.fastGUI.resistanceEntry.setText(DEFAULT_RESISTANCE)
+        # tempResistance = self.fastGUI.resistanceEntry.text()
+        # if(tempResistance == ""):
+        #     tempResistance = DEFAULT_RESISTANCE
+        #     self.fastGUI.resistanceEntry.setText(DEFAULT_RESISTANCE)
+        # else:
+        #     tempResistance = float(tempResistance)
+        # if(tempResistance < 0):
+        #     errorFlag = True
+        #     errorText += f'Invalid field: Resistance: Resistance value cannot be lower than 0\n'
+
+        tempCalibRatio = self.fastGUI.calibRatioEntry.text()
+        if(tempCalibRatio == ""):
+            tempCalibRatio = DEFAULT_CALIBRATIO
+            self.fastGUI.calibRatioEntry.setText(str(DEFAULT_CALIBRATIO))
         else:
-            tempResistance = float(tempResistance)
-        if(tempResistance < 0):
+            tempCalibRatio = float(tempCalibRatio)
+        if(tempCalibRatio < 0):
             errorFlag = True
-            errorText += f'Invalid field: Resistance: Resistance value cannot be lower than 0\n'
+            errorText += f'Invalid field: Calibration ratio: Calibration ratio value cannot be lower than 0\n'
 
         if(not errorFlag):
             self.fastGUI.errorLabel.setText("")
             tempHPoint /= MV_TO_V_VALUE
             tempLPoint /= MV_TO_V_VALUE
             tempSPoint /= MV_TO_V_VALUE
-            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, "ON", "ON", tempFileType, tempResistance)
+            self.fastGUI.run_runner(tempWaveForm, tempHPoint, tempLPoint, tempSPoint, tempFreq, tempDec, tempSamples, "ON", "ON", tempFileType, tempCalibRatio)
             self.fastGUI.progressBar.setFormat("running the streaming service...") #set value and text
             self.fastGUI.progressBar.setValue(20)
         else:
@@ -820,16 +846,26 @@ class App(QWidget):
         tempIVratio = self.slowGUI.IVRatioCombobox.currentText()
         tempGain = self.slowGUI.gainCombobox.currentText()
         tempMaxWait = self.slowGUI.maxWaitEntry.text()
-        tempResistance = self.slowGUI.resistanceEntry.text()
+        #tempResistance = self.slowGUI.resistanceEntry.text()
+        tempCalibRatio = self.slowGUI.calibRatioEntry.text()
 
-        if(tempResistance == ""):
-            tempResistance = DEFAULT_RESISTANCE
-            self.slowGUI.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        # if(tempResistance == ""):
+        #     tempResistance = DEFAULT_RESISTANCE
+        #     self.slowGUI.resistanceEntry.setText(str(DEFAULT_RESISTANCE))
+        # else:
+        #     tempResistance = float(tempResistance)
+        # if(tempResistance < 0):
+        #     errorFlag = True
+        #     errorText += f'Invalid field: Resistance: value cannot be lower than {0.0}\n'
+
+        if(tempCalibRatio == ""):
+            tempCalibRatio = DEFAULT_CALIBRATIO
+            self.slowGUI.calibRatioEntry.setText(str(DEFAULT_CALIBRATIO))
         else:
-            tempResistance = float(tempResistance)
-        if(tempResistance < 0):
+            tempCalibRatio = float(tempCalibRatio)
+        if(tempCalibRatio < 0):
             errorFlag = True
-            errorText += f'Invalid field: Resistance: value cannot be lower than {0.0}\n'
+            errorText += f'Invalid field: Calibration ratio: value cannot be lower than 0.0\n'
 
         if(tempMaxWait == ""):
             tempMaxWait = MAX_WAIT
@@ -936,7 +972,7 @@ class App(QWidget):
             ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
             self.slowGUI.worker.setMaxWait(tempMaxWait)
-            self.slowGUI.PRunner.AcqDataProcessor.setResistance(tempResistance)
+            self.slowGUI.PRunner.AcqDataProcessor.setCalibRatio(tempCalibRatio)
         self.slowGUI.errorLabel.setText(errorText)
         self.slowGUI.worker.unlockPR()
 
@@ -1036,7 +1072,7 @@ class RunnerWorker(QObject):
 
 class FastRunnerWorker(QObject):
     finished = Signal()
-    def __init__(self, uProgramRunner: ProgramRunner.FastProgramRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uResistance):
+    def __init__(self, uProgramRunner: ProgramRunner.FastProgramRunner, uWaveForm, uHighPoint, uLowPoint, uStartPoint, uFrequency, uDecimation, uSamples, uCH1, uCH2, uFileType, uCalibRatio):
         super().__init__()
         self.runner = uProgramRunner
         self.waveform = uWaveForm
@@ -1049,10 +1085,10 @@ class FastRunnerWorker(QObject):
         self.ch1 = uCH1
         self.ch2 = uCH2
         self.filetype = uFileType 
-        self.resistance = uResistance
+        self.calibRatio = uCalibRatio
     
     def run(self):
-        self.runner.run(self.waveform, self.hPoint, self.lPoint, self.sPoint, self.freq, self.dec, self.samples, self.ch1, self.ch2, self.filetype, self.resistance)
+        self.runner.run(self.waveform, self.hPoint, self.lPoint, self.sPoint, self.freq, self.dec, self.samples, self.ch1, self.ch2, self.filetype, self.calibRatio)
         self.finished.emit()
 
 # =========== END MISC =========== # 
