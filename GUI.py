@@ -215,7 +215,7 @@ class SlowGUI(QWidget):
 
         # ========== LABELS ========== # 
         self.stepLabel = QLabel("Step value [mV]")
-        self.IVRatioLabel = QLabel("I/V [A/V?]")
+        self.IVRatioLabel = QLabel("I/V [A/V]")
         self.gainLabel = QLabel("Gain mode")
         self.hRangeLabel = QLabel("High peak value [mV]")
         self.lRangeLabel = QLabel("Low peak value [mV]")
