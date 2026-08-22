@@ -8,7 +8,7 @@ class WaveCreator:
         self.numberOfBits = WF_NUM_BITS
         self.sampleRate = WF_SAMPLE_RATE
         self.periods = WF_DEFAULT_PERIODS
-        self.samplesInPeriod = 0
+        self.samplesInPeriod = 0 #unused
         self.fullSize = WF_FULL_SIZE
         self.maximumValue = 2**(self.numberOfBits-1)-1
         self.minimumValue = -2**(self.numberOfBits-1)
@@ -63,7 +63,7 @@ class WaveCreator:
     
     def createZero(self):
         t = np.linspace(0, 1, self.fullSize)*2*np.pi
-        waveform = np.array(self.samplesInPeriod*t)
+        waveform = np.array(0*t)
         return np.int16(waveform)
 
     def createDC(self, voltVal):
