@@ -36,6 +36,8 @@ class ProgramRunner:
         self.currentCommand = None
         self.lastMode = None
         self.csvRowsCount = 0
+        self.startTime = 0
+        self.maxWait = 0
 
     def changeIP(self, uIP):
         self.ip = uIP
@@ -268,6 +270,7 @@ class ProgramRunner:
                 self.CSVFileManager.createFile()
                 self.csvRowsCount += 1
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
+                self.startTime = time.perf_counter()
     
             case ProgramMode.PRE_WORK_ROUTINE: 
                 self.Acquisitor.workRoutine()
@@ -283,7 +286,8 @@ class ProgramRunner:
                 self.CSVFileManager.addToFile(self.AcqDataProcessor.getLatestDataV(), self.AcqDataProcessor.getLatestDataI())
                 self.changeMode(ProgramMode.GEN_WORK_ROUTINE)
 
-            case ProgramMode.GEN_WORK_ROUTINE: 
+            case ProgramMode.GEN_WORK_ROUTINE:
+                t0 = time.perf_counter() 
                 self.genWorkRoutine()
                 self.Acquisitor.workRoutine()
                 Vbuffer = self.Acquisitor.getCurrentV()
@@ -296,6 +300,13 @@ class ProgramRunner:
                     self.CSVFileManager.createFile()
                 self.csvRowsCount += 1
                 self.CSVFileManager.addToFile(self.AcqDataProcessor.getLatestDataV(), self.AcqDataProcessor.getLatestDataI())
+                t1 = time.perf_counter()
+                delta = t1 - t0
+                waitVal = self.maxWait - delta
+                if(waitVal >= 0):
+                    time.sleep(waitVal)
+                else:
+                    print(f'Cycle time bigger than {self.maxWait}s -> {delta}s')
 
             case ProgramMode.GEN_COMMAND_SEND:
                 CMDManager.executeTCPCommand(self.socket, self.currentCommand)
@@ -343,6 +354,9 @@ class ProgramRunner:
                 self.AcqDataProcessor.processData(uBuffer)
             case DataType.GEN:
                 self.GenDataProcessor.processData(uBuffer)
+
+    def setMaxWait(self, uMaxWait):
+        self.maxWait = uMaxWait
 
     #   Closing the custom server connection
 

@@ -41,7 +41,7 @@ class GeneratorDataProcessor(DataProcessor):
         self.dataV = np.append(self.dataV, uNewData*MV_TO_V_VALUE)
 
     def getData(self):
-        return self.dataV
+        return self.dataV.copy()
     
     def clear(self):
         self.dataV = []
@@ -70,21 +70,19 @@ class AcquisitorDataProcessor(DataProcessor):
         self.dataI = np.append(self.dataI, uNewDataBuffer[1]*MV_TO_V_VALUE)
 
     def getDataV(self):
-        return self.dataV
+        return self.dataV.copy()
     
     def getDataI(self):
-        return self.dataI
+        return self.dataI.copy()
     
     def getLatestDataV(self):
         if(self.dataV.size > 0):
-            return self.dataV[-1]
+            return self.dataV[-1].copy()
         return 0.0
             
-            
-
     def getLatestDataI(self):
         if(self.dataI.size > 0):
-            return self.dataI[-1]
+            return self.dataI[-1].copy()
         return 0.0
     
     def clear(self):

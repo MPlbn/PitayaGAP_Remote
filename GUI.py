@@ -3,7 +3,7 @@ import time
 from PySide6.QtWidgets import ( QApplication, QWidget, QPushButton, QVBoxLayout, QHBoxLayout, QGridLayout, 
                                QStackedWidget, QProgressBar, QComboBox, QLabel, QLineEdit, QStackedLayout,
                                 QSizePolicy, QListWidget )
-from PySide6.QtCore import Signal, Qt, QObject, QThread, QRegularExpression
+from PySide6.QtCore import Signal, Qt, QObject, QThread, QRegularExpression, QTimer
 from PySide6.QtGui import QRegularExpressionValidator
 #Custom modules
 from constants import *
@@ -80,7 +80,7 @@ class SlowGUI(QWidget):
     genModeCBCallback = Signal()
 
     # ========== OTHER CALLBACKS ============= #
-    workerUpdateProgressCallback = Signal(float)
+    workerUpdateProgressCallback = Signal() #probably not used anymore
 
     def __init__(self, uIP):
         super().__init__()
@@ -88,6 +88,10 @@ class SlowGUI(QWidget):
         self.steppingPoints = []
         # ========== PROGRAM RUNNER ========== #
         self.PRunner = ProgramRunner.ProgramRunner(uIP)
+
+        # ============ TIMER ================= #
+        self.updateTimer = QTimer(self)
+        self.updateTimer.setInterval(40) #40ms
 
         # ========== LAYOUTS ========== #
         self.mainLayout = QGridLayout()
@@ -392,10 +396,12 @@ class SlowGUI(QWidget):
         self.worker.finished.connect(self.worker.deleteLater)
         self.worker.finished.connect(self.thread.deleteLater)
 
+        self.updateTimer.start()
         self.worker.start()
         self.thread.start()
     
     def stop_runner(self):
+            self.updateTimer.stop()
             self.worker.stop()
             self.thread.quit()
             self.thread.wait()
@@ -620,7 +626,7 @@ class App(QWidget):
         self.slowGUI.stepClearBtnCallback.connect(self.slow_stepClear_BTN_CBCK)
         self.slowGUI.steppingPointsList.itemDoubleClicked.connect(self.slow_stepRemove_LST_CBCK)
 
-        self.slowGUI.workerUpdateProgressCallback.connect(self.slow_WORKER_CYCLE_UPDATE_CBCK)
+        self.slowGUI.updateTimer.timeout.connect(self.slow_WORKER_CYCLE_UPDATE_CBCK)
 
         layout = QVBoxLayout()
         layout.addWidget(self.stack)
@@ -971,7 +977,8 @@ class App(QWidget):
             #self.slowGUI.PRunner.resetGeneratorValue()
             ratio = self.slowGUI.PRunner.processRatio(tempIVratio)
             self.slowGUI.acqPlotter.setRatio(ratio)
-            self.slowGUI.worker.setMaxWait(tempMaxWait)
+            self.slowGUI.worker.setMaxWait(tempMaxWait) #not used probably
+            self.slowGUI.PRunner.setMaxWait(tempMaxWait)
             self.slowGUI.PRunner.AcqDataProcessor.setCalibRatio(tempCalibRatio)
         self.slowGUI.errorLabel.setText(errorText)
         self.slowGUI.worker.unlockPR()
@@ -1003,18 +1010,23 @@ class App(QWidget):
     def slow_stepClear_BTN_CBCK(self):
         self.slowGUI.steppingPointsList.clear()
 
-    def slow_WORKER_CYCLE_UPDATE_CBCK(self, uVoltage: float):
+    def slow_WORKER_CYCLE_UPDATE_CBCK(self):
         self.slowGUI.worker.lockPR()
-        self.slowGUI.progressBar.setValue(int(uVoltage*1000))
-        self.slowGUI.progressLabel.setText(f'{uVoltage*1000:.1f} mV')
-        self.slowGUI.gatheredVLabel.setText(f'V: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataV():.4f} mV')
-        self.slowGUI.gatheredILabel.setText(f'I: {self.slowGUI.PRunner.AcqDataProcessor.getLatestDataI():.4f} mA')
-        self.slowGUI.acqPlotter.updateData(self.slowGUI.PRunner.AcqDataProcessor.getDataV(),
-                                           self.slowGUI.PRunner.AcqDataProcessor.getDataI())
-        self.slowGUI.genPlotter.updateData(self.slowGUI.PRunner.GenDataProcessor.getData())
+        latestDataV = self.slowGUI.PRunner.AcqDataProcessor.getLatestDataV()
+        latestDataI = self.slowGUI.PRunner.AcqDataProcessor.getLatestDataI()
+        acqDataV = self.slowGUI.PRunner.AcqDataProcessor.getDataV()
+        acqDataI = self.slowGUI.PRunner.AcqDataProcessor.getDataI()    
+        genDataV = self.slowGUI.PRunner.GenDataProcessor.getData()
+        voltage = self.slowGUI.PRunner.Acquisitor.getGenVal()
         self.slowGUI.worker.unlockPR()
-        #maybe change plotters to append new stuff instead of taking whole data
-        
+
+        self.slowGUI.progressBar.setValue(int(voltage*1000))
+        self.slowGUI.progressLabel.setText(f'{voltage*1000:.1f} mV')
+        self.slowGUI.gatheredVLabel.setText(f'V: {latestDataV:.4f} mV')
+        self.slowGUI.gatheredILabel.setText(f'I: {latestDataI:.4f} mA')
+        self.slowGUI.acqPlotter.updateData(acqDataV,
+                                           acqDataI)
+        self.slowGUI.genPlotter.updateData(genDataV)
     
     # ======================= End Callbacks ======================= #
 
@@ -1054,14 +1066,8 @@ class RunnerWorker(QObject):
     def run(self):
         while self.running:
             if(not self.isLocked):
-                t0 = time.perf_counter()
                 self.runner.run()
-                self.cycleDone.emit(self.runner.Acquisitor.getGenVal())
-                t1 = time.perf_counter()
-                delta = t1 - t0
-                waitVal = self.maxWait - delta
-                if(waitVal >= 0):
-                    time.sleep(waitVal)
+                time.sleep(0.00001)
         self.finished.emit()
     
     def lockPR(self):
